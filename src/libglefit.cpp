@@ -169,7 +169,7 @@ std::ostream& operator<< (std::ostream& ostr, const GLEFSearchMode& p)
         case Powell:      ostr<<"  powell   ";    break;
     };
     return ostr;
-}4
+}
     
 std::istream& operator>> (std::istream& istr, GLEFParStyleA& value)
 {
@@ -1307,15 +1307,15 @@ void GLEFError::compute_globs(std::map<GLEFGlobType, double>& lims)
     lac*=1./lae.size(); lac2*=1./lae.size(); 
     lims[AEigvCenter]=exp(lac); lims[AEigvSpread]=exp(sqrt(lac2-lac*lac)); 
     
-    lims[DeltaWidth]=0.;
+    lims[DeltaSpread]=0.;
     for (int i=1; i<A.rows()-1; i+=2)
-        lims[DeltaWidth]+=log(abs(A(i,i)/A(i+1,i+1)));
-    lims[DeltaWidth]=lims[DeltaWidth]/(A.rows()-1)*2;
+        lims[DeltaSpread]+=log(abs(A(i,i)/A(i,i+1)));
+    lims[DeltaSpread]=lims[DeltaSpread]/(A.rows()-1)*2;
     
     lims[DeltaWeight]=0.;
     for (int i=1; i<A.rows()-1; i+=2)
-        lims[DeltaWidth]+=log(abs(A(0,i)/A(i+1,i+1)));
-    lims[DeltaWidth]=lims[DeltaWidth]/(A.rows()-1)*2;
+        lims[DeltaWeight]+=log(abs(A(0,i)/A(i,i+1)));
+    lims[DeltaWeight]=lims[DeltaWeight]/(A.rows()-1)*2;
 
 }
 
