@@ -1309,12 +1309,12 @@ void GLEFError::compute_globs(std::map<GLEFGlobType, double>& lims)
     
     lims[DeltaSpread]=0.;
     for (int i=1; i<A.rows()-1; i+=2)
-        lims[DeltaSpread]+=log(abs(A(i,i)/A(i,i+1)));
+        lims[DeltaSpread]+=abs(log(abs(A(i,i)/A(i,i+1))));
     lims[DeltaSpread]=lims[DeltaSpread]/(A.rows()-1)*2;
     
     lims[DeltaWeight]=0.;
     for (int i=1; i<A.rows()-1; i+=2)
-        lims[DeltaWeight]+=log(abs(A(0,i)/A(i,i+1)));
+        lims[DeltaWeight]+=abs(log(abs(A(0,i)/A(i,i+1))));
     lims[DeltaWeight]=lims[DeltaWeight]/(A.rows()-1)*2;
 
 }

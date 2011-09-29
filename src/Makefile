@@ -3,7 +3,7 @@
 SOURCES=$(shell ls *.cpp)
 OBJECTS=$(SOURCES:.cpp=.o)
 DEPENDS=$(SOURCES:.cpp=.d)
-TOOLS=gle-fit gle-scaler 
+TOOLS=gle-fit gle-scaler gle-analyze
 .PHONY: all obj clean libs $(TOOLS)
 
 all: libs $(TOOLS)
