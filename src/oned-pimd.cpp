@@ -40,6 +40,8 @@ public:
     double temp, mass;
     std::valarray<double> pars;
     std::vector<double> ux; unsigned long nlin;
+    unsigned long npderiv;
+    
 };
 
 std::ostream& operator<< (std::ostream& ostr, const Integrator& pp)
@@ -149,6 +151,7 @@ std::ostream& operator<< (std::ostream& ostr, const odops& oo)
     iom.insert(oo.f_print_traj,"print_traj");
     iom.insert(oo.f_histogram,"histogram");
     iom.insert(oo.h_nwin,"histo-bins");
+    iom.insert(oo.npderiv,"p-derivs");    
     ostr<<iom;
     
     return ostr;
@@ -185,6 +188,7 @@ std::istream& operator>> (std::istream& istr, odops& oo)
     iom.insert(oo.f_histogram,"histogram",true);
     iom.insert(oo.h_nwin,"histo-bins",(unsigned long) 0);
     iom.insert(oo.units, "units",UnitConv());
+    iom.insert(oo.npderiv,"p-derivs",(unsigned long) 0);    
     istr>>iom;
    
     //sets INTERNAL units
@@ -394,6 +398,22 @@ void addpia(const std::valarray<double>& mq, std::valarray<double>& pa)
     for (int b=1; b<mq.size(); ++b) { f=(mq[b-1]-mq[b])*piwn; pa[b]+=f; pa[b-1]-=f; lastpiv+=f*0.5*(mq[b-1]-mq[b]); }
 } 
 
+void gtrans_fw(double gamma, const std::valarray<double>& mq, std::valarray<double>& mq1)
+{
+    if(mq1.size()!=mq.size())    mq1.resize(mq.size());
+    double n=mq.size(), g=(n-sqrt(n+n*(n-1)*gamma))/(n*(n-1)), dq=mq[0]-mq[mq.size()-1];
+    for (int i=0; i<mq.size(); ++i)
+        mq1[i]=mq[i]+g*(i-(n-1)/2)*dq;
+}
+
+void gtrans_bw(double gamma, const std::valarray<double>& mq, std::valarray<double>& mq1)
+{
+    if(mq1.size()!=mq.size())    mq1.resize(mq.size());
+    double n=mq.size(), g=(n-sqrt(n+n*(n-1)*gamma))/(n*(n-1)), h=g/((n-1)*g-1), dq=mq[0]-mq[mq.size()-1];
+    for (int i=0; i<mq.size(); ++i)
+        mq1[i]=mq[i]+h*(i-(n-1)/2)*dq;
+}
+
 FMatrix<double> nmC; std::valarray<double> nmt;
 FMatrix<double> nmev;
 void mknmc(unsigned long nb, double dt)
@@ -472,6 +492,12 @@ void verlet(std::valarray<double>& mq, std::valarray<double>& mp, double& dt, In
     }
 }
 
+double binomial(int n, int k)
+{
+   if (k==0) return 1.0;
+   if (n==0) return 0.0;
+   return binomial(n-1,k-1) + binomial(n-1,k);
+}
 
 int main(int argc, char **argv)
 {
@@ -566,7 +592,7 @@ int main(int argc, char **argv)
     }
 
     std::ofstream acout((ops.prefix+std::string(".acf")).c_str());
-    std::ofstream tout, lout, laout;
+    std::ofstream tout, lout, laout, npout;
     if (ops.f_print_traj)  tout.open((ops.prefix+std::string(".traj")).c_str());
     
     std::valarray<double> uxavg(ops.ux.size()); uxavg=0.; unsigned long nux=0;
@@ -581,6 +607,9 @@ int main(int argc, char **argv)
         lout <<std::endl;
     }
     for (int u=0; u<ops.ux.size(); ++u) ops.ux[u]=ops.units.u2i(UnitConv::ULength,ops.ux[u])*sqrt(ops.mass);
+
+    if (ops.f_print_traj && ops.npderiv>0) npout.open((ops.prefix+std::string(".npd")).c_str());
+    npout << "# Dnf/Dx^n | x=0\n";
 
     acout.precision(6); tout.precision(6); lout.precision(6);
     std::cerr<<ops.dt*0.5<<" TIMESTEP IN INT. UNITS\n";
@@ -787,6 +816,7 @@ int main(int argc, char **argv)
         for (unsigned long b=0; b<ops.nbeads; ++b) epot+=ops.units.i2u(UnitConv::UEnergy,pe(q[b]));
         vest=epot/ops.nbeads; 
         
+        //virial kinetic energy estimator
         qc=0.0; for (unsigned long b=0; b<ops.nbeads; ++b) qc+=q[b]; qc/=ops.nbeads;
         for (unsigned long b=0; b<ops.nbeads; ++b) kest+=(q[b]-qc)*pma(q[b]);
         kest=ops.units.i2u(UnitConv::UEnergy,(ops.temp-kest/ops.nbeads)*0.5);
@@ -888,6 +918,42 @@ int main(int argc, char **argv)
                 for (int b=0; b<ops.nbeads; ++b) tout<<setw(12)<<ops.units.i2u(UnitConv::ULength,pR[b][0]*sqrt(ops.mass))*ops.units.i2u(UnitConv::UMass,1.)/ops.units.i2u(UnitConv::UTime,1.)<<" ";
                 
                 tout<<std::endl;
+            }
+
+            if (is%ops.stride==0 && ops.npderiv>0)
+            {
+               double dx=1e-6;               
+               std::valarray<double> y(ops.nbeads), q1(ops.nbeads), pre(ops.nbeads), fi(ops.npderiv+1), npd(ops.npderiv+1); int b;
+               for (b=0; b<ops.nbeads; ++b) pre[b]=pe(q[b]);
+               npd=0.0;
+
+               //OK, this is a REALLY BAD way of computing derivatives. a lot of re-using could be done, but here I want to be quick&dirty               
+               for (int ud=0; ud<=ops.npderiv; ++ud)
+               {
+                    for (int u=0; u<=ud; ++u)
+                    {
+                      double dispe=0; 
+                      double du=dx*(ud*0.5-u);
+                    
+                      gtrans_bw(1.0+du,q,q1);
+                      for (b=0; b<ops.nbeads; ++b) 
+                      { y[b]=pe(q1[b])-pre[b]; dispe+=y[b]; }
+                      dispe=exp(-dispe/(ops.temp*ops.nbeads));      
+                      fi[u]=dispe;
+                    }
+                    // now compute the finite-differences derivative
+                    for (int i=0; i<=ud; ++i) npd[ud]+=(i%2==0?1:-1)*binomial(ud,i)*fi[i];
+                    npd[ud]*=pow(1.0/dx, ud);
+               }
+               
+               //screw it, directly print out the mmoments estimators
+               
+               //for (int ud=0; ud<=ops.npderiv; ++ud) 
+               
+               npout<<setw(12)<<std::scientific<<ops.units.i2u(UnitConv::UEnergy,ops.temp*(0.5+ops.nbeads*npd[1]))    <<"  "
+                       <<setw(12)<<std::scientific<<pow(ops.units.i2u(UnitConv::UEnergy,1.0),2)*ops.temp*ops.temp*(0.75+ops.nbeads*(2*ops.nbeads+1)*npd[1]+ops.nbeads*ops.nbeads*npd[2])    <<"  ";
+               npout<<"\n";
+               
             }
             
             if (is%ops.stride==0 && ops.ux.size()>0)

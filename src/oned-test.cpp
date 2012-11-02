@@ -590,7 +590,8 @@ int main(int argc, char **argv)
             ops.pars[1]=ops.units.u2i(UnitConv::UEnergy,ops.pars[1]);
             pl[0]=ops.pars[0];
             pl[1]=4.*ops.pars[1]/ops.pars[0];
-            q=ops.pars[0]; //it will decorrelate afterwards, we start in the bottom of a well
+            q=ops.pars[0]/sqrt(ops.mass); //it will decorrelate afterwards, we start in the bottom of a well
+            std::cerr<<"initializing double well into "<<q<<std::endl;
             break;
         case PFlexiWell:
             pma=&aFW; pe=&eFW;
@@ -830,7 +831,7 @@ int main(int argc, char **argv)
         }
         if (ops.f_histogram && is==(ops.drop<100?100:ops.drop))
         {
-            std::cerr<<hqa<<","<<hqb<<" : "<<hpa<<","<<hpb<<" : "<<hq2<<" : "<<hp2<<"\n";
+            std::cerr<<"histogram boundaries "<<hqa<<","<<hqb<<" : "<<hpa<<","<<hpb<<" : "<<hq2<<" : "<<hp2<<"\n";
             for (int ij=0;ij<=ops.h_nwin;++ij)
             {
                 hgo.boundaries[ij]=(hqa+hqb)/2.-(hqb-hqa)*2.*(1.-(2.*ij)/ops.h_nwin);

@@ -4,6 +4,7 @@
 #include "linalg.hpp"
 
 using namespace toolbox;
+#define DELTA_SMALL 1e-12
 
 std::istream& operator>> (std::istream& istr, GLEFDir& value)
 {
@@ -116,11 +117,15 @@ std::istream& operator>> (std::istream& istr, GLEFGlobType& value)
     else if (str=="tzero"  )        value=TZero;
     else if (str=="tinf"   )        value=TInf;
     else if (str=="aratio" )        value=ARatio;
+    else if (str=="acondnum" )      value=ACondNum;    
+    else if (str=="ccondnum" )      value=CCondNum;  
+    else if (str=="dcondnum" )      value=DCondNum;          
     else if (str=="cratio" )        value=CRatio;
     else if (str=="pqratio")        value=PQRatio; 
     else if (str=="aespread" )      value=AEigvSpread;
     else if (str=="aecenter" )      value=AEigvCenter;
     else if (str=="aeweight" )      value=AEigvWeight;
+    else if (str=="aecondnum" )     value=AECondNum;    
     else if (str=="deltaspread" )   value=DeltaSpread;
     else if (str=="deltaweight" )   value=DeltaWeight;
     else istr.clear(std::ios::failbit);
@@ -136,11 +141,15 @@ std::ostream& operator<< (std::ostream& ostr, const GLEFGlobType& p)
         case TZero:        ostr<<" tzero     ";    break;
         case TInf:         ostr<<" tinf      ";    break;
         case ARatio:       ostr<<" aratio    ";    break;
+        case ACondNum:     ostr<<" acondnum  ";    break;         
         case CRatio:       ostr<<" cratio    ";    break;
+        case CCondNum:     ostr<<" ccondnum  ";    break; 
+        case DCondNum:     ostr<<" dcondnum  ";    break;         
         case PQRatio:      ostr<<" pqratio   ";    break;
         case AEigvSpread:  ostr<<" aespread  ";    break;
         case AEigvCenter:  ostr<<" aecenter  ";    break;
         case AEigvWeight:  ostr<<" aeweight  ";    break;
+        case AECondNum:    ostr<<" aecondnum ";    break;        
         case DeltaSpread:  ostr<<" deltaspread ";  break;
         case DeltaWeight:  ostr<<" deltaweight ";  break;
 
@@ -810,7 +819,6 @@ void GLEFError::pars2AC()
         ap=0.; bap=0.; lA*=0.;
         for (int i=0; i<n/2; i++) ap[i*2]=sqrt(exp(p[k++])/(2*constant::pi));
         bap=-ap; ap*=ascale; bap*=ascale; 
-#define DELTA_SMALL 1e-50
         for (int i=0; i<n/2; i++)  {  lA(2*i,2*i)=exp(p[k++]); lA(2*i+1,2*i+1)=DELTA_SMALL; lA(2*i+1,2*i)=-(lA(2*i,2*i+1)=exp(p[k++])); }
         lA*=ascale;
     }
@@ -878,7 +886,7 @@ void GLEFError::pars2AC()
     {
         FMatrix<double> BBT(n+1,n+1), T1;
         BBT(0,0)=cpp*A(0,0)*2.0;
-        for (int i=0; i<n/2; i++) BBT(2*i+1,2*i+1)=exp(p[k++])*A(2*i+1,2*i+1)*2.;
+        for (int i=0; i<n/2; i++) { BBT(2*i+1,2*i+1)=exp(p[k++])*A(2*i+1,2*i+1)*2.;  BBT(2*i+2,2*i+2)=2.0*DELTA_SMALL; } 
         GLEABC iABC;
         iABC.set_A(A); iABC.set_BBT(BBT);
         iABC.get_C(T1); cpp=T1(0,0);
@@ -1306,7 +1314,29 @@ void GLEFError::compute_globs(std::map<GLEFGlobType, double>& lims)
     
     lac*=1./lae.size(); lac2*=1./lae.size(); 
     lims[AEigvCenter]=exp(lac); lims[AEigvSpread]=exp(sqrt(lac2-lac*lac)); 
-    
+
+    double minae, maxae; minae=maxae=abs(lae[0]); 
+    for(int i=1; i<lae.size(); i++) { minae=(minae>abs(lae[i])?abs(lae[i]):minae); maxae=(maxae<abs(lae[i])?abs(lae[i]):maxae); }
+    lims[AECondNum]=maxae/minae;
+
+    EigenDecomposition(A, lO, lO1, lae);
+    minae=maxae=abs(lae[0]); 
+    for(int i=1; i<lae.size(); i++) { minae=(minae>abs(lae[i])?abs(lae[i]):minae); maxae=(maxae<abs(lae[i])?abs(lae[i]):maxae); }
+    lims[ACondNum]=maxae/minae;    
+
+    EigenDecomposition(C, lO, lO1, lae);
+    minae=maxae=abs(lae[0]); 
+    for(int i=1; i<lae.size(); i++) { minae=(minae>abs(lae[i])?abs(lae[i]):minae); maxae=(maxae<abs(lae[i])?abs(lae[i]):maxae); }
+    lims[CCondNum]=maxae/minae;    
+
+    FMatrix<double> BBT, T;
+    mult(A,C,BBT); transpose(BBT,T); incr(BBT,T); 
+    EigenDecomposition(BBT, lO, lO1, lae);
+    minae=maxae=abs(lae[0]); 
+
+    for(int i=1; i<(opar.pstyleC==CDelta?lae.size()/2:lae.size()); i++) { minae=((minae>abs(lae[i]))?abs(lae[i]):minae); maxae=(maxae<abs(lae[i])?abs(lae[i]):maxae); }
+    lims[DCondNum]=maxae/minae;    
+        
     lims[DeltaSpread]=0.;
     for (int i=1; i<A.rows()-1; i+=2)
         lims[DeltaSpread]+=abs(log(abs(A(i,i)/A(i,i+1))));
