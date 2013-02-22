@@ -268,7 +268,7 @@ std::istream& operator>> (std::istream& istr, odops& oo)
         oo.C.resize(oo.A.rows(),oo.A.cols());
         for (unsigned int i=0; i<oo.A.rows(); ++i) oo.C(i,i)=oo.temp*oo.nbeads;
     }
-    
+   
     return istr;
 }
 

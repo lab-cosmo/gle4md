@@ -13,7 +13,7 @@ void banner()
     std::cerr
             << " USAGE: gle-analyze -a a-file [(-b b-file | -c c-file | -d d-file)] [-sa scale] \n" 
             << "     [-sc scale] [-wi w_i] [-wf w_f] [-np np] [-p pars] [-ww wacf] [-tex]       \n"
-            << "     [-pk delta] [-dt dt]                                                       \n"
+            << "     [-pk delta] [-dt dt] [-tfree maxt]                                         \n"
             << " performs in-depth analytical study of the generalized Langevin equation        \n"
             << "                            dx=-A x dt + B dW                                   \n"
             << " A matrix must be provided, wherease for the diffusion term one can provide     \n"
@@ -30,6 +30,8 @@ void banner()
             << " frequency value supplied. If -wi and -wf options are given, integral properties\n"
             << " are plotted as a function of the frequency. np is the number of data points to \n"
             << " be plotted, in both cases, on a log scale.                                     \n"
+            << " If -tfree is provided, MSD and related properties are produced for a free      \n"
+            << " particle, from time zero up to the specified time maxt.                        \n"
             << " -tex outputs data in a form which can be post-processed with latex to give     \n"
             << " a 'facts sheet' about the matrices provided.                                   \n"
             << " -pk also performs a 'disturbance analysis' with relative window delta.         \n"
@@ -135,7 +137,7 @@ int main(int argc, char **argv)
     std::cout.setf(std::ios::scientific);
     
     //computes analytics
-    
+
     double diff;
     abc.get_diff(diff);
     if (ffree)
@@ -188,7 +190,7 @@ int main(int argc, char **argv)
         
     }
     else
-    {
+    {           
         std::valarray<double> w(np), kw(np), hw(np), tq2(np), tp2(np), th(np), q2(np), p2(np), pq(np), dwq(np), dwp(np), hdist(np), lfp(np)
                 , q2dt(np), p2dt(np), pqdt(np);
         for (unsigned long ip=0; ip<np; ip++)

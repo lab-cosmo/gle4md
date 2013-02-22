@@ -74,6 +74,7 @@ void GLEABC::get_diff(double& d)
 {
     if (!fr_c) prepare_C();
     if (!fr_hk) prepare_hk();
+
     DMatrix T1,T2; MatrixInverse(A,T1);
     mult(T1,C,T2);
     d=T2(0,0)/C(0,0);
@@ -98,10 +99,12 @@ void GLEABC::get_KH(double w, double& kw, double& hw)
     unsigned long ln=n-1;
     DMatrix T1, AZ;
     //computes AZ=A/(A^2+w^2)=(A+w2 A^-1)^-1
-    T1=lA1*w2;
-    T1+=lA;
-    MatrixInverse(T1,AZ);
-    
+    if (ln>0) 
+    {
+        T1=lA1*w2;
+        T1+=lA;
+        MatrixInverse(T1,AZ);
+    }
     std::valarray<double> AWa(n);
     AWa=0.;
     for (int i=0; i<ln; ++i)
@@ -114,8 +117,7 @@ void GLEABC::get_KH(double w, double& kw, double& hw)
     
     //compute matrices needed in the calculation of H(w)
     DMatrix Z,AZA;
-    mult(AZ,lA1,Z);
-    mult(lA,AZ,AZA);
+    if (ln>0) { mult(AZ,lA1,Z);  mult(lA,AZ,AZA); }
     
     double t1, t2, t3;
     t1=t2=0.;
@@ -138,9 +140,10 @@ void GLEABC::get_KHt(double& t, double& kt, double& ht)
     if (t==0.) { kt+=2.*A(0,0); ht+=BBT(0,0); }
     
     unsigned long ln=n-1;
+    if (ln==0) return;
     
-    CMatrix T1(n-1,n-1,0.), T2; DMatrix T(ln,ln);
-    for (unsigned long i=0; i<ln; ++i) T1(i,i)=exp(-t*la[i]); mult(lAO,T1,T2); mult(T2,lAO1,T1); 
+    CMatrix T1(ln,ln,0.), T2; DMatrix T(ln,ln);
+    for (unsigned long i=0; i<ln; ++i) T1(i,i)=exp(-t*la[i]); mult(lAO,T1,T2); mult(T2,lAO1,T1);
     for (unsigned long i=0; i<ln; ++i) for (unsigned long j=0; j<ln; ++j) T(i,j)=real(T1(i,j));
     //now, T holds exp(-t lA)
     
@@ -225,11 +228,12 @@ void GLEABC::prepare_hk()
 {
     if (!fr_init) ERROR("Object is not initialized yet");
     
-    unsigned long ln=n-1; lA.resize(ln,ln);
+    unsigned long ln=n-1; lA.resize(ln,ln); lAO.resize(ln,ln); lAO1.resize(ln,ln); la.resize(ln); lZap.resize(ln);
+    if (ln==0) return;
     for (int i=0; i<ln; ++i)
         for (int j=0; j<ln; ++j)
     { lA(i,j)=A(i+1,j+1); }
-    
+
     MatrixInverse(lA,lA1);
     EigenDecomposition(lA,lAO,lAO1,la);
 
@@ -244,7 +248,7 @@ void GLEABC::prepare_hk()
     
     transpose(lAO,T3);
     mult(lAO,T2,T1); mult(T1,T3,T2);
-    lZap.resize(ln); lZap=0.; 
+    lZap=0.; 
     for (int i=0; i<ln; ++i) for (int j=0; j<ln; ++j) lZap[i]+=real(T2(i,j))*A(0,i+1);
     
     fr_hk=true;
@@ -393,7 +397,7 @@ void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, dou
     lambdafp=eva[0].real(); 
     for (int i=0; i<n; i++) lambdafp=(eva[i].real()<lambdafp?eva[i].real():lambdafp);
     
-    //std::cerr<<" ---  C in tauw "<<w<<" ----\n"<<xC<<" ---------- \n";
+//    std::cerr<<" ---  C in tauw "<<w<<" ----\n"<<xC<<" ---------- \n";
     abc.get_C(xC);
     double c00=xC(0,0), c01=xC(0,1), c11=xC(1,1); 
     
@@ -409,7 +413,7 @@ void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, dou
     double ppqq=qqpp; //come on, the simmetry is evident. let's save time!
     double pppp=t11;
 
-    //std::cerr<<"NEW: "<<qqqq<<","<<qqpp<<","<<ppqq<<","<<pppp<<"\n";
+//    std::cerr<<"NEW: "<<qqqq<<","<<qqpp<<","<<ppqq<<","<<pppp<<"\n";
     double qqqq0=q2*q2;
     double qqpp0=pq*pq;
     double ppqq0=qqpp0;
