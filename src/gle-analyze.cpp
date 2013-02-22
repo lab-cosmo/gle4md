@@ -12,7 +12,7 @@ void banner()
 {
     std::cerr
             << " USAGE: gle-analyze -a a-file [(-b b-file | -c c-file | -d d-file)] [-sa scale] \n" 
-            << "     [-sc scale] [-wi w_i] [-wf w_f] [-np np] [-p pars] [-ww wacf] [-tex]       \n"
+            << "     [-sc scale] [-wi w_i] [-wf w_f] [-np np] [-ww wacf] [-tex]                 \n"
             << "     [-pk delta] [-dt dt] [-tfree maxt]                                         \n"
             << " performs in-depth analytical study of the generalized Langevin equation        \n"
             << "                            dx=-A x dt + B dW                                   \n"
