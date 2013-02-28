@@ -395,7 +395,7 @@ void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, dou
     
     std::valarray<std::complex<double> >eva; abc.get_evA(eva);
     lambdafp=eva[0].real(); 
-    for (int i=0; i<n; i++) lambdafp=(eva[i].real()<lambdafp?eva[i].real():lambdafp);
+    for (int i=0; i<n+1; i++) lambdafp=(eva[i].real()<lambdafp?eva[i].real():lambdafp);
     
 //    std::cerr<<" ---  C in tauw "<<w<<" ----\n"<<xC<<" ---------- \n";
     abc.get_C(xC);
