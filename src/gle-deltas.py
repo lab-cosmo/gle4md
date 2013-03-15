@@ -8,6 +8,9 @@ pygtk.require('2.0')
 import gtk, gobject, cairo, pango
 import subprocess, math
 
+def logvalue(scale, value, fmt= "%4.2e"):
+   return str( fmt % (10**value))
+
 # Define the main window
 
 class deltablock:
@@ -35,32 +38,36 @@ class deltablock:
         label=gtk.Label("Δω/ω_0= "); label.show(); self.box.attach(label,0,1,1,2,gtk.SHRINK,gtk.SHRINK)
         label=gtk.Label("γ/(Δω ω_0)= ");   label.show(); self.box.attach(label,0,1,2,3,gtk.SHRINK,gtk.SHRINK)
         label=gtk.Label("T= "); label.show(); self.box.attach(label,0,1,3,4,gtk.SHRINK,gtk.SHRINK)
-        label=gtk.Label("10^"); label.show(); self.box.attach(label,1,2,0,1,gtk.SHRINK,gtk.SHRINK)
-        label=gtk.Label("10^"); label.show(); self.box.attach(label,1,2,1,2,gtk.SHRINK,gtk.SHRINK); 
-        label=gtk.Label("10^"); label.show(); self.box.attach(label,1,2,2,3,gtk.SHRINK,gtk.SHRINK); 
-        label=gtk.Label("10^"); label.show(); self.box.attach(label,1,2,3,4,gtk.SHRINK,gtk.SHRINK)
+#        label=gtk.Label("10^"); label.show(); self.box.attach(label,1,2,0,1,gtk.SHRINK,gtk.SHRINK)
+#        label=gtk.Label("10^"); label.show(); self.box.attach(label,1,2,1,2,gtk.SHRINK,gtk.SHRINK); 
+#        label=gtk.Label("10^"); label.show(); self.box.attach(label,1,2,2,3,gtk.SHRINK,gtk.SHRINK); 
+#        label=gtk.Label("10^"); label.show(); self.box.attach(label,1,2,3,4,gtk.SHRINK,gtk.SHRINK)
 
         self.w0a = gtk.Adjustment(self.omega0, -5.0, 6.0, 0.01, 1.0, 1.0)
         self.w0a.connect("value_changed", self.setw0)
         self.w0s = gtk.HScale(self.w0a)
+        self.w0s.connect("format-value", logvalue)
         self.w0s.set_digits(2);  self.w0s.set_value_pos(gtk.POS_LEFT);
         self.w0s.show()
         self.box.attach(self.w0s,2,3,0,1,gtk.FILL|gtk.EXPAND,gtk.SHRINK)
         self.dwa = gtk.Adjustment(self.domega, -5.0, 6.0, 0.01, 1.0, 1.0)
         self.dwa.connect("value_changed", self.setdw)
         self.dws = gtk.HScale(self.dwa)
+        self.dws.connect("format-value", logvalue)
         self.dws.set_digits(2);  self.dws.set_value_pos(gtk.POS_LEFT)
         self.dws.show()
         self.box.attach(self.dws,2,3,1,2,gtk.FILL|gtk.EXPAND,gtk.SHRINK)
         self.ga = gtk.Adjustment(self.gamma, -5.0, 6.0, 0.01, 1.0, 1.0)
         self.ga.connect("value_changed", self.setg)
         self.gs = gtk.HScale(self.ga)
+        self.gs.connect("format-value", logvalue)
         self.gs.set_digits(2);        self.gs.set_value_pos(gtk.POS_LEFT)
         self.gs.show()
         self.box.attach(self.gs,2,3,2,3,gtk.FILL|gtk.EXPAND,gtk.SHRINK)
         self.ta = gtk.Adjustment(self.temp, -5.0, 6.0, 0.01, 1.0, 1.0)
         self.ta.connect("value_changed", self.sett)
         self.ts = gtk.HScale(self.ta)
+        self.ts.connect("format-value", logvalue)
         self.ts.set_digits(2);        self.ts.set_value_pos(gtk.POS_LEFT)
         self.ts.show()
         self.box.attach(self.ts,2,3,3,4,gtk.FILL|gtk.EXPAND,gtk.SHRINK)
@@ -69,6 +76,7 @@ class deltablock:
 class plotarea(gtk.DrawingArea):
     def __init__(self):
         self.data=[]; self.datax=[]
+        self.bhw=1.0
         gtk.DrawingArea.__init__(self)
         self.connect("expose_event", self.expose)
         
@@ -109,6 +117,13 @@ class plotarea(gtk.DrawingArea):
         cr.save(); cr.translate(-5,0); cr.scale(1,-1); cr.show_layout(txt); cr.restore();
         cr.save(); cr.translate(0,5); cr.scale(1,-1); cr.show_layout(txt); cr.restore();
         
+        cr.set_line_width(0.025)
+        cr.set_source_rgb(0,0,0)
+        cr.move_to(self.datax[0],0)
+        for i in range(1,len(self.datax)):
+            cr.line_to(self.datax[i],math.log10(10**self.datax[i]*0.5*self.bhw/math.tanh(10**self.datax[i]*self.bhw*0.5)) )
+        cr.stroke()
+ 
         if len(self.datax)>0:
             cr.set_line_width(0.05); 
             for j in range(0,len(self.data[0])):
@@ -147,6 +162,7 @@ class mainwin:
             if self.glesel["cqq"]: dd.append(math.log10(el[6]));
             if self.glesel["cpp"]: dd.append(math.log10(el[7]));  
             self.plot.data.append(dd)
+        self.plot.bhw=self.bhw
         self.plot.redraw()
 
 
@@ -162,6 +178,10 @@ class mainwin:
         elif (user1=="temp0"): self.temp0=adj.value;
         self.valuechanged()
 
+    def setx(self,adj):
+        self.bhw=10**adj.value
+        self.valuechanged()
+
     def ddraw(self,adj):
         while len(self.deltas)>int(adj.value):
             self.dbox.remove(self.deltas[len(self.deltas)-1].box); self.deltas.pop(); 
@@ -175,7 +195,7 @@ class mainwin:
         self.deltas=[]
         self.gledata=[]
         self.glesel={"K" : True, "H" : False, "kv" : True, "kh" : False, "kk" : False, "cpp" : False, "cqq" : True}
-        self.gamma0=-20; self.temp0=0;
+        self.gamma0=-20; self.temp0=0; self.bhw=1.0
         # Window and framework
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.set_title("Build and test a GLE as a sum of deltas.")
@@ -205,6 +225,23 @@ class mainwin:
         hbox.pack_end(self.auto,False,False)
         hbox.show()
         vbox.pack_start(hbox,False,False)
+
+        hbox = gtk.HBox(homogeneous=False, spacing=3)
+        label=gtk.Label("b h w=")
+        hbox.pack_start(label,False,False)
+        label.show()
+        self.xadj=gtk.Adjustment(1.0, -1.0, 3, step_incr=0.01, page_incr=1.0, page_size=1.0)
+        self.xadj.connect("value_changed", self.setx)
+        self.xslider=gtk.HScale(self.xadj)
+        self.xslider.connect("format-value", logvalue)
+        self.xslider.set_digits(1)
+        self.xslider.set_value_pos(gtk.POS_LEFT)
+        self.xslider.set_size_request(400,20)
+        hbox.pack_start(self.xslider,True,True)
+        self.xslider.show()   
+        hbox.show()     
+        vbox.pack_start(hbox,False,False)
+
 
         hbox = gtk.HBox(homogeneous=False, spacing=3)
         label=gtk.Label("n_δ=")
@@ -239,6 +276,7 @@ class mainwin:
         adj=gtk.Adjustment(self.gamma0, -20.0, 6.0, 0.01, 1.0, 1.0)
         adj.connect("value_changed", self.apars,"gamma0")
         slider=gtk.HScale(adj)
+        slider.connect("format-value", logvalue)
         slider.set_digits(2)
         slider.set_value_pos(gtk.POS_LEFT)
         slider.set_size_request(400,20); slider.show()   
@@ -252,6 +290,7 @@ class mainwin:
         adj=gtk.Adjustment(self.temp0, -5.0, 6.0, 0.01, 1.0, 1.0)
         adj.connect("value_changed", self.apars,"temp0")
         slider=gtk.HScale(adj)
+        slider.connect("format-value", logvalue)
         slider.set_digits(2)
         slider.set_value_pos(gtk.POS_LEFT)
         slider.set_size_request(400,20); slider.show()   
@@ -320,7 +359,7 @@ class mainwin:
 
         afile.close()
         dfile.close()
-        pgle=subprocess.Popen(["gle-analyze","-wi","1e-5","-wf","1e5","-np","1000","-a",afilename,"-d",dfilename],stdout=ofile)
+        pgle=subprocess.Popen(["gle-analyze","-wi","1e-5","-wf","1e5","-np","500","-a",afilename,"-d",dfilename],stdout=ofile)
         pgle.wait()
         ofile.close()
         ofile=open(ofilename,'r')

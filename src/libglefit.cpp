@@ -1099,7 +1099,7 @@ void GLEFError::AC2pars()
         {
             for(int i=0; i<n+1; ++i) for(int j=i+1; j<n+1; ++j) p[k++]=P(i,j);
         }
-        else for(int i=1; i<n+1; ++i) p[k++]=P(i,0);  //se completely drop the ansymetric Ps block.
+        else for(int i=1; i<n+1; ++i) p[k++]=P(i,0);  //se completely drop the asymmetric Ps block.
     }
     
     //moves on to C
