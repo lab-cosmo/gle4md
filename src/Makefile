@@ -3,7 +3,7 @@
 SOURCES=$(shell ls *.cpp)
 OBJECTS=$(SOURCES:.cpp=.o)
 DEPENDS=$(SOURCES:.cpp=.d)
-TOOLS=gle-fit gle-scaler gle-analyze oned-pimd oned-test
+TOOLS=gle-fit gle-scaler gle-analyze oned-pimd oned-test par-test
 .PHONY: all obj clean libs $(TOOLS)
 
 all: libs $(TOOLS)
@@ -22,7 +22,7 @@ clean:
 $(TOOLS): % : ../bin/%
 $(TOOLS:%=../bin/%): ../bin/%: %.o libglefit.o libcolor.o
 	$(CXX) $(CXXFLAGS) -o $@ $< libcolor.o  libglefit.o $(LDFLAGS)
-	
+
 ../bin/oned-pimd: oned-pimd.o  libglefit.o libcolor.o
 	$(CXX) $(CXXFLAGS) -o $@ $< libcolor.o  libglefit.o $(LDFLAGS) -lfftw3
 ../bin/oned-test: oned-test.o  libglefit.o libcolor.o
