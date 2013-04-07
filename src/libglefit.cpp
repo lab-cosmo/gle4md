@@ -973,7 +973,7 @@ FMatrix<double> APO, APOT;
         FMatrix<double> BBT, T1; // temporaries
         mult(tA,tC,T1); transpose(T1,BBT); BBT+=T1;
         StabCholesky(BBT,T1);         // get B
-        for (int i=0; i<n+1; i++) p[k++]=log(T1(i,i));
+        for (int i=0; i<n+1; i++) {std::cerr<<T1(i,i) <<" T1\n"; p[k++]=log(T1(i,i)>0?T1(i,i):VERY_SMALL);} 
         if (opar.pstyleC==CIndirect)
            for (int i=1; i<n+1; i++) for (int j=0; j<i; j++) p[k++]=T1(i,j);
     }

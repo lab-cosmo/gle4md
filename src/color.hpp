@@ -1,7 +1,7 @@
 #ifndef __COLOR_HPP
 #define __COLOR_HPP 1
 
-#define GLE_DEBUG 1
+#define GLE_DEBUG 5
 #define  __NOPEAK 1
 
 #include "tbdefs.hpp"
