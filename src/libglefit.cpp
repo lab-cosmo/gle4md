@@ -5,7 +5,9 @@
 
 using namespace toolbox;
 #define DELTA_SMALL 1e-12
+#define VERY_SMALL  1e-100
 
+// I/O functions block
 std::istream& operator>> (std::istream& istr, GLEFDir& value)
 {
     std::string str;
@@ -237,189 +239,6 @@ std::ostream& operator<< (std::ostream& ostr, const GLEFParStyleC& p)
     return ostr;
 }
 
-/* TO BE REMOVED SOON...
-namespace toolbox {
-    template<> inline bool toolbox::IField<GLEFDir>::operator<<(std::istream& istr)
-    {
-        std::string str;
-        istr>>str;
-        if      (str=="=")    value=Equal;
-        else if (str==">")    value=Greater;
-        else if (str=="<")    value=Smaller;
-        else return false;
-        return true;
-    }
-
-    std::ostream& operator<< (std::ostream& ostr, const GLEFDir& p)
-    {
-        switch (p)
-        {
-        case Equal:       ostr<<" = ";  break;
-        case Greater:     ostr<<" > ";  break;
-        case Smaller:     ostr<<" < ";  break;
-        };
-        return ostr;
-    }
-
-    template<> inline bool toolbox::IField<GLEFMetric>::operator<<(std::istream& istr)
-    {
-        std::string str;
-        istr>>str;
-        if      (str=="lin")      value=Linear;
-        else if (str=="log")      value=Logarithmic;
-        else if (str=="exp")      value=Exponential;
-        else return false;
-        return true;
-    }
-
-    std::ostream& operator<< (std::ostream& ostr, const GLEFMetric& p)
-    {
-        switch (p)
-        {
-        case Linear:       ostr<<" lin ";   break;
-        case Logarithmic:  ostr<<" log ";   break;
-        case Exponential:  ostr<<" exp ";   break;
-        };
-        return ostr;
-    }
-
-    template<> inline bool toolbox::IField<GLEFPointType>::operator<<(std::istream& istr)
-    {
-        std::string str;
-        istr>>str;
-        if      (str=="taup2")    value=TauP2;
-        else if (str=="tauq2")    value=TauQ2;
-        else if (str=="tauh" )    value=TauH;
-        else if (str=="kw"   )    value=Kw;
-        else if (str=="hw"   )    value=Hw;
-        else if (str=="cqq"  )    value=Cqq;
-        else if (str=="cpp"  )    value=Cpp;
-        else return false;
-        return true;
-    }
-
-    std::ostream& operator<< (std::ostream& ostr, const GLEFPointType& p)
-    {
-        switch (p)
-        {
-            case TauP2:    ostr<<" taup2 ";    break;
-            case TauQ2:    ostr<<" tauq2 ";    break;
-            case TauH:     ostr<<" tauh  ";    break;
-            case Kw:       ostr<<"  kw   ";    break;
-            case Hw:       ostr<<"  hw   ";    break;
-            case Cpp:      ostr<<"  cpp  ";    break;
-            case Cqq:      ostr<<"  cqq  ";    break;
-        };
-        return ostr;
-    }
-
-    template<> inline bool toolbox::IField<GLEFGlobType>::operator<<(std::istream& istr)
-    {
-        std::string str;
-        istr>>str;
-        if      (str=="gzero"  )        value=GZero;
-        else if (str=="ginf"   )        value=GInf;
-        else if (str=="tzero"  )        value=TZero;
-        else if (str=="tinf"   )        value=TInf;
-        else if (str=="aratio" )        value=ARatio;
-        else if (str=="cratio" )        value=CRatio;
-        else if (str=="pqratio")        value=PQRatio;
-        else return false;
-        return true;
-    }
-
-    std::ostream& operator<< (std::ostream& ostr, const GLEFGlobType& p)
-    {
-        switch (p)
-        {
-            case GZero:    ostr<<" gzero   ";    break;
-            case GInf:     ostr<<" ginf    ";    break;
-            case TZero:    ostr<<" tzero   ";    break;
-            case TInf:     ostr<<" tinf    ";    break;
-            case ARatio:   ostr<<" aratio  ";    break;
-            case CRatio:   ostr<<" cratio  ";    break;
-            case PQRatio: ostr<<" pqratio ";    break;
-        };
-        return ostr;
-    }
-
-    template<> inline bool toolbox::IField<GLEFSearchMode>::operator<<(std::istream& istr)
-    {
-        std::string str;
-        istr>>str;
-        if      (str=="annealing" )     value=Annealing;
-        else if (str=="simplex"   )     value=Simplex;
-        else if (str=="powell"    )     value=Powell;
-        else return false;
-        return true;
-    }
-
-    std::ostream& operator<< (std::ostream& ostr, const GLEFSearchMode& p)
-    {
-        switch (p)
-        {
-        case Annealing:   ostr<<" annealing ";    break;
-        case Simplex:     ostr<<"  simplex  ";    break;
-        case Powell:      ostr<<"  powell   ";    break;
-        };
-        return ostr;
-    }
-
-    template<> inline bool toolbox::IField<GLEFParStyleA>::operator<<(std::istream& istr)
-    {
-        std::string str;
-        istr>>str;
-        if      (str=="realonly"   )        value=ARealOnly;
-        else if (str=="full"       )        value=AFull;
-        else if (str=="complex"    )        value=AComplex;
-        else if (str=="positive"   )        value=APositive;
-        else if (str=="preal"      )        value=APReal;
-        else if (str=="pgeneral"   )        value=APGeneral;
-        else return false;
-        return true;
-    }
-
-    std::ostream& operator<< (std::ostream& ostr, const GLEFParStyleA& p)
-    {
-        switch (p)
-        {
-            case ARealOnly:      ostr<<" realonly ";    break;
-            case AFull:          ostr<<"    full  ";    break;
-            case AComplex:       ostr<<" complex  ";    break;
-            case APositive:      ostr<<" positive ";    break;
-            case APReal:         ostr<<"   preal  ";    break;
-            case APGeneral:      ostr<<" pgeneral ";    break;
-        };
-        return ostr;
-    }
-
-    template<> inline bool toolbox::IField<GLEFParStyleC>::operator<<(std::istream& istr)
-    {
-        std::string str;
-        istr>>str;
-        if      (str=="identity" )     value=COne;
-        else if (str=="positive" )     value=CPositive;
-        else if (str=="indirect" )     value=CIndirect;
-        else if (str=="bdiagonal")     value=CBDiagonal;
-        else return false;
-        return true;
-    }
-
-
-    std::ostream& operator<< (std::ostream& ostr, const GLEFParStyleC& p)
-    {
-        switch (p)
-        {
-            case COne:          ostr<<" identity  ";    break;
-            case CPositive:     ostr<<" positive  ";    break;
-            case CIndirect:     ostr<<" indirect  ";    break;
-            case CBDiagonal:    ostr<<" bdiagonal ";    break;
-        };
-        return ostr;
-    }
-};
-*/
-
 std::istream& operator>> (std::istream& istr, GLEFValue& p)
 { istr>>p.dir>>p.y>>p.w>>p.metric>>p.e;  return istr;}
 std::ostream& operator<< (std::ostream& ostr, const GLEFValue& p)
@@ -433,6 +252,7 @@ std::istream& operator>> (std::istream& istr, GLEFPoint& p)
     istr>>iom;
     return istr;
 }
+
 std::ostream& operator<< (std::ostream& ostr, const GLEFPoint& p)
 {
     IOMap iom;
@@ -514,6 +334,7 @@ std::istream& operator>> (std::istream& istr, GLEFFitOptions& op)
     return istr;
 }
 
+
 /***********************************************************************************
  >>                     RESPONSE AND FDT FITTING CLASS                            <<
  let the system have n additional momenta. we parametrize the whole A, including the
@@ -585,8 +406,31 @@ unsigned long npars(const GLEFParOptions& ops)
 {
     unsigned long rnp=0, n=ops.ns;
 
+    /* MOST OF THESE ARE BROKEN AT THIS STAGE (ERROR TRIGGERED IN pars2AC). */
+    rnp++;   //global scale
     switch (ops.pstyleA)
     {
+        case ADelta: //superimposition of delta functions
+            /* Form of the final matrix is
+             * g0   g1 0  g2 0 ...
+             * -g1 dw1 w1  0 0
+             * 0   -w1 0   0 0
+             * -g2  0  0 dw2 w2
+             * 0    0  0 -w2 0
+             * Each block represents a delta-like function -- see Ceriotti & Parrinello, Proc. Comp. Sci. 2010
+             */
+            rnp++;   //qpp
+            rnp+=(n/2)*3; //elements of the n/2 delta thermostats
+            break;
+        case APGeneral:  //general form as of MC thesis
+            /* Final matrix is full, but made up of a near-diagonal symmetric part, and a general antisymmetric bit */
+            // These account for the (cholesky decomposed) symmetric part
+            rnp++;          //qpp
+            rnp+=2*n;       //q frame & q diagonal
+            //asymmetric part of A (upper triangle, zero diagonal)
+            rnp+=n*(n+1)/2;
+            break;
+
 
         case ARealOnly:
             rnp++;      //global scale factor
@@ -619,39 +463,29 @@ unsigned long npars(const GLEFParOptions& ops)
             rnp+=2*n; //q frame & q diagonal
             rnp+=n; //asymmetric frame
             break;
-        case APGeneral:
-            rnp++;   //global scale
-            rnp++;   //qpp
-            rnp+=2*n; //q frame & q diagonal
-            rnp+=n*(n+1)/2; //asymmetric triangle
-            break;
-        case ADelta:
-            rnp++;   //global scale
-            rnp++;   //qpp
-            rnp+=(n/2)*3; //elements of the n/2 delta thermostats
-            break;
+
+
     }
 
-
+    rnp++; //global c scale
     switch (ops.pstyleC)
     {
     case COne:
+        rnp--; // the only param without scale (no param at all!)
+        break;
+    case CDelta:  //compute C corresponding to a superimposition of deltas at different temperatures
+        rnp++;      //cpp, free particle temperature
+        rnp+=(n/2); //temperatures of the n/2 deltas
+        break;
+    case CIndirect:  //compute C from B
+        rnp+=(n+2)*(n+1)/2;  // the triangular B
+        break;
+    case CBDiagonal: //compute C from a diagonal B
+        rnp+=(n+1); // B is diagonal...
         break;
     case CPositive:
         rnp+=n;  //cp
         rnp+=n*(n+1)/2;  //C as cholesky dec.
-        break;
-    case CIndirect:
-        rnp++; //cpp, global scale
-        rnp+=(n+2)*(n+1)/2; //compute C from B
-        break;
-    case CBDiagonal:
-        rnp++; //cpp, global scale
-        rnp+=(n+1); //B is diagonal...
-        break;
-    case CDelta:
-        rnp++; //cpp, global scale
-        rnp+=(n/2); //temperatures of the n/2 deltas
         break;
     }
     return rnp;
@@ -666,39 +500,55 @@ void GLEFError::pars2AC()
     A.resize(n+1,n+1);  A*=0.; C=A;
 #if GLE_DEBUG>1
     std::cerr<<" **        ENTERING pars2AC()       ** \n"
-            <<" parameters: "<<p;
+             <<" * parameters: \n"<<p;
 #endif
 
-    //get the "physical constraints", either from pars array or from fixed options
-    /*
-    double gzero, ginf, tzero, tinf, aratio, cratio, qpratio;
-    double app, cpp;
-    {
-        if (ops.fixGZero<0)   gzero=exp(p[k++]);
-        else gzero=ops.fixGZero;
-        if (ops.fixGInf<0)    ginf=exp(p[k++]);
-        else ginf=ops.fixGInf;
-        if (ops.fixTZero<0)   tzero=exp(p[k++]);
-        else tzero=ops.fixTZero;
-        if (ops.fixTInf<0)    tinf=exp(p[k++]);
-        else tinf=ops.fixTInf;
-        if (ops.fixARatio<0)  { if (ops.pstyleA==APositive) aratio=exp(-(p[k]*p[k++])); else aratio=exp(p[k++]); }
-        else aratio=ops.fixARatio;
-        if (ops.fixCRatio<0)  cratio=exp(p[k++]);
-        else cratio=ops.fixCRatio;
-        if (ops.fixQPRatio<0) qpratio=exp(p[k++]);
-        else qpratio=ops.fixQPRatio;
-    }
-    */
+    /************ BUILDS THE A MATRIX ********************/
+    //"pieces" of Ap to be filled up
+    double app;  std::valarray<double> ap(n), bap(n);  FMatrix<double> lA(n,n);   ap=bap=app=0.; lA*=0.;
 
-    //"pieces" of Ap
-    double app;
-    std::valarray<double> ap(n), bap(n);
-    FMatrix<double> lA(n,n);
-    ap=bap=app=0.; lA*=0.;
-    if (opar.pstyleA==ARealOnly)
+    double ascale=exp(p[k++]); // general scaling factor for the whole matrix (param on a log scale)
+    if (opar.pstyleA==ADelta)
+    {
+        /* Memory kernels as superimposition of delta-like functions */
+        app=exp(p[k++]);
+        // one "gamma" parameter for each delta -- on a log scale
+        for (int i=0; i<n/2; i++) ap[i*2]=sqrt(exp(p[k++])/(2*constant::pi));
+        bap=-ap; // the frame is antisymmetric for delta kernel
+        // read the w and dw elements for each delta. set the "zero" diagonal to a very small value -- both on log scale
+        for (int i=0; i<n/2; i++)  {  lA(2*i,2*i)=exp(p[k++]); lA(2*i+1,2*i+1)=DELTA_SMALL; lA(2*i+1,2*i)=-(lA(2*i,2*i+1)=exp(p[k++])); }
+    }
+    else if (opar.pstyleA==APGeneral || opar.pstyleA==APReal)
+    {
+        /* This is the most general parameterization, as described in M.Ceriotti PhD thesis */
+
+        // The symmetric part of A is represented as having a diagonal lA
+        // this is actually the Cholesky decomposition of A, Q.
+        FMatrix<double> Q(n+1,n+1), P(n+1,n+1);  Q*=0.; P*=0.;
+
+        Q(0,0)=exp(p[k++]);
+        for(int i=1; i<n+1; ++i) Q(i,i)=exp(p[k++]);
+        for(int i=1; i<n+1; ++i) Q(0,i)=p[k++]; // "frame" elements can also be negative.
+        if (opar.pstyleA==APGeneral)
+            for(int i=0; i<n+1; ++i) for(int j=i+1; j<n+1; ++j) P(j,i)=-(P(i,j)=p[k++]);  // these are the elements of the antisymmetric part
+        else
+            for(int i=1; i<n+1; ++i) P(i,0)=-(P(0,i)=p[k++]);  // only the frame is kept for APReal param
+
+
+        FMatrix<double> QQT, T1; //temporaries
+        transpose(Q,T1);
+        mult(Q,T1,QQT); T1=P; T1+=QQT;
+
+        // now T1 actually contains the reconstructed A
+        app=T1(0,0);
+        for (int i=0; i<n; i++) ap[i]=T1(0,i+1);
+        for (int i=0; i<n; i++) bap[i]=T1(i+1,0);
+        for (int i=0; i<n; ++i) for (int j=0; j<n; ++j) lA(i,j)=T1(i+1,j+1);
+    }
+    else if (opar.pstyleA==ARealOnly)
     {
         double ascale=exp(p[k++]), eta;
+        ERROR("BROKEN");
         std::valarray<double> rek(n), reg(n), rep(n);
         app=exp(p[k++]); eta=exp(-p[k]*p[k++]); //eta must be <=1
         app*=ascale;
@@ -722,6 +572,7 @@ void GLEFError::pars2AC()
     }
     else if (opar.pstyleA==AComplex)
     {
+        ERROR("BROKEN");
         double ascale=exp(p[k++]), eta;
         std::valarray<double> rek(n/2), rer(n/2), ret(n/2), reg(n/2), rep(n/2), req(n/2), repi(n/2), reti(n/2);
         app=exp(p[k++]); eta=exp(-p[k]*p[k++]); //eta must be <=1
@@ -757,6 +608,7 @@ void GLEFError::pars2AC()
     }
     else if (opar.pstyleA==AFull)
     {
+        ERROR("BROKEN");
         app=p[k++];
         for (int i=0; i<n; i++) ap[i]=p[k++];
         for (int i=0; i<n; i++) bap[i]=p[k++];
@@ -764,6 +616,7 @@ void GLEFError::pars2AC()
     }
     else if (opar.pstyleA==AFull)
     {
+        ERROR("BROKEN");
         app=p[k++];
         for (int i=0; i<n; i++) ap[i]=p[k++];
         for (int i=0; i<n; i++) bap[i]=p[k++];
@@ -771,6 +624,7 @@ void GLEFError::pars2AC()
     }
     else if (opar.pstyleA==APositive)
     {
+        ERROR("BROKEN");
         double ascale=exp(p[k++]);
         app=exp(p[k++]);
 
@@ -790,114 +644,70 @@ void GLEFError::pars2AC()
         for (int i=0; i<n; i++) bap[i]=P(i+1,0);
         for (int i=0; i<n; ++i) for (int j=0; j<n; ++j) lA(i,j)=P(i+1,j+1);
     }
-    else if (opar.pstyleA==APReal)
-    {
-        double ascale=exp(p[k++]);
-        app=exp(p[k++]);
 
-        FMatrix<double> Q(n+1,n+1), P(n+1,n+1), QQT, T1;
-        Q*=0.; P*=0.;
-        app*=ascale;
-
-        Q(0,0)=sqrt(app/ascale);
-        for(int i=1; i<n+1; ++i) Q(i,i)=exp(p[k++]);
-        for(int i=1; i<n+1; ++i) Q(0,i)=p[k++];
-        for(int i=1; i<n+1; ++i) P(i,0)+=-(P(0,i)=p[k++]);
-        transpose(Q,T1);
-        mult(Q,T1,QQT); P+=QQT; P*=ascale;
-
-        app=P(0,0);
-        for (int i=0; i<n; i++) ap[i]=P(0,i+1);
-        for (int i=0; i<n; i++) bap[i]=P(i+1,0);
-        for (int i=0; i<n; ++i) for (int j=0; j<n; ++j) lA(i,j)=P(i+1,j+1);
-    }
-    else if (opar.pstyleA==ADelta)
-    {
-        double ascale=exp(p[k++]);
-        app=exp(p[k++]);
-
-        app*=ascale;
-        ap=0.; bap=0.; lA*=0.;
-        for (int i=0; i<n/2; i++) ap[i*2]=sqrt(exp(p[k++])/(2*constant::pi));
-        bap=-ap; ap*=ascale; bap*=ascale;
-        for (int i=0; i<n/2; i++)  {  lA(2*i,2*i)=exp(p[k++]); lA(2*i+1,2*i+1)=DELTA_SMALL; lA(2*i+1,2*i)=-(lA(2*i,2*i+1)=exp(p[k++])); }
-        lA*=ascale;
-    }
-    else if (opar.pstyleA==APGeneral)
-    {
-        double ascale=exp(p[k++]);
-        app=exp(p[k++]);
-
-        FMatrix<double> Q(n+1,n+1), P(n+1,n+1), QQT, T1;
-        Q*=0.; P*=0.;
-        app*=ascale;
-
-        Q(0,0)=sqrt(app/ascale);
-        for(int i=1; i<n+1; ++i) Q(i,i)=exp(p[k++]);
-        for(int i=1; i<n+1; ++i) Q(0,i)=p[k++];
-        for(int i=0; i<n+1; ++i) for(int j=i+1; j<n+1; ++j) P(j,i)+=-(P(i,j)=p[k++]);
-        transpose(Q,T1);
-        mult(Q,T1,QQT); P+=QQT; P*=ascale;
-
-        app=P(0,0);
-        for (int i=0; i<n; i++) ap[i]=P(0,i+1);
-        for (int i=0; i<n; i++) bap[i]=P(i+1,0);
-        for (int i=0; i<n; ++i) for (int j=0; j<n; ++j) lA(i,j)=P(i+1,j+1);
-    }
     //puts the pieces of A together
     A(0,0)=app;
     for (int i=0; i<n; i++)  for (int j=0; j<n; j++) A(i+1,j+1)=lA(i,j);
     for (int i=0; i<n; i++) A(0,i+1)=ap[i];
     for (int i=0; i<n; i++) A(i+1,0)=bap[i];
+    // applies the scaling!
+    A*=ascale;
 
-    ////// >>>>> COMPUTE C <<<<<<<<<
-    FMatrix<double> lC(n,n);
-    std::valarray<double> cp(n);
-    double cpp=(opar.pstyleC==COne?1.:exp(p[k++]));
-    if (opar.pstyleC==COne)
-    {  cp=0; for (int i=0; i<n; i++) lC(i,i)=cpp; }
-    else if (opar.pstyleC==CIndirect)
-    {
-        GLEABC iABC; FMatrix<double> B(n+1,n+1),BBT,T1;
-        for (int i=0; i<n+1; i++) B(i,i)=exp(p[k++]);
-        for (int i=1; i<n+1; i++) for (int j=0; j<i; j++) B(i,j)=p[k++];
-        transpose(B,T1); mult(B,T1,BBT);
-        iABC.set_A(A); iABC.set_BBT(BBT);
-        iABC.get_C(T1); T1*=cpp/T1(0,0);
-        for (int i=0; i<n; i++) cp[i]=T1(0,i+1);
-        for (int i=0; i<n; i++) for (int j=0; j<n;j++) lC(i,j)=T1(i+1,j+1);
-    }
-    else if (opar.pstyleC==CBDiagonal)
-    {
-        GLEABC iABC; FMatrix<double> B(n+1,n+1),BBT,T1;
-        B*=0.;
-        for (int i=0; i<n+1; i++) B(i,i)=exp(p[k++]);
-        transpose(B,T1); mult(B,T1,BBT);
-        iABC.set_A(A); iABC.set_BBT(BBT);
-        iABC.get_C(T1); T1*=cpp/T1(0,0);
-        for (int i=0; i<n; i++) cp[i]=T1(0,i+1);
-        for (int i=0; i<n; i++) for (int j=0; j<n;j++) lC(i,j)=T1(i+1,j+1);
-    }
-    else if (opar.pstyleC==CPositive)
-    {
-        for (int i=1; i<n; i++) for (int j=1; j<i; j++) lC(i,j)=p[k++];
-        for (int i=0; i<n; i++) cp[i]=p[k++];
-    }
+    /************ BUILDS THE C MATRIX ********************/
+
+    // pieces of C
+    FMatrix<double> lC(n,n);  std::valarray<double> cp(n);  double cpp;
+
+    double cscale;
+    // general scaling factor for the whole matrix (param on a log scale)
+    if (not opar.pstyleC==COne) cscale=exp(p[k++]); else cscale=1.0;
+
+    if (opar.pstyleC==COne)  // C is the identity. Could not be simpler.
+    { cpp=1.0; cp=0; for (int i=0; i<n; i++) lC(i,i)=cpp; }
     else if (opar.pstyleC==CDelta)
     {
-        FMatrix<double> BBT(n+1,n+1), T1;
-        BBT(0,0)=cpp*A(0,0)*2.0;
-        for (int i=0; i<n/2; i++) { BBT(2*i+1,2*i+1)=exp(p[k++])*A(2*i+1,2*i+1)*2.;  BBT(2*i+2,2*i+2)=2.0*DELTA_SMALL; }
+        // Here C is stored as the temperatures of n/2 delta functions plus a "Markovian" temperature.
+        // This is easy to express for the D matrix but not for C (which mixes everything up when the deltas are combined).
+        // So I reconstruct here the D matrix, and get the C from it.
+        FMatrix<double> BBT(n+1,n+1), T1;  double tk; // temporaries
+        BBT*=0.0;
+        BBT(0,0)=A(0,0)*2.0*exp(p[k++]);   // the Markovian temperature (log-scale)
+        //delta temperatures
+        for (int i=0; i<n/2; i++) {  tk=exp(p[k++]); BBT(2*i+1,2*i+1)=A(2*i+1,2*i+1)*2.*tk;  BBT(2*i+2,2*i+2)=2.0*DELTA_SMALL*tk; }
+
+        // uses an auxiliary ABC object to get C. then disassembles it (to be reassembled later, but this is the price of modularity)
+        GLEABC iABC;  iABC.set_A(A); iABC.set_BBT(BBT); iABC.get_C(T1);
+        cpp=T1(0,0);   for (int i=0; i<n; i++) cp[i]=T1(0,i+1);
+        for (int i=0; i<n; i++) for (int j=0; j<n;j++) lC(i,j)=T1(i+1,j+1);
+    }
+    else if (opar.pstyleC==CIndirect || opar.pstyleC==CBDiagonal)
+    {
+        // Here we really store B, so that from it one can get C indirectly.
+
+        FMatrix<double> B(n+1,n+1), BBT, T1; // temporaries
+        for (int i=0; i<n+1; i++) B(i,i)=exp(p[k++]);   // elements on the diagonal can probably be taken positive without loss of generality
+        if (opar.pstyleC==CIndirect)  // only read off-diagonal terms if the parameterization requires it
+           for (int i=1; i<n+1; i++) for (int j=0; j<i; j++) B(i,j)=p[k++]; // off-diagonal terms
+
+        // builds D and constructs C from an auxiliary ABC object
+        transpose(B,T1); mult(B,T1,BBT);
         GLEABC iABC;
         iABC.set_A(A); iABC.set_BBT(BBT);
         iABC.get_C(T1); cpp=T1(0,0);
         for (int i=0; i<n; i++) cp[i]=T1(0,i+1);
         for (int i=0; i<n; i++) for (int j=0; j<n;j++) lC(i,j)=T1(i+1,j+1);
     }
+    else if (opar.pstyleC==CPositive)
+    {
+        ERROR("BROKEN");
+        for (int i=1; i<n; i++) for (int j=1; j<i; j++) lC(i,j)=p[k++];
+        for (int i=0; i<n; i++) cp[i]=p[k++];
+    }
 
     C(0,0)=cpp;
     for (int i=0; i<n; i++)  for (int j=0; j<n; j++) C(i+1,j+1)=lC(i,j);
     for (int i=0; i<n; i++) C(0,i+1)=C(i+1,0)=cp[i];
+    C*=cscale;
 
     abc.set_A(A); abc.set_C(C);
 #if GLE_DEBUG>1
@@ -905,8 +715,6 @@ void GLEFError::pars2AC()
     std::cerr<<" A is: "<<A<<" C is: \n"<<C<<" D is: \n"<<lA
             <<" **        EXIT pars2AC()       ** \n";
 #endif
-
-    //*slog<<" IN PARS2AC  C\n"<<C<<"**************************************\n";
 }
 
 void GLEFError::AC2pars()
@@ -919,7 +727,7 @@ void GLEFError::AC2pars()
 #endif
     //>>>>>> DISASSEMBLE A <<<<<<<<<<<
 
-    // arrays to store the real and imaginary parts of the eigenvalues
+/*    // arrays to store the real and imaginary parts of the eigenvalues
     std::valarray<double> reva(n), ieva(n); reva=0.; ieva=0.;
 
     // small A matrix decomposition
@@ -968,13 +776,8 @@ void GLEFError::AC2pars()
             (ieva[pp[j]]*ieva[pp[j]]+reva[pp[j]]*reva[pp[j]])>
             (ieva[pp[i]]*ieva[pp[i]]+reva[pp[i]]*reva[pp[i]])
            ) { iswp=pp[j]; pp[j]=pp[i]; pp[i]=iswp; }
-/*
-    old real-last ordering
-        if (
-            abs(ieva[pp[j]])>abs(ieva[pp[i]]) ||
-            ( (abs(ieva[pp[j]])==abs(ieva[pp[i]])) && abs(reva[pp[j]])>abs(reva[pp[i]]) )
-           ) { iswp=pp[j]; pp[j]=pp[i]; pp[i]=iswp; }
-*/
+
+
     std::valarray<double> ap(n), bap(n); double app;
     app=abs(A(0,0));
     //transform ap and bap according to similarity matrix
@@ -997,10 +800,79 @@ void GLEFError::AC2pars()
     FMatrix<double> TT;
     mult(S1,lA,TT); mult(TT,S,lA);
 
-    FMatrix<double> APO, APOT;
-    if (opar.pstyleA==ARealOnly)
+
+
+FMatrix<double> APO, APOT;
+*/
+
+/*
+ *      block diagonalization reminder
+        FMatrix<double> lA(n,n), OlA, OS(n+1,n+1), OST, AT;  std::valarray<double> va;
+        for(int i=0; i<n; i++) for(int j=0; j<n; j++) lA(i,j)=A(i+1,j+1);
+
+        EigenBlock(lA,OS,OST,AT);
+
+        mult(OS,AT,OlA) ;mult( OlA,OST,AT);
+        std::cout<<"reconstructed"<< AT<<std::endl;
+        std::cout<<"BLOCK SELECTED"<<lA<<std::endl;
+        ERROR("CIAO");*/
+    FMatrix<double> tA(A), tC(C);  // if we transform A at any stage, this matrix will be transformed accordingly.
+    /****** Makes parameters from A ********/
+    p[k++]=log(1.0);  // set ascale to one: doesn't make sense to alter the structure of A I think
+    if (opar.pstyleA==ADelta)
     {
-        double ascale=reva[0];
+        // cherry-picks elements from the matrix -- this works if the matrix has the structure of a sum of deltas. otherwise, it is kind of a random starting point. perhaps something better could be done by analizing the eigenspectrum of A.
+        p[k++]=log(A(0,0));
+        for (int i=0; i<n/2; i++) p[k++]=log((A(0,2*i+1)-A(2*i+1,0))*(A(0,2*i+1)-A(2*i+1,0))*0.25*(2*constant::pi));
+        for (int i=0; i<n/2; i++)  { p[k++]=log(fabs(A(2*i+1,2*i+1)));  p[k++]=log(fabs(A(2*i+1,2*i+2)-A(2*i+2,2*i+1))*0.5); }
+    }
+    else if (opar.pstyleA==APReal || opar.pstyleA==APGeneral)
+    {
+        // here we make a bit more effort. we transform the matrix to have the desired form regardless of where the input matrix came from.
+
+        FMatrix<double> S(n+1,n+1), P(n+1,n+1), lS(n,n), OlS, OS(n+1,n+1), OST, AT;  std::valarray<double> as; // temporaries
+
+        // makes symmetric and antisymmetric parts of A.
+        transpose(A,AT);
+        S=A; S+=AT; S*=0.5;
+        P=A; P-=AT; P*=0.5;
+
+        // now, find the matrix that diagonalizes the small block
+        for(int i=0; i<n; i++) for(int j=0; j<n; j++) lS(i,j)=S(i+1,j+1);
+        EigenSolverSym(lS,OlS,as);
+
+        //for stability, the eigenvalues/eigenvectors must be sorted in descending order of magnitude.
+        //EigenSolverSym instead outputs _ascending_ order, which is bad.
+        //we take this into account when we build up the global transform matrix.
+        std::cout << "TR MATRIX "<<OlS<<std::endl;
+        OS*=0.0; OS(0,0)=1.0; for(int i=0; i<n; i++) for(int j=0; j<n; j++) OS(i+1,j+1)=OlS(i,n-1-j);
+        transpose(OS,OST);
+        mult(OST,P,AT); mult(AT,OS,P);
+        mult(OST,S,AT); mult(AT,OS,S);
+
+
+        double qpp2=A(0,0);
+        for(int i=0; i<n; i++) qpp2-=S(0,i+1)*S(0,i+1)/S(i+1,i+1);
+        if(qpp2<=0) { qpp2=VERY_SMALL; WARNING("The input matrix had non-permissible decomposition. Perhaps it was not positive definite?"); }
+
+        // here we are doing analytically the Cholesky decomposition of S and storing its elements
+        p[k++]=log(qpp2)*0.5;
+        for(int i=1; i<n+1; ++i) p[k++]=log(S(i,i))*0.5;
+        for(int i=1; i<n+1; ++i) p[k++]=S(0,i)/sqrt(S(i,i));
+        if (opar.pstyleA==APGeneral)
+        {
+            for(int i=0; i<n+1; ++i) for(int j=i+1; j<n+1; ++j) p[k++]=P(i,j);
+        }
+        else for(int i=1; i<n+1; ++i) p[k++]=P(0,i);  //drops the asymmetric bit of the s's -- fewer fewer parameters
+
+        // since we changed the basis of lA we must transform tC and tA
+        mult(OST,tC,AT); mult(AT,OS,tC);
+        mult(OST,tA,AT); mult(AT,OS,tA);
+    }
+   /*
+    else if (opar.pstyleA==ARealOnly)
+    {
+        ascale=reva[0];
         p[k++]=log(ascale); p[k++]=log((app>0.?app:1e-100)/ascale);
 
         double aceta=0.;
@@ -1017,7 +889,7 @@ void GLEFError::AC2pars()
     }
     else if (opar.pstyleA==AComplex)
     {
-        double ascale=sqrt(pow((reva[0]+reva[1])*0.5,2.)+pow((ieva[0]+ieva[1])*0.5,2.));
+        ascale=sqrt(pow((reva[0]+reva[1])*0.5,2.)+pow((ieva[0]+ieva[1])*0.5,2.));
         p[k++]=log(ascale); p[k++]=log((app>0.?app:1e-100)/ascale);
 
         double aceta=0.;
@@ -1068,84 +940,44 @@ void GLEFError::AC2pars()
         for(int i=1; i<n+1; ++i) for(int j=0; j<i; ++j) p[k++]=Q(i,j);
         for(int i=1; i<n+1; ++i) for(int j=0; j<i; ++j) p[k++]=P(i,j);
     }
-    else if (opar.pstyleA==ADelta)
-    {
-        double ascale=1.0;
-        p[k++]=log(ascale); p[k++]=log(app/ascale);
-        for (int i=0; i<n/2; i++) p[k++]=log(pow((A(0,2*i+1)-A(2*i+1,0))*0.5,2.)*(2*constant::pi));
-        for (int i=0; i<n/2; i++)  { p[k++]=log(A(2*i+1,2*i+1));  p[k++]=log(fabs(A(2*i+1,2*i+2)-A(2*i+2,2*i+1))*0.5); }
-    }
-    else if (opar.pstyleA==APReal || opar.pstyleA==APGeneral)
-    {
-        double ascale=0.; for(int i=0; i<n+1; ++i) ascale+=A(i,i); ascale*=1./(n+1.);
-        p[k++]=log(ascale);
-
-        FMatrix<double> S(n+1,n+1), P(n+1,n+1), Ss, Os, AT;
-        transpose(A,AT);
-        P=A; P-=AT; P*=0.5;
-        S=A; S+=AT; S*=0.5;
-
-        //now, we must diagonalise the small block, and modify A accordingly.
-        Ss.resize(n,n); for(int i=0; i<n; i++) for(int j=0; j<n; j++) Ss(i,j)=S(i+1,j+1); std::valarray<double> sev;
-        EigenSolverSym(Ss,Os,sev);
-
-        APO.resize(n+1,n+1); APO*=0; APO(0,0)=1.; for(int i=0; i<n; i++) for(int j=0; j<n; j++) APO(i+1,j+1)=Os(i,j);
-        transpose(APO,APOT);
-
-        mult(APOT,P,AT); mult(AT,APO,P);
-        mult(APOT,S,AT); mult(AT,APO,S);
-
-        P*=1./ascale; S*=1./ascale;
-        //OK, now we have the symmetric part with a diagonal block, and the asymmetric one transformed to the same basis
-        double qpp;
-        qpp=app/ascale;  for(int i=0; i<n; i++) qpp-=S(0,i+1)*S(0,i+1)/S(i+1,i+1); if(qpp<=0) qpp=1e-100;
-        p[k++]=log(qpp);
-        for(int i=1; i<n+1; ++i) p[k++]=log(S(i,i))*0.5;
-        for(int i=1; i<n+1; ++i) p[k++]=S(0,i)/sqrt(S(i,i));
-        if (opar.pstyleA==APGeneral)
-        {
-            for(int i=0; i<n+1; ++i) for(int j=i+1; j<n+1; ++j) p[k++]=P(i,j);
-        }
-        else for(int i=1; i<n+1; ++i) p[k++]=P(i,0);  //se completely drop the asymmetric Ps block.
-    }
-
+*/
     //moves on to C
     //now get C, which must be transformed...
-    FMatrix<double> NC, T1, LS(n+1,n+1), LST(LS);
+ /*   FMatrix<double> NC, T1, LS(n+1,n+1), LST(LS);
     LS*=0; LS(0,0)=1.; for (int i=0; i<n; i++) for (int j=0; j<n; j++) LS(i+1,j+1)=S(i,j);
     transpose(LS,LST);
     mult(LST,C,T1); mult(T1,LS,NC); T1=NC; //and reordered
     for (int i=0; i<n; i++) for (int j=0; j<n; j++) NC(1+pp[i],1+pp[j])=T1(1+i,1+j);
+*/
 
     //now can get vectors
-    double cpp, mc; std::valarray<double>cp(n);
-    cpp=NC(0,0); for (int i=0; i<n; i++) cp[i]=NC(0,i+1);
+    //double cpp, mc; std::valarray<double>cp(n);
+    //cpp=tC(0,0); for (int i=0; i<n; i++) cp[i]=tC(0,i+1);
 
+    if (!opar.pstyleC==COne) p[k++]=log(1.0);  // set cscale to one
     //ready to write out C
     if(opar.pstyleC==COne)
-    { }
-    else if (opar.pstyleC==CIndirect)
+    { }  //nothing to do
+    else if (opar.pstyleC==CDelta)
     {
-        FMatrix<double> T1,T2,B,IA,IC;
-        if (opar.pstyleA==APositive || opar.pstyleA==AFull) {IA=A; IC=C; }
-        else if (opar.pstyleA==APReal|| opar.pstyleA==APGeneral)
-        { mult(APOT,A,T1); mult(T1,APO,IA); mult(APOT,C,T1); mult(T1,APO,IC); }
-        else
-        { ERROR("A rotation must be implemented"); }
+        FMatrix<double> BBT, T1; // temporaries
+        mult(tA,tC,T1); transpose(T1,BBT); BBT+=T1;
 
-        mult(IA,IC,T1); transpose(T1,T2); T2+=T1;
-        T2*=(1./T2(0,0));
-        std::cerr<<"NEWW IA "<<IA<<"\n";
-        std::cerr<<"NEWW IC "<<IC<<"\n";
-        std::cerr<<"NEWW BBT "<<T2<<"\n";
-
-        StabCholesky(T2,B); cpp=IC(0,0);
-        std::cerr<<"NEWW B "<<B<<"\n";
-        p[k++]=log(cpp);
-        for (int i=0; i<n+1; i++) p[k++]=log(B(i,i)>0?B(i,i):1e-100);
-        for (int i=1; i<n+1; i++) for (int j=0; j<i; j++) p[k++]=B(i,j);
+        p[k++]=log(BBT(0,0)/(tA(0,0)*2.0));  // Markovian temperature
+        //temperatures of the deltas
+        for (int i=0; i<n/2; i++) { p[k++]=log((BBT(2*i+1,2*i+1)>0?BBT(2*i+1,2*i+1):DELTA_SMALL)/(tA(2*i+1,2*i+1)*2.)); }
     }
-    else if (opar.pstyleC==CBDiagonal)
+    else if (opar.pstyleC==CIndirect || opar.pstyleC==CBDiagonal)
+    {
+
+        FMatrix<double> BBT, T1; // temporaries
+        mult(tA,tC,T1); transpose(T1,BBT); BBT+=T1;
+        StabCholesky(BBT,T1);         // get B
+        for (int i=0; i<n+1; i++) p[k++]=log(T1(i,i));
+        if (opar.pstyleC==CIndirect)
+           for (int i=1; i<n+1; i++) for (int j=0; j<i; j++) p[k++]=T1(i,j);
+    }
+ /*   else if (opar.pstyleC==CBDiagonal)
     {
         FMatrix<double> T1,T2,B,IA,IC;
         if (opar.pstyleA==APositive || opar.pstyleA==AFull) {IA=A; IC=C; }
@@ -1166,20 +998,8 @@ void GLEFError::AC2pars()
         for (int i=0; i<n+1; i++) p[k++]=log(B(i,i)>0?B(i,i):1e-100); //keeps only the eigenvalues
         //for (int i=1; i<n+1; i++) for (int j=0; j<i; j++) p[k++]=B(i,j);
     }
-    else if (opar.pstyleC==CDelta)
-    {
-        FMatrix<double> T1,T2,IA,IC;
-        if (opar.pstyleA==APositive || opar.pstyleA==AFull || opar.pstyleA==ADelta ) {IA=A; IC=C; }
-        else if (opar.pstyleA==APReal|| opar.pstyleA==APGeneral)
-        { mult(APOT,A,T1); mult(T1,APO,IA); mult(APOT,C,T1); mult(T1,APO,IC); }
-        else
-        { ERROR("A rotation must be implemented"); }
-        mult(IA,IC,T1); transpose(T1,T2); T2+=T1;
-        std::cerr<<"TEST ME"<<log(T2(0,0)/(IA(0,0)*2.0))<<"\n";
-        p[k++]=log(T2(0,0)/(IA(0,0)*2.0));
-        for (int i=0; i<n/2; i++) { p[k++]=log((T2(2*i+1,2*i+1)>0?T2(2*i+1,2*i+1):1e-30)/(IA(2*i+1,2*i+1)*2.));
-          std::cerr<<"ii: "<<i<<"," <<T2(2*i+1,2*i+1)<<" :: "<<IA(2*i+1,2*i+1)<<"\n"; }
-    }
+*/
+
 #if GLE_DEBUG>1
     std::cerr<<" parameters: "<<p
     <<" **        EXIT AC2pars()       ** \n";

@@ -1,7 +1,7 @@
 #ifndef __COLOR_HPP
 #define __COLOR_HPP 1
 
-#define GLE_DEBUG 5
+#define GLE_DEBUG 1
 #define  __NOPEAK 1
 
 #include "tbdefs.hpp"
@@ -21,23 +21,23 @@ private:
     CMatrix O, O1; std::valarray<tblapack::complex> a;
     DMatrix lA, lA1; std::valarray<double> lZap; CMatrix lAO, lAO1; std::valarray<tblapack::complex> la;
     CMatrix O1CT;
-    
+
     void prepare_C();
     void prepare_hk();
     double x(unsigned long i, unsigned long j, unsigned long k, unsigned long l);
-    
+
 public:
     GLEABC(): n(0), A(0,0), BBT(0,0), C(0,0), fr_eva(false), fr_c(false), fr_init(false), fr_hk(false) {}
     void set_size(unsigned long nn) { fr_init=false; n=nn; }
     void set_A(const DMatrix& rA);
     void set_C(const DMatrix& rC);
     void set_BBT(const DMatrix& rBBT);
-    
+
     void get_A(DMatrix& rA);
     void get_C(DMatrix& rC);
     void get_BBT(DMatrix& rBBT);
     void get_evA(std::valarray<tblapack::complex>& ra);
-    
+
     void get_KH(double w, double& kw, double& hw);
     void get_tau2(unsigned long i, unsigned long j, unsigned long k, unsigned long l, double& tau);
     void get_acf(unsigned long i, unsigned long j, unsigned long k, unsigned long l, double t, double& acf);
@@ -54,13 +54,13 @@ void verlet_check(const DMatrix& A, const DMatrix& C, double w, double dt, doubl
 
 void harm_peak(const DMatrix& A, const DMatrix& BBT, double w, double d, double &pi);
 
-//options for a colored complex thermostat. 
+//options for a colored complex thermostat.
 class ThermoOptions {
 public: double beta,   // thermostat inverse temperature
         taut,      // thermostat friction
         tauf,      // real part of ac. decay
         tauw;      // imag part of ac. decay
-}; 
+};
 
 std::ostream& operator<<(std::ostream& ostr, const ThermoOptions& to);
 std::istream& operator>>(std::istream& istr, ThermoOptions& to);
@@ -75,7 +75,7 @@ inline void q2ij(unsigned long q, unsigned long& i, unsigned long& j)
     i=(int) floor((sqrt(8.*q+1.)-1.)*0.5);
     j=q-(i*(i+1))/2;
 }
- 
+
 inline void ij2q(unsigned long n, unsigned long i, unsigned long j, unsigned long& q)
 {  q=i*n+j; }
 
@@ -99,16 +99,16 @@ private:
     std::valarray<tblapack::complex> a;
 public:
     XTau() : sz(0) {}
-    XTau(const MDeco& Adec, const toolbox::FMatrix<double>& C) { prepare(Adec,C); } 
-    XTau(const toolbox::FMatrix<double>& A, const toolbox::FMatrix<double>& C) { prepare(A,C); } 
+    XTau(const MDeco& Adec, const toolbox::FMatrix<double>& C) { prepare(Adec,C); }
+    XTau(const toolbox::FMatrix<double>& A, const toolbox::FMatrix<double>& C) { prepare(A,C); }
     void prepare(const toolbox::FMatrix<double>& A, const toolbox::FMatrix<double>& C);
     void prepare(const MDeco& Adec, const toolbox::FMatrix<double>& C);
-    
+
     double operator() (unsigned long i, unsigned long j, unsigned long k, unsigned long l);
     double tau(unsigned long i, unsigned long j, unsigned long k, unsigned long l)
     {return 0.5*((*this)(i,j,k,l)+(*this)(i,j,l,k)+(*this)(k,l,i,j)+(*this)(l,k,i,j));}
 };
- 
+
 void AB2C(const toolbox::FMatrix<double>& A, const toolbox::FMatrix<double>& B, toolbox::FMatrix<double>& C);
 void AD2C(const toolbox::FMatrix<double>& A, const toolbox::FMatrix<double>& D, toolbox::FMatrix<double>& C);
 void AC2B(const toolbox::FMatrix<double>& A, const toolbox::FMatrix<double>& C, toolbox::FMatrix<double>& B);
@@ -116,7 +116,7 @@ void AC2B(const toolbox::FMatrix<double>& A, const toolbox::FMatrix<double>& C, 
 void sqrt(const toolbox::FMatrix<double>& M2, toolbox::FMatrix<double>& M);
 void build_B(const std::valarray<ThermoOptions>& thops, toolbox::FMatrix<double>& B);
 void build_A(const std::valarray<ThermoOptions>& thops, toolbox::FMatrix<double>& A);
-void get_TS(const toolbox::FMatrix<double>& A, const toolbox::FMatrix<double>& B, const double& t, 
+void get_TS(const toolbox::FMatrix<double>& A, const toolbox::FMatrix<double>& B, const double& t,
          toolbox::FMatrix<double>& T, toolbox::FMatrix<double>& S);
 void A2Kt(const toolbox::FMatrix<double>& A, double dt, std::valarray<double>& K);
 
