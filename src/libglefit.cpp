@@ -682,10 +682,10 @@ void GLEFError::pars2AC()
     }
     else if (opar.pstyleC==CIndirect || opar.pstyleC==CBDiagonal)
     {
-        // Here we really store B, so that from it one can get C indirectly.
+        // Here we really store B, so that from it one can get C indirectly. CIndirect is the parameterization used in the thesis
 
         FMatrix<double> B(n+1,n+1), BBT, T1; // temporaries
-        for (int i=0; i<n+1; i++) B(i,i)=exp(p[k++]);   // elements on the diagonal can probably be taken positive without loss of generality
+        for (int i=0; i<n+1; i++) B(i,i)=exp(p[k++]);   // elements on the diagonal can probably be taken positive without loss of generality -- log scale
         if (opar.pstyleC==CIndirect)  // only read off-diagonal terms if the parameterization requires it
            for (int i=1; i<n+1; i++) for (int j=0; j<i; j++) B(i,j)=p[k++]; // off-diagonal terms
 
@@ -973,7 +973,7 @@ FMatrix<double> APO, APOT;
         FMatrix<double> BBT, T1; // temporaries
         mult(tA,tC,T1); transpose(T1,BBT); BBT+=T1;
         StabCholesky(BBT,T1);         // get B
-        for (int i=0; i<n+1; i++) {std::cerr<<T1(i,i) <<" T1\n"; p[k++]=log(T1(i,i)>0?T1(i,i):VERY_SMALL);} 
+        for (int i=0; i<n+1; i++) {std::cerr<<T1(i,i) <<" T1\n"; p[k++]=log(T1(i,i)>0?T1(i,i):VERY_SMALL);}
         if (opar.pstyleC==CIndirect)
            for (int i=1; i<n+1; i++) for (int j=0; j<i; j++) p[k++]=T1(i,j);
     }
@@ -1164,15 +1164,16 @@ void GLEFError::compute_globs(std::map<GLEFGlobType, double>& lims)
     for(int i=1; i<(opar.pstyleC==CDelta?lae.size()/2:lae.size()); i++) { minae=((minae>abs(lae[i]))?abs(lae[i]):minae); maxae=(maxae<abs(lae[i])?abs(lae[i]):maxae); }
     lims[DCondNum]=maxae/minae;
 
-    lims[DeltaSpread]=0.;
+    // minimum (relative) spread of the delta functions
+    lims[DeltaSpread]=abs(A(1,1)/A(1,2));
     for (int i=1; i<A.rows()-1; i+=2)
-        lims[DeltaSpread]+=abs(log(abs(A(i,i)/A(i,i+1))));
-    lims[DeltaSpread]=lims[DeltaSpread]/(A.rows()-1)*2;
+        lims[DeltaSpread]=( lims[DeltaSpread]<abs(A(i,i)/A(i,i+1)) ? lims[DeltaSpread]: abs(A(i,i)/A(i,i+1))  );
 
-    lims[DeltaWeight]=0.;
+
+    // minumum (relative) weight of the delta functions
+    lims[DeltaWeight]=abs(A(0,1)/A(1,2));
     for (int i=1; i<A.rows()-1; i+=2)
-        lims[DeltaWeight]+=abs(log(abs(A(0,i)/A(i,i+1))));
-    lims[DeltaWeight]=lims[DeltaWeight]/(A.rows()-1)*2;
+        lims[DeltaWeight]=( lims[DeltaWeight]<abs(A(0,i)/A(i,i+1)) ? lims[DeltaWeight] : abs(A(0,i)/A(i,i+1))  );
 
 }
 
