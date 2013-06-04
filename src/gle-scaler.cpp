@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 {
     CLParser clp(argc, argv);
     std::string amat, bmat, cmat, dmat, oraw, ostd;
-    bool foa, fob, foc, fod;
+    bool foa, fob, foc, fod, fhelp;
     double shifta, shiftc, shiftkh;
     bool fok=clp.getoption(amat,"a") &&
             clp.getoption(bmat,"b",std::string("")) &&
@@ -49,8 +49,10 @@ int main(int argc, char **argv)
             clp.getoption(fod,"od",false) &&
             clp.getoption(shiftkh,"skh",1.) &&
             clp.getoption(shifta,"sa",1.) &&
-            clp.getoption(shiftc,"sc",1.);
+            clp.getoption(shiftc,"sc",1.) &&
+            clp.getoption(fhelp,"h",false);
 
+    if (fhelp || !fok) { banner(); exit(-1); }
     GLEABC abc;
     FMatrix<double> iA, iC, iD;
     std::ifstream ifile;

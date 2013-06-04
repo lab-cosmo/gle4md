@@ -124,6 +124,7 @@ std::istream& operator>> (std::istream& istr, GLEFGlobType& value)
     else if (str=="dcondnum" )      value=DCondNum;
     else if (str=="cratio" )        value=CRatio;
     else if (str=="pqratio")        value=PQRatio;
+    else if (str=="aemax" )         value=AEigvMax;
     else if (str=="aespread" )      value=AEigvSpread;
     else if (str=="aecenter" )      value=AEigvCenter;
     else if (str=="aeweight" )      value=AEigvWeight;
@@ -148,6 +149,7 @@ std::ostream& operator<< (std::ostream& ostr, const GLEFGlobType& p)
         case CCondNum:     ostr<<" ccondnum  ";    break;
         case DCondNum:     ostr<<" dcondnum  ";    break;
         case PQRatio:      ostr<<" pqratio   ";    break;
+        case AEigvMax:     ostr<<" aemax     ";    break;
         case AEigvSpread:  ostr<<" aespread  ";    break;
         case AEigvCenter:  ostr<<" aecenter  ";    break;
         case AEigvWeight:  ostr<<" aeweight  ";    break;
@@ -1145,6 +1147,8 @@ void GLEFError::compute_globs(std::map<GLEFGlobType, double>& lims)
     double minae, maxae; minae=maxae=abs(lae[0]);
     for(int i=1; i<lae.size(); i++) { minae=(minae>abs(lae[i])?abs(lae[i]):minae); maxae=(maxae<abs(lae[i])?abs(lae[i]):maxae); }
     lims[AECondNum]=maxae/minae;
+    lims[AEigvMax]=maxae;
+
 
     EigenDecomposition(A, lO, lO1, lae);
     minae=maxae=abs(lae[0]);
