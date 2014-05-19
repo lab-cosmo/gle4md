@@ -1,0 +1,64 @@
+  <div class="columns">    <a name="optimal"></a>
+    <div class="centered"> <h3> Efficient canonical sampling </h3></div>   
+    <div class="column">
+    A Generalized Langevin dynamics can be tuned so that <i>all</i> the vibrational
+    modes in a system of interest behave as if critically damped. This results in a
+    more efficient sampling of the constant-temperature canonical ensemble. 
+    Interestingly, this tuning can be done in a a-priori fashion, without knowledge 
+    of the details of the system of interest, so that this <b>optimal-sampling GLE</b>
+    achieves near-ideal sampling efficiency without the need of optimizing the thermostat
+    parameters on the system of choice.
+    </div>
+  </div>  
+  <div class="columns">
+   <div class="lcolumn"> <a name="quantum"></a>
+     <h3> Quantum thermostat and PI+GLE </h3>
+     <img src="images/h2o-ph.png" alt="PH of 'classical' water"/> 
+   </div>   
+   <div class="rcolumn">
+    </br>
+    The quantum mechanical behavior of light nuclei (such as hydrogen) can have a dramatic effect
+    on physical properties of condensed phase systems. For instance, one can extrapolate the pH of
+    isotopically pure waters to the infinite-mass limit, and estimate that a 'classical' water
+    would have <b>pH=8.5</b>.
+    An appropriate GLE can enforce a phase-space distribution consistent with a quantum harmonic oscillator
+    without any significant overhead. This allows one to model nuclear quantum effects in a classical 
+    simulation inexpensively. A systematic improvement of the accuracy in strongly anharmonic problems
+    can be achieved by combining this approach with path integral molecular dynamics 
+    (with a <b>much lower</b> number of replicas than for a fully converged PI simulation).
+    </div>
+    <div class="centered"><br/> <img src="images/gle-pimd.png" alt="PI+GLE" style="clear:both;"/> </div>
+  </div>
+
+  <div class="columns">
+    <div class="lcolumn"> <a name="piglet"></a>
+      <h3> PIGLET and particle momentum distribution </h3>
+      <p>
+      The PI+GLE method can be improved significantly by also enforcing the centroid fluctuations
+      to take on the converged value for a harmonic system and a small number of beads. This allows one
+      to compute the <b>quantum kinetic energy</b> estimator very efficiently, which in turns enables the calculation
+      of the amplitude of the particle momentum distribution. <br/> By computing also the off-diagonal
+      terms of the kinetic energy tensor, and by performing appropriate running averages, one can also get
+      in an automatic fashion the anisotropy of the PMD, hence improving the comparison with DINS experiments
+      without resorting to open path integrals.
+      </p>
+      </div>
+    <div class="rcolumn"> <br/><br/> <img src="images/dins-h2o.jpg" alt="Particle momentum distribution in water." style="width:375px"/>  </div>
+  </div>
+
+  <div class="columns">    
+    <script type="text/javascript" src="movies/flowplayer-3.2.2.min.js"></script> <a name="delta"></a>
+    <div class="centered"> <h3> Selective normal mode excitation </h3><br/> <a  
+	     href="movies/ice-cage.flv"  
+	     style="text-alig:center;  margin-left:auto; margin-right:auto;display:block;width:712px;height:320px"  
+	     id="player"> 
+    </a> </div>
+	<script type="text/javascript">
+		flowplayer("player", "movies/flowplayer-3.2.2.swf");
+	</script>
+	<div class="column">
+    By tuning the properties of the colored noise it is possible to realize a 
+    stochastic dynamics in which only the normal modes within a narrow range of frquencies
+    are excited, without prior knowledge of the system's phonon spectrum.
+   </column>
+  </div>

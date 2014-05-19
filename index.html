@@ -1,129 +1,38 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<link rel="icon" type="image" href="images/favicon.png" />
-<link rel="stylesheet" type="text/css" href="style.css" />
-<title> GLE4MD Project Homepage: colored noise thermostats for molecular dynamics </title>
-<meta name="description" content="A comprehensive framework to enhance molecular dynamics by 
-non-Markovian, generalized Langevin equations" />
-<meta name="keywords" content="generalized Langevin equation, molecular dynamics, stochastic equations, canonical sampling, nuclear quantum effects, thermostat" />
+<head id="header">
+  <script type="text/javascript" src="dynamic.js"></script>
+  <script type="text/javascript"> composeHeader(pageQuery.page); </script>
 </head>
-
 
 <body>
 <div class="main">
 <div class="centered">
 
-<script type="text/javascript">
- function httpGet(theUrl)
-{
-    var xmlhttp;
-    if (window.XMLHttpRequest)
-    {// code for IE7+, Firefox, Chrome, Opera, Safari
-        xmlhttp=new XMLHttpRequest();
-    }
-    else
-    {// code for IE6, IE5
-        xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
-    }
-    
-/*    xmlhttp.onreadystatechange=function()
-    {
-        if (xmlhttp.readyState==4 && xmlhttp.status==200)
-        {
-            return xmlhttp.responseText;
-        }
-    }
-    */
-    try {
-       xmlhttp.open("GET", theUrl, false );       
-       xmlhttp.send();    
-    } catch(err) {  return "Could not load resources from "+theUrl;    }
-    return xmlhttp.responseText;
-}
-   document.write("Begins inserted text<br>");
-  document.write(httpGet("http://imx-cosmo.github.io/gle4md/text.txt"));
-     document.write("<br> Ends inserted text<br>");
-</script>
-
  <div class="roundedbox" style="background: url('images/bgtile.png') repeat;  padding-bottom:0px;">
  <div class="rb tl"></div><div class="rb tr"></div>
  <div class="rbinside">
    <img src="images/gle4md-logo.png" alt="GLE4MD Logo" style="clear:both;"/>
-   <div class="menu" style="margin:10px -1em 0 -1em">
- <?php
-     menu("main"," HOME ");
-     menu("apps", " APPLICATIONS ");
-     menu("ipi", "<b>i-PI</b>");
-     menu("refs"," PAPERS ");
-     menu("docs"," DOCS ");
-     menu("code"," CODE ");     
-     menu("matrix"," INPUT ");
- ?>
-</div>
+   <div class="menu" style="margin:10px -1em 0 -1em" id="menu">
+   </div>
+   <script type="text/javascript"> 
+     mkMenu("main"," HOME ");
+     mkMenu("apps", " APPLICATIONS ");
+     mkMenu("ipi", "<b>i-PI</b>");
+     mkMenu("refs"," PAPERS ");
+     mkMenu("docs"," DOCS ");
+     mkMenu("code"," CODE ");     
+     mkMenu("matrix"," INPUT ");
+   </script>
+
   </div></div>
  <div class="roundedbox" style="background:white">
  <div class="rb bl"></div><div class="rb br"></div>
   <div class="rbinside">
-
-  <div class="columns">    
-    <div class="column">
-      <b> The first public version of <a href="compose.php?page=ipi">i-PI</a> is available on 
-      <a href="https://github.com/i-pi/i-pi">github</a>. </b> Find out more about i-PI on 
-      <a href="http://dx.doi.org/10.1016/j.cpc.2013.10.027">Comp. Phys. Comm. </a>
-    </div>
-  </div>  
-
-  <div class="columns">
-    <div class="lcolumn">  <img src="images/gle-front.png" alt="Gallery of GLE pictures"/>  </div>
-    <div class="rcolumn"> 
-      <p>
-      GLE4MD aims to be a collection of tools to simplify the use of colored-noise, 
-      generalized Langevin equation thermostats to enhance your molecular dynamics simulations.
-      A colored-noise thermostat can be used to <a href="compose.php?page=apps#optimal">enhance canonical sampling</a>,
-      in particular in difficult cases such as path integral dynamics, 
-      to perform constant-temperature MD in a <b>Car-Parrinello-like dynamics</b>,
-      to control resonances in <b>multiple time step</b> dynamics,
-      to include  <a href="compose.php?page=apps#quantum">nuclear quantum effects</a> 
-      at a fraction of the cost of a path-integrals simulation, 
-      to compute the <a href="compose.php?page=apps#piglet">particle momentum distribution</a>, 
-      to selectively <a href="compose.php?page=apps#delta">excite a few normal modes</a>, and a number of other
-      applications which have not been invented yet.
-      </p>
-      <p>
-      On these pages you will find a collection of ready-to-use GLE parameters,
-      and a handy online tool to <a href="compose.php?page=matrix">prepare the GLE section</a> 
-      of the input for different programs,
-      tools to analyze and fit GLE matrices, sample code to include colored-noise thermostats 
-      in your MD code, tutorials and documentation to explain in detail how to 
-      use colored noise in your simulation. You will also find information concerning 
-      <a href="compose.php?page=ipi">i-PI</a>, a Python interface to perform path integral
-      molecular dynamics with ab initio (and empirical) forces, that implements all of the 
-      colored-noise machinery. 
-      </p>
-    </div>
-  </div>
-
-  <div class="columns">    
-
-    <div class="column">
-    <h2> Acknowledgements </h2>
-    The Royal Society and the Swiss National Science Foundation are gratefully acknowledged
-    for financial support during the development of the GLE framework described on these pages.
-    <h2> Quick links </h2>
-    <p> Users ML: gle4md-users@lists.berlios.de </p>
-    <p> Go to the <a href="https://developer.berlios.de/projects/gle4md/"> developer's page</a></p>
-    <p> Browse the <a href="https://cvs.berlios.de/cgi-bin/viewvc.cgi/gle4md">CVS tree</a>, which includes a library of GLE parameters </p>
-    <br/>
-    <b> WARNING!</b> These pages are still being worked on, and might be incomplete and buggy. 
-    Please report any inconsistency to michele dot ceriotti at chem dot ox dot ac dot uk.
-    <br/>
-    </div>
-  </div>
-  
-  
+   <script type="text/javascript"> 
+     httpInclude("pages/"+pageQuery.page+".html");
+   </script>
  </div></div>
 </div>
  <div class="footer">
