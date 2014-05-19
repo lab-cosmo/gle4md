@@ -24,10 +24,12 @@ var pageQuery=function () {
 
 if (!pageQuery.page) pageQuery.page="main"; //default
 
-  window.alert("from script");
-
-function httpGet(theUrl, entity="undefined", append=false, silent=true)
+function httpGet(theUrl, entity, append, silent)
 {
+   entity = typeof entity !== "undefined" ? entity : "";
+   append = typeof append !== "undefined" ? append: false;
+   silent = typeof silent !== "undefined" ? silent: true;
+
    // Reads a file from URL and returns its content as a string
    var xmlhttp;
    if (window.XMLHttpRequest)
@@ -39,7 +41,7 @@ function httpGet(theUrl, entity="undefined", append=false, silent=true)
       xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
    }
 
-   if (entity!="undefined") {
+   if (entity!="") {
       xmlhttp.onreadystatechange=function() {
          if (append) prefix=document.getElementById(entity).innerHTML+" "; else prefix=""; 
          if (xmlhttp.readyState == 4 && (xmlhttp.status == 200 || (xmlhttp.status == 0 && xmlhttp.responseText))) {
@@ -51,13 +53,13 @@ function httpGet(theUrl, entity="undefined", append=false, silent=true)
    }      
    try {
       xmlhttp.overrideMimeType("text/plain; charset=utf-8");
-      xmlhttp.open("GET", theUrl, entity!="undefined" );    
+      xmlhttp.open("GET", theUrl, entity!="" );    
       xmlhttp.send();    
    } catch(err) {  if (!silent) { document.write("Could not load resources from "+theUrl); } throw(err); }
 
    return xmlhttp.responseText;   
 }
-/*
+
 function httpInclude(theUrl)
 {  // Reads from URL and writes to document in place 
    document.write(httpGet(theUrl));
@@ -77,4 +79,4 @@ function mkMenu(item,label)
    var menu=document.getElementById("menu");
    menu.innerHTML = menu.innerHTML + " <a class='menu " + (item==pageQuery.page?"sel":"")+ "' href='index.html?page="+item+"'>"+label+"</a>";
 }
-*/
+
