@@ -21,7 +21,7 @@ var pageQuery=function () {
 
 if (!pageQuery.page) pageQuery.page="main"; //default
 
-function httpGet(theUrl, entity=undefined, append=false, silent=true)
+function httpGet(theUrl, entity="undefined", append=false, silent=true)
 {
    /* Reads a file from URL and returns its content as a string*/
    var xmlhttp;
@@ -34,7 +34,7 @@ function httpGet(theUrl, entity=undefined, append=false, silent=true)
       xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
    }
 
-   if (entity!=undefined) {
+   if (entity!="undefined") {
       xmlhttp.onreadystatechange=function() {
          if (append) prefix=document.getElementById(entity).innerHTML+" "; else prefix=""; 
          if (xmlhttp.readyState == 4 && (xmlhttp.status == 200 || (xmlhttp.status == 0 && xmlhttp.responseText))) {
