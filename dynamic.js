@@ -1,6 +1,6 @@
 document.write("LOADED");
      window.alert("from script");
-/*
+
 var pageQuery=function () { 
   var query_string = {};
   var query = window.location.search.substring(1);
@@ -23,7 +23,7 @@ var pageQuery=function () {
 } ();
 
 if (!pageQuery.page) pageQuery.page="main"; //default
-
+/*
 function httpGet(theUrl, entity="undefined", append=false, silent=true)
 {
    // Reads a file from URL and returns its content as a string
