@@ -1,5 +1,5 @@
 document.write("LOADED");
-
+     window.alert("from script");
 var pageQuery=function () { 
   var query_string = {};
   var query = window.location.search.substring(1);
