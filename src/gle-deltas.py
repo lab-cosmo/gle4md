@@ -351,6 +351,13 @@ class mainwin:
         for i in range(0,nd):
     	    w0=10**self.deltas[i].omega0; dw=10**self.deltas[i].domega*w0;
             g=math.sqrt(10**self.deltas[i].gamma*dw)
+
+            #amat[0][2*i+1]=amat[0][2*i+2]=g; 
+            #amat[2*i+1][0]=amat[2*i+2][0]=-g;             
+            #amat[2*i+1][2*i+1]=amat[2*i+2][2*i+2]=dw
+            #amat[2*i+1][2*i+2]=w0
+            #amat[2*i+2][2*i+1]=-w0
+            #dmat[2*i+1][2*i+1]=dmat[2*i+2][2*i+2]=2*dw*10**self.deltas[i].temp;
             amat[2*i+1][2*i+1]=dw;
             amat[2*i+1][2*i+2]=w0;
             amat[2*i+2][2*i+1]=-w0;
