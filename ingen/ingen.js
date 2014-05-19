@@ -1,8 +1,9 @@
 // default values of options
 var gle_kind="optimal";
 
-function mkOption(curval,value,label,style="")
+function mkOption(curval,value,label,style)
 {
+   style = typeof style !== "undefined" ? style : ""
    document.write("<option value='"+value+"' "+(curval==value?"selected='selected'":"")+" style='"+style+"'>"+label+"</option>");
 }
 
