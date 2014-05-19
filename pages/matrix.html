@@ -1,0 +1,26 @@
+<div class="columns">
+<div class="column">
+<h2>GLE Input generator</h2>
+<p> 
+   This page is designed to generate (or pick from a library) 
+   a set of parameters for a generalized Langevin equation, 
+   consistent with the kind of simulation and the system chosen.
+   Options that are highlighted in red in the drop-down boxes are to
+   be considered experimental, and it is recommended that the authors
+   of the relevant papers are contacted before using them in a 
+   production run.
+</p>
+<p>
+   It will also output the parameters in a format such that they 
+   are ready to be used in the input of one of the MD codes which
+   officially implement the GLE thermostat (currently, 
+   <a href="http://cp2k.berlios.de">CP2K</a>, 
+   <a href="http://www.cpmd.org">CPMD</a> and <a href="https://aimsclub.fhi-berlin.mpg.de/">FHI-AIMS</a>).
+</p>
+</div>
+</div>
+<form action='compose.php?page=matrix' method='post' enctype='multipart/form-data' id='form_gle' name='form_gle'>
+<?php
+   include("ingen/ingen.php");
+?>
+</form>

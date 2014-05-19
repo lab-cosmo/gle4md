@@ -1,0 +1,92 @@
+<div class="columns">
+<div class="column">
+  <h2> References </h2>
+  <h3> Methodological papers </h3>
+  <ul>  
+  <li> <b>“Efficient first-principles calculation of the quantum kinetic energy and momentum distribution of nuclei”</b>, 
+           Michele Ceriotti and David E. Manolopoulos, Rev. Lett. 109, 100604 (2012)
+       <a href="http://dx.doi.org/10.1103/PhysRevLett.109.100604" target="new">doi: 10.1103/PhysRevLett.109.100604</a>
+       <br/><i>The PI+GLE method is extended so as to guarantee that the quantum kinetic energy of nuclei 
+       will converge as efficiently as the potential energy. This is done by simultaneously enforcing the correct
+       fluctuations of both individual beads and the centroid, in the harmonic limit. A transient anisotopic 
+       Gaussian approximation to the particle momentum distribution is also developed, which makes it easy to
+       estimate the anisotropy of the PMD without using open path integrals.</i>
+  </li>
+  <li> <b>“The inefficiency of re-weighted sampling and the curse of system size in high-order path integration”</b>, 
+           Michele Ceriotti,  Guy A. R. Brain,  Oliver Riordan and David E. Manolopoulos, Proc. R. Soc. A 468, 2 (2012)
+       <a href="http://dx.doi.org/10.1098/rspa.2011.0413" target="new">doi: 10.1098/rspa.2011.0413</a>
+       <br/><i>The problem of re-weighted sampling is discussed in very general terms, demonstrating the pathological
+       behaviour of the sampling efficiency with increasing variance of the difference Hamiltonian. The implications with respect some recent 
+       attempts to make high-order path integration practicable are discussed, and demonstrating that this is a 
+       hopeless task and that PI+GLE obtains faster convergence without being affected by sampling problems.</i>
+  </li>
+  <li> <b>“Accelerating the convergence of path integral dynamics with a generalized Langevin equation”</b>, 
+       M. Ceriotti, D. E. Manolopoulos, and M. Parrinello, J. Chem. Phys. 134, 084104 (2011)
+       <a href="http://dx.doi.org/10.1063/1.3556661" target="new">doi: 10.1063/1.3556661</a>
+       <br/><i>The quantum thermostat can model nuclear quantum effects accurately in quasi-harmonic 
+       systems, but becomes less reliable as anharmonicities become more important. Here a non-Markovian
+       GLE dynamics is combined with an imaginary-time path integral dynamics to recover systematic 
+       convergence of nuclear quantum effects, at the same time greatly speeding up this convergence.</i>
+  </li>
+  <li> <b>“Efficient multiple time scale molecular dynamics: using colored noise thermostats to stabilize resonances”</b>, 
+       J. A. Morrone, T. E. Markland, M. Ceriotti, and B. J. Berne, J. Chem. Phys. 134, 014103 (2011)
+       <a href="http://dx.doi.org/10.1063/1.3518369" target="new">doi: 10.1063/1.3518369</a>
+       <br/><i>Multiple time step schemes can deliver consistent speed ups to classical molecular dynamics, but 
+       can also lead to resonances and instabilities which may affect the reliability of the simulation. Stochastic terms
+       have been used in the past to control resonances, at the expense however of a slowing-down of diffusive motions
+       which ultimately cancels the benefits of MTS. Here a GLE is used to enforce tight control of resonances of high 
+       frequency modes, while introducing minimal hindrance to slower, collective dynamics.</i>
+  </li>
+  <li>  <b>“Efficient stochastic thermostatting of path integral molecular dynamics”</b>, M. Ceriotti, M. Parrinello, T. E. Markland, D. E. Manolopoulos, J. Chem. Phys 133, 124104 (2010) <a href="http://dx.doi.org/10.1063/1.3489925" target="new">doi: 10.1063/1.3489925</a>
+    <br/><i>Thorough comparison of different thermostats applied to the challenging case of path integral molecular dynamics.
+      GLE turns out to be competitive with targeted techniques which exploit explicitly knowledge of the internal modes
+      of the necklace.</i>
+  </li
+  <li>  <b>“The &delta;-thermostat: selective normal-modes excitation by colored-noise Langevin dynamics”</b>, M. Ceriotti and M. Parrinello, Proc. Comp. Sci. 1, 1601 (2010) <a href="http://dx.doi.org/10.1016/j.procs.2010.04.180" target="new">doi: 10.1016/j.procs.2010.04.180</a>
+    <br/><i>Usage of a non-equilibrium GLE thermostat to freeze all but a narrow range of vibrational modes. Can be used to probe
+the vibrational spectrum of a solid in a MD framework, or to approximately compute the eigenvalue spectrum of a
+positive-definite sparse matrix in linear-scaling time.</i>
+  </li>
+  <li> <b> “Colored-noise thermostats à la carte”</b>, M. Ceriotti, G. Bussi and M. Parrinello, J. Chem. Theory Comput. 6, 1170 (2010) <a href="http://dx.doi.org/10.1021/ct900563s" target="new">doi: 10.1021/ct900563s</a> 
+  <br/><i>Long paper, describing in details the derivation and implementation of the GLE framework. Examples of optimal sampling LE and quantum-thermostat dynamics.</i>
+  </li>
+  <li>  <b>“Nuclear quantum effects in solids using a colored-noise thermostat”</b>, M. Ceriotti, G. Bussi and M. Parrinello, Phys. Rev. Lett. 103, 030603 (2009) <a href="http://dx.doi.org/10.1103/PhysRevLett.103.030603" target="new">doi: 10.1103/PhysRevLett.103.030603</a>
+    <br/><i>Description of the quantum thermostat, applications to the calculation of nuclear quantum effects in diamond and liquid water (proton momentum distribution).</i>
+  </li>
+  <li>  <b>“Langevin equation with colored noise for constant-temperature molecular dynamics simulations”</b>, M. Ceriotti, G. Bussi and M. Parrinello, Phys. Rev. Lett. 102, 020601 (2009) <a href="http://dx.doi.org/10.1103/PhysRevLett.102.020601" target="new">doi: 10.1103/PhysRevLett.102.020601</a>
+    <br/><i>Introduction to the GLE framework for molecular dynamics. Applications to Car-Parrinello dynamics and to Drude-oscillator polarizable forcefields.</i>
+  </li>
+  </ul>
+  <h3> (incomplete) list of applications using GLE thermostatting</h3>
+  <ul>
+<li> <b>“Shape Modulation of Octanuclear Cu(I) or Ag(I) Dichalcogeno Template Clusters with Respect to the Nature of their Encapsulated Anions: A Combined Theoretical and Experimental Investigation”</b>,
+           Camille Latouche et al., J. Chem. Phys. 138, 014112 (2013)
+       <a href="http://dx.doi.org/10.1021/jc400959a" target="new">doi: 10.1021/jc400959a</a>
+</li>
+<li> <b>“Efficient methods and practical guidelines for simulating isotope effects”</b>, 
+           Michele Ceriotti and Thomas E. Markland, J. Chem. Phys. 138, 014112 (2013)
+       <a href="http://dx.doi.org/10.1063/1.4772676" target="new">doi: 10.1063/1.4772676</a>
+</li>  
+<li>  <b>“On the recombination of hydronium and hydroxide ions in water”</b>, Ali Hassanali,
+Meher K. Prakash, Hagai Eshet, and Michele Parrinello, Proc. Nat. Acad. Sci. 108, 201410 (2011) <a href="http://dx.doi.org/10.1073/pnas.1112486108" target="new">doi: 10.1073/pnas.1112486108</a>
+</li>
+<li>  <b>“Exploring the free energy surfaces of clusters using reconnaissance metadynamics”</b>, Gareth A. Tribello, J&eacute;r&ocirc;me Cuny, Hagai Eshet, and Michele Parrinello, J. Chem. Phys. 135, 114109 (2011) <a href="http://dx.doi.org/10.1063/1.3628676" target="new">doi: 10.1063/1.3628676</a>
+</li>
+<li>  <b>“Simplifying the representation of complex free-energy landscapes using sketch-map”</b>, Michele Ceriotti,
+Gareth A. Tribello, and
+Michele Parrinello, Proc. Nat. Acad. Sci. 108, 13023 (2011) <a href="http://dx.doi.org/10.1073/pnas.1108486108" target="new">doi: 10.1073/pnas.1108486108</a>
+</li>
+<li>  <b>“First-Principles Study of the High-Temperature Phase of Li<sub>2</sub>NH”</b>, Giacomo Miceli, Michele Ceriotti, Stefano Angioletti-Uberti, Marco Bernasconi, and Michele Parrinello, J. Phys. Chem. C, 115, 7076 (2011) <a href="http://dx.doi.org/10.1021/jp200076p" target="new">doi: 10.1021/jp200076p</a>
+</li>
+<li>  <b>“Ab initio quality neural-network potential for sodium”</b>, Hagai Eshet, Rustam Z. Khaliullin, Thomas D. Kühne, Jörg Behler, and Michele Parrinello, Phys. Rev. B 81, 184107 (2010) <a href="http://dx.doi.org/10.1103/PhysRevB.81.184107" target="new">doi: 10.1103/PhysRevB.81.184107</a>
+</li>
+<li>  <b>“Graphite-diamond phase coexistence study employing a neural-network mapping of the ab initio potential energy surface”</b>, Rustam Z. Khaliullin, Hagai Eshet, Thomas D. Kühne, Jörg Behler, and Michele Parrinello,  Phys. Rev. B 81, 100103(R) (2010) <a href="http://dx.doi.org/10.1103/PhysRevB.81.100103" target="new">doi: 10.1103/PhysRevB.81.100103</a>
+</li>
+<li>  <b>“Solid-liquid interface free energy through metadynamics simulations”</b>,  Stefano Angioletti-Uberti, Michele Ceriotti, Peter D. Lee, and Mike W. Finnis, Phys. Rev. B 81, 125416 (2010) <a href="http://dx.doi.org/10.1103/PhysRevB.81.125416" target="new">doi: 10.1103/PhysRevB.81.125416</a>
+</li>
+<li>  <b>“Nuclear quantum effects in ab initio dynamics: Theory and experiments for lithium imide”</b>, M. Ceriotti, G. Miceli, A. Pietropaolo, D. Colognesi, A. Nale, M. Catti, M. Bernasconi, and M. Parrinello, Phys. Rev. B 82, 174306 (2010) <a href="http://dx.doi.org/10.1103/PhysRevB.82.174306" target="new">doi: 10.1103/PhysRevB.82.174306</a>
+</li> 
+
+ </ul>
+</div>
+</div>
