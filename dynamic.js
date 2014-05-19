@@ -45,8 +45,8 @@ function httpGet(theUrl, entity=undefined, append=false, silent=true)
       }
    }      
    try {
-      xmlhttp.open("GET", theUrl, false );    
       xmlhttp.overrideMimeType("text/plain; charset=utf-8");
+      xmlhttp.open("GET", theUrl, false );    
       xmlhttp.send();    
    } catch(err) {  if (!silent) { document.write("Could not load resources from "+theUrl); } throw(err); }
 
