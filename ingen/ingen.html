@@ -1,0 +1,211 @@
+<script type="text/javascript">
+gle_kind = typeof pageQuery.kind    !== "undefined" ? pageQuery.kind : "optimal"; 
+out_mode = typeof pageQuery.outmode !== "undefined" ? pageQuery.outmode : "raw";
+multi_mat=0;
+
+HELP=OUTS=DESC="";
+DESC="# Shall generate a description of the parameters, sometime\n";
+</script>
+
+
+<div class="columns">
+<div class="lcolumn">
+<b>GLE type: &nbsp;&nbsp; </b>
+<select name="kind" onchange='this.form.submit()'> 
+<script type="text/javascript">
+mkOption(gle_kind,"optimal",  "Optimal sampling"  );
+mkOption(gle_kind,"quantum",  "Quantum thermostat"  );
+mkOption(gle_kind,"piglet",   "PIGLET"  );
+mkOption(gle_kind,"pimd",     "PI+GLE"  );
+mkOption(gle_kind,"respa",    "GLE-RESPA"  );
+mkOption(gle_kind,"delta",    "Delta thermostat"  );
+mkOption(gle_kind,"exp2",     "Exponential 2x2"        );
+mkOption(gle_kind,"kdelta",   "Delta-like K(&omega;)"  );
+mkOption(gle_kind,"smart",    "Smart sampling", "color:red" );
+</script>
+</select> <br/>
+<b>GLE options:</b><br/>
+<script type="text/javascript">
+switch(gle_kind) {
+case "exp2":
+  httpInclude("ingen/gle_exp2.html");
+  break;
+case "kdelta":
+  include("ingen/gle_kdelta.php");
+  break;
+case "respa":
+  include("ingen/gle_respa.php");
+  break;
+case "optimal":
+  include("ingen/gle_optimal.php");
+  break;
+case "quantum":
+  include("ingen/gle_quantum.php");
+  break;
+case "delta":
+  include("ingen/gle_delta.php");
+  break;
+case "pimd":
+  include("ingen/gle_pimd.php");
+  break;
+case "piglet":
+  include("ingen/gle_piglet.php");
+  break;
+case "smart":
+  include("ingen/gle_smart.php");
+  break;  
+}
+</script>
+</div>
+<div class="rcolumn"> <p>
+
+<script type="text/javascript">
+  document.write(HELP);
+</script>
+
+<!--
+<?php
+switch($gle_kind) {
+case "exp2":
+echo <<<EOT
+     
+EOT;
+break; 
+case "kdelta":
+echo <<<EOT
+     &delta;-like memory kernel: the Fourier transform of the memory kernel is peaked at 
+     frequency &omega;0, has width &Delta;&omega; and strength &gamma;. Modes with 
+     frequency close to &omega;0 will be most affected by the GLE.
+     Enforces fluctuation-dissipation theorem, so canonical sampling will result: not to be
+     confused with the &delta; thermostat, which selectively excites a few normal modes.
+EOT;
+break; 
+case "respa":
+echo <<<EOT
+     Memory kernel suitable to stabilize RESPA multiple time step dynamics
+     with a reduced effect on diffusion and low-frequency dynamics.  
+     Frequencies above &omega;F will be damped with an effective friction 
+     &gamma;&infin;, while the effective friction becomes negligible at
+     much lower frequencies. The default values have been tested for biological systems
+     with flexible water and an outer time step of 12fs. 
+     Enforces fluctuation-dissipation theorem, so canonical sampling will result.
+EOT;
+break; 
+case "optimal":
+echo <<<EOT
+     Optimal-sampling GLE: tries to minimize the correlation time for sampling
+     potential or total energy for normal modes over a broad frequency range, 
+     geometrically centered at &omega;0. 
+     Enforces fluctuation-dissipation theorem, so canonical sampling will result.
+EOT;
+break; 
+case "smart":
+echo <<<EOT
+     Smart-sampling GLE: similar to optimal sampling, but tries to improve the sampling
+     efficiency for slower collective motion -- with the idea that fast modes will be 
+     sampled many times anyway. One needs to specify a rough estimate of the maximum 
+     frequency present in the system being studied, and estimate for how long the 
+     simulation will be run. The chosen parameters will yield a good compromise 
+     between sampling as efficiently as possible the slowest motion within the reach of the
+     simulation, and sampling efficiently the faster modes. 
+     Enforces fluctuation-dissipation theorem, so canonical sampling will result.
+EOT;
+break; 
+case "quantum":
+echo <<<EOT
+     "Quantum thermostat": models nuclear quantum effects by pinning the 
+     stationary distribution for a harmonic oscillator to the quantum expectation
+     value. This is a non-equilibrium GLE, breaking fluctuation-dissipation theorem.
+     Quantum fluctuations are fitted up to a given cutoff in frequency
+     (which depends on temperature, due to scaling laws). 
+     Both configurational properties and the momentum distribution make physical 
+     sense, but bear in mind that this is an approximate model, and the accuracy
+     may vary depending on anharmonicity. Nevertheless, it was proven to give 
+     a very significant improvement over a purely classical description in many 
+     systems, and at no cost.
+     Compare with path integral results on a smaller or simpler model if 
+     quantitative accuracy is very important! Note in particular that weakly-coupled
+     parameters suffer a lot from anharmonicity, and shouldn't in general be used.
+EOT;
+break; 
+case "pimd":
+echo <<<EOT
+     "PI+GLE": to be used in conjunction with imaginary time path integral MD 
+     to accelerate convergence to the quantum mechanical results. 
+     It is an extension of the quantum thermostat to allow systematic improvement
+     of the accuracy of the modelling of nuclear quantum effects.
+     This is a non-equilibrium GLE, breaking fluctuation-dissipation theorem.
+     Quantum fluctuations are fitted up to a given cutoff in frequency
+     (which depends on temperature, due to scaling laws). 
+     Only configurational properties make sense. Also sampling efficiency has been
+     optimized, and should be comparable to the outcome of an "optimal sampling" 
+     classical simulation. 
+EOT;
+break; 
+case "piglet":
+echo <<<EOT
+     "PIGLET": to be used in conjunction with imaginary time path integral MD 
+     to accelerate convergence to the quantum mechanical results. Also converges
+     efficiently the quantum kinetic energy - so it is in general to be preferred to
+     PI+GLE.  <br/>
+EOT;
+break; 
+case "delta":
+echo <<<EOT
+     &delta; thermostat: only normal modes within a narrow frequency window are set to 
+     a large temperature, while all the others are kept frozen at a much lower T. 
+     This can be used to selectively excite normal modes. Note that an unconventional
+     ensemble will be sampled, and care must be taken to extract quantitative information.
+EOT;
+break; 
+}
+?>-->
+
+</p>
+</div>
+</div>
+<div class="columns"> </div>
+<div class="columns">
+<div class="lcolumn">
+<b>Output format: &nbsp;&nbsp; </b>
+<select name="outmode" onchange='this.form.submit()'> 
+<script type="text/javascript">
+mkOption(out_mode,"raw",      "Raw matrices"        );
+mkOption(out_mode,"cp2k",     "CP2K input section"  );
+mkOption(out_mode,"cpmd",     "CPMD input files"  );
+mkOption(out_mode,"aims",     "FHI-AIMS input section"  );
+mkOption(out_mode,"ipi",      "i-PI input section"  );
+</script>
+</select><br/>
+
+<script type="text/javascript">
+switch(out_mode) {
+case "raw":
+  httpInclude("ingen/out_raw.html");
+  break;
+case "cp2k":
+  include("ingen/out_cp2k.php");
+  break;
+case "cpmd":
+  include("ingen/out_cpmd.php");
+  break;
+case "aims":
+  include("ingen/out_aims.php");
+  break;  
+case "ipi":
+  include("ingen/out_ipi.php");
+  break;
+}
+</script>
+
+</div>
+<div class="rcolumn">
+<b>Generated parameters:</b><br/>
+<pre style="overflow:auto; width:100%; height:300px; border:1px solid black;">
+<script type="text/javascript">
+document.write(OUTS);
+</script>
+</pre>
+</div>
+</div>
+<div class="columns"> </div>

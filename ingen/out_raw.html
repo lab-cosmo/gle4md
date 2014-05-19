@@ -1,0 +1,81 @@
+<script type="text/javascript">
+out_aunits = typeof pageQuery.aunits !== "undefined" ? pageQuery.aunits : "ps";
+out_cunits = typeof pageQuery.cunits !== "undefined" ? pageQuery.cunits : "k";
+</script>
+
+<script type="text/javascript">
+   document.write("Units of time:&nbsp;"); 
+   mkUnit(out_aunits,"aunits","time");
+   if (CMAT!="") { document.write("<br/>Units of energy:&nbsp;"); mkUnit(out_cunits,"cunits","nrg"); }
+</script>
+<br/><br/>
+NB: The drift matrix <b>A</b> is output in units of the inverse of the time units given.
+The diffusion matrix <b>C</b> is output the energy units given.
+
+<script type="text/javascript">
+OUTS=OUTS+DESC;
+OUTS=OUTS+"# Raw matrix format. \n";
+
+if (multi_mat>0)
+{
+   OUTS=OUTS+"# A MATRIX: ("+unitname(out_aunits)+"^-1)\n";
+   aconv=1.0/conv_i2u(1.0,out_aunits,"time");
+   /*
+   b=0;
+   foreach (AMAT as mat) {   
+   OUTS=OUTS.sprintf("# Matrix for normal mode: %d \n", b);   
+   foreach (mat as row) {
+   foreach (row as el) {
+   OUTS=sprintf(OUTS."%20.12e  ",el*aconv);
+   }
+   OUTS=OUTS."\n";   
+   }
+   b=b+1;
+   }
+
+   if (CMAT != "" ) 
+   {
+   OUTS=OUTS."# C MATRIX: (".unitname(out_cunits).")\n";
+   cconv=conv_i2u(1.0,out_cunits,"nrg");
+
+   b=0;
+   foreach (CMAT as mat) {
+   OUTS=OUTS.sprintf("# Matrix for normal mode: %d \n", b);   
+   foreach (mat as row) {
+   foreach (row as el) {
+   OUTS=sprintf(OUTS."%20.12e  ",el*cconv);
+   }
+   OUTS=OUTS."\n";   
+   }
+   b=b+1;   
+   }
+   }*/
+}
+else
+{
+
+   OUTS=OUTS+"# A MATRIX: ("+unitname(out_aunits)+"^-1)\n";
+   aconv=1.0/conv_i2u(1.0,out_aunits,"time");
+   
+   var i,j; 
+   for (i=0; i<AMAT.length; ++i) 
+   {  
+      for (j=0; j<AMAT[i].length; j++)
+         OUTS=OUTS+(AMAT[i][j]*aconv).toExponential(12)+"  ";
+      OUTS=OUTS+"\n";   
+   }
+
+   if (CMAT != "" ) 
+   {
+      OUTS=OUTS+"# C MATRIX: ("+unitname(out_cunits)+")\n";
+      cconv=conv_i2u(1.0,out_cunits,"nrg");
+      for (i=0; i<CMAT.length; ++i) 
+      {  
+         for (j=0; j<CMAT[i].length; j++)
+            OUTS=OUTS+(CMAT[i][j]*aconv).toExponential(12)+"  ";
+         OUTS=OUTS+"\n"; 
+      }  
+   }
+}
+OUTS=OUTS+"\n";  
+</script>

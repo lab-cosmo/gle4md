@@ -1,0 +1,43 @@
+<script type="text/javascript">
+DESC="# Generated at http://imx-cosmo.github.io/gle4md\n\
+# Please cite:\n\
+# M. Ceriotti, G. Bussi and M. Parrinello, J. Chem. Theory Comput. 6, 1170 (2010) \n\
+# M. Ceriotti, G. Bussi and M. Parrinello, Phys. Rev. Lett. 102, 020601 (2009)\n\
+# 2x2 Exponential-decay noise. K(t)=gamma/tau*exp(-t/tau)\n\
+# Parameters used were:\n\
+# gamma= gle_igamma ps^-1\n\
+# tau=   gle_itau ps\n\
+# Suitable to reduce disturbance on fast modes.\n\
+# For serious Car-Parrinello adiabatic separated dynamics, look into \n\
+# custom-fitted matrices.\n\
+";
+HELP="Exponentially-damped noise, corresponding to a memory kernel &gamma; exp(-t/&tau;)/&tau;. \
+     &gamma; sets the strength of the friction, and &tau; a cutoff on the power spectrum of the \
+     noise, which will reduced the contribution from frequencies larger than 1/&tau;. \
+     Enforces fluctuation-dissipation theorem, so canonical sampling will result."; 
+
+
+// reads GET parameters and sets defaults
+gle_gamma  = typeof pageQuery.gamma !== "undefined" ? pageQuery.gamma : 1.0;
+gle_tau    = typeof pageQuery.tau   !== "undefined" ? pageQuery.tau : 1.0;
+gle_ugamma = typeof pageQuery.ugamma!=="undefined"  ? pageQuery.ugamma : "ps";
+gle_utau   = typeof pageQuery.utau  !=="undefined"  ? pageQuery.utau : "ps";
+</script>
+
+<script type="text/javascript">
+mkField(gle_gamma,"gamma","1/&gamma; ",gle_ugamma,"time");
+mkField(gle_tau,"tau","&tau; ",gle_utau,"time");
+</script>
+
+<script type="text/javascript">
+// computes matrices and parameters
+gle_igamma=1.0/conv_u2i(gle_gamma,gle_ugamma,"time"); //we are really reading in INVERSE gamma
+gle_itau=conv_u2i(gle_tau,gle_utau,"time");
+
+//now computes the matrices IN INVERSE ps!
+AMAT=[ [0.0, -Math.sqrt(gle_igamma/gle_itau) ], [ Math.sqrt(gle_igamma/gle_itau), 1.0/gle_itau ] ] ;
+CMAT="";
+
+</script>
+
+

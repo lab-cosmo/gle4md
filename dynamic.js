@@ -1,6 +1,3 @@
-document.write("LOADED");
-   
-
 var pageQuery=function () { 
   var query_string = {};
   var query = window.location.search.substring(1);
