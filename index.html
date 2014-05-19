@@ -5,7 +5,6 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <link rel="icon" type="image" href="images/favicon.png" />
 <link rel="stylesheet" type="text/css" href="style.css" />
-<?php
 <title> GLE4MD Project Homepage: colored noise thermostats for molecular dynamics </title>
 <meta name="description" content="A comprehensive framework to enhance molecular dynamics by 
 non-Markovian, generalized Langevin equations" />
@@ -16,6 +15,32 @@ non-Markovian, generalized Langevin equations" />
 <body>
 <div class="main">
 <div class="centered">
+
+<script type="text/javascript">
+ function httpGet(theUrl)
+{
+    if (window.XMLHttpRequest)
+    {// code for IE7+, Firefox, Chrome, Opera, Safari
+        xmlhttp=new XMLHttpRequest();
+    }
+    else
+    {// code for IE6, IE5
+        xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+    }
+    xmlhttp.onreadystatechange=function()
+    {
+        if (xmlhttp.readyState==4 && xmlhttp.status==200)
+        {
+            return xmlhttp.responseText;
+        }
+    }
+    xmlhttp.open("GET", theUrl, false );
+    xmlhttp.send();    
+}
+
+  window.alert(httpGet("text.txt"));
+</script>
+
  <div class="roundedbox" style="background: url('images/bgtile.png') repeat;  padding-bottom:0px;">
  <div class="rb tl"></div><div class="rb tr"></div>
  <div class="rbinside">
