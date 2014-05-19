@@ -23,8 +23,12 @@ berlios.de was disconnected, so GLE4MD is offline. We are working hard to get it
 </p>
 </div>
 </div>
-<form id='form_gle' name='form_gle'>
-
+<form action='index.html' method='get' enctype='multipart/form-data' id='form_gle' name='form_gle'>
+<input type="hidden" name="page" value="matrix"/>
+<script type="text/javascript">
+  httpInclude("ingen/ingen.html");
+</script>
+<!--
 <div class="columns">
 <div class="lcolumn">
 <b>GLE type: &nbsp;&nbsp; </b>
@@ -58,5 +62,7 @@ Ciao
 </div>
 </div>
 <div class="columns"> </div>
-</form>
 <script type="text/javascript"> gleUpdate(); </script>
+-->
+</form>
+

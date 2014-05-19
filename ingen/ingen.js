@@ -6,6 +6,40 @@ function mkOption(curval,value,label,style="")
    document.write("<option value='"+value+"' "+(curval==value?"selected='selected'":"")+" style='"+style+"'>"+label+"</option>");
 }
 
+//generate a drop down for units
+function mkUnit(curval,value,mode)
+{
+  document.write("<select name='"+value+"' onchange='this.form.submit()'> ");
+  switch (mode) {
+  case "time":
+    mkOption(curval,"ps",   "picosec.");
+    mkOption(curval,"fs",   "femtosec.");
+    mkOption(curval,"s",    "second");
+    mkOption(curval,"aut",   "at.time");
+    break;
+  case "freq":
+    mkOption(curval,"ps1",   "ps^-1");
+    mkOption(curval,"thz",   "THz");
+    mkOption(curval,"thzrad",   "THz rad");
+    mkOption(curval,"cm1",     "cm^-1");
+    mkOption(curval,"auw",    "at.freq");
+    break;
+  case "nrg":
+    mkOption(curval,"ev",   "eV");
+    mkOption(curval,"k",    "K");
+    mkOption(curval,"aue",    "at.energy");
+    break;
+  }
+  document.write("</select>");
+}
+
+function mkField(curval,value,label,uval,units)
+{
+  document.write("<div class='label'>"+label+"</div>&nbsp;<input class='number' type='text' name='"+value+"' value='"+curval+"' onchange='this.form.submit()'></input>");
+  mkUnit(uval,"u"+value,units);
+  document.write("<br/>\n");
+}
+
 function getOption(varname)
 {
    var obox=document.getElementById(varname);
@@ -28,6 +62,69 @@ function gleUpdate()
           break;
           
    }
+}
+
+
+function unitname(unit)
+{
+  switch (unit) {
+  case "ps": return "picoseconds";
+  case "fs": return "femtoseconds";
+  case "s": return "seconds";
+  case "aut": return "atomic time units";
+  case "ps1": 
+  case "thz": return "THz";
+  case "thzrad": return "THz*rad";
+  case "cm1": return "cm^-1";
+  case "auw": return "atomic frequency units";
+  case "k": return "K";
+  case "ev": return "eV";
+  case "aue": return "atomic energy units"; 
+  default: return "Unknown unit $unit";
+}
+}
+
+function conv_u2i(val,unit,mode)
+{
+  cc=1.;
+  switch (mode) {
+  case "time":
+    switch(unit) {
+      case "ps": cc=1.;             break;
+      case "fs": cc=1e-3;             break;
+      case "s":  cc=1.e12;         break; 
+      case "aut": cc=2.4188843e-05;  break;
+      default: document.write( " ERROR! Wrong unit for mode time <br/>" );
+    }
+  break;
+  case "freq":  
+    switch(unit) {
+      case "ps1": cc=1.;             break;
+      case "thz": cc=1.;             break;
+      case "thzrad": cc=1./6.2831853;             break;
+      case "cm1":  cc=0.029979246;         break; 
+      case "auw": cc=6579.6839;  break;
+      default: document.write( " ERROR! Wrong unit for mode freq <br/>");
+    }
+  break;
+  case "nrg":  
+    switch(unit) {
+      case "k": cc=1.;             break;
+      case "ev": cc=11604.506;             break;
+      case "kcalmol": cc=503.55573;             break;
+      case "kjmol":  cc=120.27222;         break; 
+      case "aue": cc=315774.67;  break;
+      default: document.write( " ERROR! Wrong unit for mode nrg <br/>");
+    }
+  break;
+  }
+  return cc*val;   
+}
+
+function conv_i2u(val,unit,mode)
+{
+  cc=conv_u2i(1.0,unit,mode);
+  return val/cc;
 }
 
 /*
