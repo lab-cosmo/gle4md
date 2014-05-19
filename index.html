@@ -18,6 +18,12 @@
    </div>
 <script type="text/javascript"> 
    document.write("Try on chrome");
+   xmlhttp=new XMLHttpRequest();
+   xmlhttp.overrideMimeType("text/plain; charset=utf-8");
+   xmlhttp.open("GET", "style.css", false );    
+   xmlhttp.send();    
+   document.write(xmlhttp.responseText);
+   document.write("Tried");
 </script>
    <script type="text/javascript"> 
      mkMenu("main"," HOME ");
