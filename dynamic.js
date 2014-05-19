@@ -1,5 +1,6 @@
 document.write("LOADED");
      window.alert("from script");
+/*
 var pageQuery=function () { 
   var query_string = {};
   var query = window.location.search.substring(1);
@@ -25,7 +26,7 @@ if (!pageQuery.page) pageQuery.page="main"; //default
 
 function httpGet(theUrl, entity="undefined", append=false, silent=true)
 {
-   /* Reads a file from URL and returns its content as a string*/
+   // Reads a file from URL and returns its content as a string
    var xmlhttp;
    if (window.XMLHttpRequest)
    {// code for IE7+, Firefox, Chrome, Opera, Safari
@@ -56,7 +57,7 @@ function httpGet(theUrl, entity="undefined", append=false, silent=true)
 }
 
 function httpInclude(theUrl)
-{  /* Reads from URL and writes to document in place */
+{  // Reads from URL and writes to document in place 
    document.write(httpGet(theUrl));
 }
 
@@ -74,4 +75,4 @@ function mkMenu(item,label)
    var menu=document.getElementById("menu");
    menu.innerHTML = menu.innerHTML + " <a class='menu " + (item==pageQuery.page?"sel":"")+ "' href='index.html?page="+item+"'>"+label+"</a>";
 }
-
+*/
