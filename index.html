@@ -19,6 +19,7 @@ non-Markovian, generalized Langevin equations" />
 <script type="text/javascript">
  function httpGet(theUrl)
 {
+    var xmlhttp;
     if (window.XMLHttpRequest)
     {// code for IE7+, Firefox, Chrome, Opera, Safari
         xmlhttp=new XMLHttpRequest();
@@ -27,18 +28,24 @@ non-Markovian, generalized Langevin equations" />
     {// code for IE6, IE5
         xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
     }
-    xmlhttp.onreadystatechange=function()
+    
+/*    xmlhttp.onreadystatechange=function()
     {
         if (xmlhttp.readyState==4 && xmlhttp.status==200)
         {
             return xmlhttp.responseText;
         }
     }
-    xmlhttp.open("GET", theUrl, false );
-    xmlhttp.send();    
+    */
+    try {
+       xmlhttp.open("GET", theUrl, false );       
+       xmlhttp.send();    
+    } catch(err) {  return "Could not load resources from "+theUrl;    }
+    return xmlhttp.responseText;
 }
-
-  window.alert(httpGet("text.txt"));
+   document.write("Begins inserted text<br>");
+  document.write(httpGet("http://imx-cosmo.github.io/gle4md/text.txt"));
+     document.write("<br> Ends inserted text<br>");
 </script>
 
  <div class="roundedbox" style="background: url('images/bgtile.png') repeat;  padding-bottom:0px;">
