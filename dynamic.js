@@ -1,5 +1,5 @@
 document.write("LOADED");
-     window.alert("from script");
+   
 
 var pageQuery=function () { 
   var query_string = {};
@@ -23,7 +23,9 @@ var pageQuery=function () {
 } ();
 
 if (!pageQuery.page) pageQuery.page="main"; //default
-/*
+
+  window.alert("from script");
+
 function httpGet(theUrl, entity="undefined", append=false, silent=true)
 {
    // Reads a file from URL and returns its content as a string
@@ -55,7 +57,7 @@ function httpGet(theUrl, entity="undefined", append=false, silent=true)
 
    return xmlhttp.responseText;   
 }
-
+/*
 function httpInclude(theUrl)
 {  // Reads from URL and writes to document in place 
    document.write(httpGet(theUrl));
