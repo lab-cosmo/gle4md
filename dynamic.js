@@ -36,7 +36,7 @@ function httpGet(theUrl, entity=undefined, append=false, silent=true)
 
    if (entity!=undefined) {
       xmlhttp.onreadystatechange=function() {
-         if (append) prefix=document.getElementById(entity).innerHTML+" "; else append=""; 
+         if (append) prefix=document.getElementById(entity).innerHTML+" "; else prefix=""; 
          if (xmlhttp.readyState == 4 && (xmlhttp.status == 200 || (xmlhttp.status == 0 && xmlhttp.responseText))) {
             document.getElementById(entity).innerHTML = prefix + xmlhttp.responseText;      
          } else {

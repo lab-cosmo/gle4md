@@ -1,0 +1,122 @@
+<script type="text/javascript">
+   // default values
+   gle_range="4-4"
+</script>
+<div class='label'>Optimize</div>&nbsp;<select name="tgt" onchange='this.form.submit()'>
+<!--<?php 
+option($gle_tgt,"kv","Potential nrg");
+option($gle_tgt,"kh","Total nrg");
+?>-->
+</select><br/>
+<div class='label'>Ns/Range</div>&nbsp;<select name="gle_range" id="gle_range" onchange='gleUpdate()'>
+<option>BOH</option>
+<script type="text/javascript">
+   window.alert(gle_range);
+   mkOption(gle_range,"2-1","Ns=2, &omega;max/&omega;min=10^1");
+   mkOption(gle_range,"2-2","Ns=2, &omega;max/&omega;min=10^2");
+   mkOption(gle_range,"2-3","Ns=2, &omega;max/&omega;min=10^3");
+   mkOption(gle_range,"2-4","Ns=2, &omega;max/&omega;min=10^4");
+   mkOption(gle_range,"2-6","Ns=2, &omega;max/&omega;min=10^6");
+   mkOption(gle_range,"4-2","Ns=4, &omega;max/&omega;min=10^2");
+   mkOption(gle_range,"4-3","Ns=4, &omega;max/&omega;min=10^3");
+   mkOption(gle_range,"4-4","Ns=4, &omega;max/&omega;min=10^4");
+   mkOption(gle_range,"4-5","Ns=4, &omega;max/&omega;min=10^5");
+   mkOption(gle_range,"4-6","Ns=4, &omega;max/&omega;min=10^6");
+   mkOption(gle_range,"6-4","Ns=6, &omega;max/&omega;min=10^4");
+   mkOption(gle_range,"6-5","Ns=6, &omega;max/&omega;min=10^5");
+   mkOption(gle_range,"6-6","Ns=6, &omega;max/&omega;min=10^6");
+   mkOption(gle_range,"6-8","Ns=6, &omega;max/&omega;min=10^8");
+   mkOption(gle_range,"8-4","Ns=8, &omega;max/&omega;min=10^4");
+   mkOption(gle_range,"8-6","Ns=8, &omega;max/&omega;min=10^6");
+   mkOption(gle_range,"8-8","Ns=8, &omega;max/&omega;min=10^8");
+</script>
+</select><br/>
+
+
+<!--<?php
+#$cvsroot="https://cvs.berlios.de/cgi-bin/viewvc.cgi/gle4md/gle4md/mat-lib/";
+#use local repo, as they disabled co view
+$cvsroot="library/";
+include("ingen/units.php");
+//Parses GLE-specific parameters
+$gle_tgt=$_POST['tgt'];  if ($gle_tgt=="") $gle_tgt="kv";
+switch ($gle_tgt) {
+case "kv": $cvsroot=$cvsroot."optimal/kv_"; break;
+case "kh": $cvsroot=$cvsroot."optimal/kh_"; break;
+}
+$gle_range=$_POST['range']; if ($gle_range=="") $gle_range="4-4";
+list($gle_ns,$gle_ww)=explode("-", $gle_range);
+
+$gle_w0=$_POST['w0'];      if ($gle_w0=="") $gle_w0=40;
+$gle_uw0=$_POST['uw0'];     if ($gle_uw0=="") $gle_uw0="cm1";
+?>
+<div class='label'>Optimize</div>&nbsp;<select name="tgt" onchange='this.form.submit()'>
+<?php 
+option($gle_tgt,"kv","Potential nrg");
+option($gle_tgt,"kh","Total nrg");
+?>
+</select><br/>
+<div class='label'>Ns/Range</div>&nbsp;<select name="range" onchange='this.form.submit()'>
+<?php 
+option($gle_range,"2-1","Ns=2, &omega;max/&omega;min=10^1");
+option($gle_range,"2-2","Ns=2, &omega;max/&omega;min=10^2");
+option($gle_range,"2-3","Ns=2, &omega;max/&omega;min=10^3");
+option($gle_range,"2-4","Ns=2, &omega;max/&omega;min=10^4");
+option($gle_range,"2-6","Ns=2, &omega;max/&omega;min=10^6");
+option($gle_range,"4-2","Ns=4, &omega;max/&omega;min=10^2");
+option($gle_range,"4-3","Ns=4, &omega;max/&omega;min=10^3");
+option($gle_range,"4-4","Ns=4, &omega;max/&omega;min=10^4");
+option($gle_range,"4-5","Ns=4, &omega;max/&omega;min=10^5");
+option($gle_range,"4-6","Ns=4, &omega;max/&omega;min=10^6");
+option($gle_range,"6-4","Ns=6, &omega;max/&omega;min=10^4");
+option($gle_range,"6-5","Ns=6, &omega;max/&omega;min=10^5");
+option($gle_range,"6-6","Ns=6, &omega;max/&omega;min=10^6");
+option($gle_range,"6-8","Ns=6, &omega;max/&omega;min=10^8");
+option($gle_range,"8-4","Ns=8, &omega;max/&omega;min=10^4");
+option($gle_range,"8-6","Ns=8, &omega;max/&omega;min=10^6");
+option($gle_range,"8-8","Ns=8, &omega;max/&omega;min=10^8");
+?>
+</select><br/>
+<?php
+field($gle_w0,"w0","&omega;0 ",$gle_uw0,"freq");
+?>
+
+<b>Optimal freq. range:</b><br/>
+<?php
+echo "
+&omega;min=".($gle_w0*pow(10.0,-$gle_ww*0.5))."&nbsp;".unitname($gle_uw0).",&nbsp;"."
+&omega;max=".($gle_w0*pow(10.0,$gle_ww*0.5))."&nbsp;".unitname($gle_uw0)."
+";
+?>
+
+<?php
+$gle_iw0=2*M_PI*conv_u2i($gle_w0,$gle_uw0,"freq");         //we read a frequency but need an ANGULAR frequency
+
+if (!($afile = @file($cvsroot.$gle_range.".a")))
+  { echo "<b>Unable to read matrix data at $cvsroot$gle_range.a</b>"; }
+
+//now computes the matrices
+$AMAT=array();
+
+foreach ($afile as $row) { 
+$row=trim($row);
+while ($row != $nrow) { $nrow=$row; $row=str_replace('  ', ' ', $nrow); } 
+$arow=explode(" ",$row); 
+$nrow=array();
+foreach ($arow as $ael) { $nrow[]=$gle_iw0*$ael; }
+ $AMAT[]=$nrow; }
+
+$CMAT="";
+$DESC="
+# Generated at http://gle4md.berlios.de
+# Please cite:
+# M. Ceriotti, G. Bussi and M. Parrinello, J. Chem. Theory Comput. 6, 1170 (2010) 
+# M. Ceriotti, G. Bussi and M. Parrinello, Phys. Rev. Lett. 102, 020601 (2009)
+# Optimal-sampling GLE. Enforces efficient sampling of the ".($gle_tgt=="kv"?"potential":"total")." energy
+# by an appropriate colored noise. The parameters were picked from
+# $cvsroot$gle_range.a, 
+# and shifted so that they span a range between
+# &omega;min=".($gle_w0*pow(10.0,-$gle_ww*0.5))."&nbsp;".unitname($gle_uw0)." and &omega;max=".($gle_w0*pow(10.0,$gle_ww*0.5))."&nbsp;".unitname($gle_uw0)."
+";
+
+?>-->
