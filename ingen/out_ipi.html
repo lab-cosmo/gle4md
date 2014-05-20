@@ -1,0 +1,67 @@
+
+Paste the relevant lines into the i-PI xml input file.
+
+<script type="text/javascript">
+OUTS=OUTS+DESC;
+OUTS=OUTS+"# These lines must be pasted into the &lt;ensemble&gt section of the input\n";
+
+aconv=1.0/conv_i2u(1.0,"aut","time");
+cconv=conv_i2u(1.0,"k","nrg");
+
+if (multi_mat>0)
+{
+   OUTS=OUTS+"  &lt;thermostat mode='nm_gle'&gt;\n";
+   OUTS=OUTS+"    &lt;A shape='("+multi_mat+","+AMAT[0].length+","+AMAT[0].length+")'&gt;\n";   
+
+   OUTS=OUTS+"[\n";
+   for (b=0; b<AMAT.length; ++b)
+     for (i=0; i<AMAT[b].length; ++i)
+     {
+         for (j=0; j<AMAT[b][i].length; ++j)
+            OUTS=OUTS+fmtReal(AMAT[b][i][j]*aconv)+", ";
+         OUTS=OUTS+"\n";
+     }
+   OUTS=OUTS.slice(0,-3)+"\n]\n    &lt;/A&gt;\n";
+
+   if (CMAT != "" ) 
+   {
+      OUTS=OUTS+"    &lt;C shape='("+multi_mat+","+CMAT[0].length+","+CMAT[0].length+")' units='kelvin'&gt;\n";
+      OUTS=OUTS+"[\n";
+      for (b=0; b<CMAT.length; ++b)
+        for (i=0; i<CMAT[b].length; ++i)
+        {
+            for (j=0; j<CMAT[b][i].length; ++j)
+               OUTS=OUTS+fmtReal(CMAT[b][i][j]*cconv)+", ";
+            OUTS=OUTS+"\n";
+        }
+      OUTS=OUTS.slice(0,-3)+"\n]\n    &lt;/C&gt;\n";
+   }
+}
+else
+{
+   OUTS=OUTS+"  &lt;thermostat mode='gle'&gt;\n";
+   OUTS=OUTS+"    &lt;A shape='("+AMAT.length+","+AMAT.length+")'&gt;\n";
+   OUTS=OUTS+"      [";
+   for (i=0; i<AMAT.length; ++i)
+   {
+      for (j=0; j<AMAT[i].length; ++j)
+         OUTS=OUTS+fmtReal(AMAT[i][j]*aconv)+", ";
+      OUTS=OUTS+"\n";
+   }
+   OUTS=OUTS.slice(0,-3)+"\n     ]\n    &lt;/A&gt;\n";
+   
+   if (CMAT != "" ) 
+   {
+      OUTS=OUTS+"    &lt;C shape='("+CMAT.length+","+CMAT.length+")' units='kelvin'&gt;\n";
+      OUTS=OUTS+"      [";
+      for (i=0; i<CMAT.length; ++i)
+      {
+         for (j=0; j<CMAT[i].length; ++j)
+            OUTS=OUTS+fmtReal(CMAT[i][j]*cconv)+", ";
+         OUTS=OUTS+"\n";
+      }
+      OUTS=OUTS.slice(0,-3)+"\n     ]\n    &lt;/C&gt;\n";
+   } 
+}
+OUTS=OUTS+"  &lt;/thermostat&gt;\n";
+</script>

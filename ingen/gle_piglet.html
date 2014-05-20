@@ -1,0 +1,138 @@
+<script type="text/javascript">
+// reads GET parameters and sets defaults
+gle_gamma  = typeof pageQuery.gamma !== "undefined" ? pageQuery.gamma   : 1.0;
+gle_set    = typeof pageQuery.parset!== "undefined" ? pageQuery.parset  : "50_8_t";
+gle_p      = typeof pageQuery.nbeads!== "undefined" ? pageQuery.nbeads  : 4;
+multi_mat=gle_p;
+
+xset=gle_set.split("_"); 
+gle_hwkt=xset[0]; gle_ns=xset[1]; extra=xset[2];
+
+gle_range   = typeof pageQuery.centroid !== "undefined" ? pageQuery.centroid   : "kh_8-4";
+gle_w0      = typeof pageQuery.cw0      !== "undefined" ? pageQuery.cw0      : 4000;
+gle_uw0     = typeof pageQuery.ucw0     !== "undefined" ? pageQuery.ucw0     : "cm1";
+
+gle_temp    = typeof pageQuery.temp     !== "undefined" ? pageQuery.temp     : 300;
+gle_utemp   = typeof pageQuery.utemp    !== "undefined" ? pageQuery.utemp    : "k";
+
+xrange=gle_range.substr(3).split("-");
+gle_ns = xrange[0]; gle_ww = xrange[1];
+
+libroot="library/";
+
+DESC="\
+# Generated at http://imx-cosmo.github.io/gle4md\n\
+# WARNING! THESE PARAMETERS ARE STILL EXPERIMENTALS. PLEASE CONTACT \n\
+# michele.ceriotti@chem.ox.ac.uk BEFORE USING THEM!!!!!\n\
+# Please cite:\n\
+# M. Ceriotti, D.E. Manolopoulos, Phys. Rev. Lett. 109, 100604 (2012) \n\
+# M. Ceriotti, D.E. Manolopoulos and M. Parrinello, J. Chem. Phys. 134, 084104 (2011)\n\
+# M. Ceriotti, G. Bussi and M. Parrinello, J. Chem. Theory Comput. 6, 1170 (2010) \n\
+# M. Ceriotti, G. Bussi and M. Parrinello, Phys. Rev. Lett. 103, 030603 (2009)\n\
+# PIGLET parameters. Accelerate convergence of path integral dynamics, including quantum kinetic energy.\n\
+# Use for simulations with $gle_p beads, using a RPMD (physical masses) representation\n\
+# of the path.\n\
+# The parameters were picked from\n\
+# "+libroot+"piglet/pigle-"+gle_p+"_"+gle_set+".[ac], \n\
+# and shifted so that correspond to quantum fluctuations at \n\
+# T="+gle_temp+" "+unitname(gle_utemp)+"\n\
+# and that they span a range up to \n\
+# &omega;max="+(gle_hwkt*conv_u2i(gle_temp,gle_utemp,"nrg")*0.69503559/Math.sqrt(1+(gle_p/gle_hwkt)*(gle_p/gle_hwkt)))+"&nbsp;cm^-1\n\
+";
+
+HELP="PIGLET: to be used in conjunction with imaginary time path integral MD \n\
+     to accelerate convergence to the quantum mechanical results. Also converges \n\
+     efficiently the quantum kinetic energy - so it is in general to be preferred to \n\
+     PI+GLE.  <br/>"
+
+
+</script>
+
+<div class='label'>Centroid</div>&nbsp;<select name="centroid" onchange='this.form.submit()'>
+<script type="text/javascript">
+mkOption(gle_range,"kh_8-4","OPT(H), Ns=8, &omega;max/&omega;min=10^4");
+mkOption(gle_range,"kh_8-6","OPT(H), Ns=8, &omega;max/&omega;min=10^6");
+mkOption(gle_range,"kh_8-8","OPT(H), Ns=8, &omega;max/&omega;min=10^8");
+mkOption(gle_range,"kv_8-4","OPT(V), Ns=8, &omega;max/&omega;min=10^4","color:red");
+mkOption(gle_range,"kv_8-6","OPT(V), Ns=8, &omega;max/&omega;min=10^6","color:red");
+mkOption(gle_range,"kv_8-8","OPT(V), Ns=8, &omega;max/&omega;min=10^8","color:red");
+</script>
+</select><br/>
+<script type="text/javascript">
+mkField(gle_w0,"cw0","&omega;<sub>max</sub> ",gle_uw0,"freq");
+</script>
+<br/>
+<div class='label'>Par. set</div>&nbsp;<select name="parset" onchange='this.form.submit()'>
+<script type="text/javascript">
+mkOption(gle_set,"20_8_t","Ns=8, &#8463;&omega;/kT=20, PIGLET");
+mkOption(gle_set,"50_8_t","Ns=8, &#8463;&omega;/kT=50, PIGLET");
+mkOption(gle_set,"100_8_t","Ns=8, &#8463;&omega;/kT=100, PIGLET");
+mkOption(gle_set,"500_8_t","Ns=8, &#8463;&omega;/kT=500, PIGLET");
+mkOption(gle_set,"20_8_c","Ns=8, &#8463;&omega;/kT=20, CMD-2x","color:red");
+mkOption(gle_set,"20_8_4x","Ns=8, &#8463;&omega;/kT=20, CMD-4x","color:red");
+mkOption(gle_set,"20_8_k","Ns=8, &#8463;&omega;/kT=20, KINETIC","color:red");
+mkOption(gle_set,"50_8_k","Ns=8, &#8463;&omega;/kT=50, KINETIC","color:red");
+mkOption(gle_set,"20_8_w","Ns=8, &#8463;&omega;/kT=20, WATER","color:red");
+</script>
+</select><br/>
+
+<div class='label'>N. beads</div>&nbsp;<select name="nbeads" onchange='this.form.submit()'>
+<script type="text/javascript">
+   var beadl = [ 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64 ];
+   pfound = false;
+   for (i=0; i<beadl.length; ++i) // checks if a matrix file for this number of beads is available
+   {
+      document.write("beadl "+beadl[i]);
+      if ( httpExists(libroot+"piglet/pigle-"+beadl[i]+"_"+gle_set+".a") ) 
+      {
+         if (gle_p == "") gle_p=beadl[i];
+         if (gle_p == beadl[i]) pfound=true;
+         mkOption(gle_p,beadl[i],beadl[i]);
+      }
+   }
+   if (!pfound) gle_p = beadl[beadl.length-1];
+</script>
+</select><br/>
+
+<script type="text/javascript">
+mkField(gle_temp,"temp","Target T",gle_utemp,"nrg");
+</script>
+
+<b>Max. physical frequency within range:</b><br>
+<script type="text/javascript">
+//echo "&omega;max=".($gle_hwkt*conv_u2i($gle_temp,$gle_utemp,"nrg")*0.69503559/sqrt(1+($gle_p/$gle_hwkt)*($gle_p/$gle_hwkt)))."&nbsp;cm^-1"; << NEW PARAMETERS ARE FITTED UP TO A FREQUENCY LARGER THAN 1 SO THAT ONE CAN USE THE SAME HBAROMEGABETA FOR ALL BEAD NUMBERS
+   document.write("&omega;max="+(gle_hwkt*conv_u2i(gle_temp,gle_utemp,"nrg")*0.69503559)+"&nbsp;cm^-1");
+</script>
+
+<script type="text/javascript">
+   // reads matrix data from library
+   gle_itemp=conv_u2i(gle_temp,gle_utemp,"nrg");
+
+   //now computes the matrices
+   gle_iw0=2*Math.PI*conv_u2i(gle_w0,gle_uw0,"freq")*Math.pow(10.0,-gle_ww*0.5);         //we read a frequency but need an ANGULAR frequency. 
+
+   a0 = readMatrix(libroot+"optimal/"+gle_range+".a", gle_iw0); 
+   ab = readMatrix(libroot+"piglet/pigle-"+gle_p+"_"+gle_set+".a", gle_itemp*0.13092049*gle_hwkt);  
+   cb = readMatrix(libroot+"piglet/pigle-"+gle_p+"_"+gle_set+".c", gle_itemp);  
+
+// centroid matrix A
+AMAT=[];
+AMAT[0]=a0;
+
+// bead matrices A
+for (b=1; b<gle_p; ++b) AMAT[b]=ab;
+
+// centroid matrix C
+CMAT=[];
+CMAT[0]=[];
+for (i=0; i<=gle_ns; ++i)
+{  
+   CMAT[0][i]=[];
+   for (j=0; j<=gle_ns; ++j) CMAT[0][i][j]=0.0; 
+   CMAT[0][i][i]=gle_itemp*gle_p;
+}
+
+//bead matrices C
+for (b=1; b<gle_p; ++b) CMAT[b]=cb;
+
+</script>

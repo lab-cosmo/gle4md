@@ -57,6 +57,26 @@ function httpGet(theUrl, entity, append, silent)
    return xmlhttp.responseText;   
 }
 
+function httpExists(theUrl)
+{
+   var xmlhttp;
+   if (window.XMLHttpRequest)
+   {// code for IE7+, Firefox, Chrome, Opera, Safari
+      xmlhttp=new XMLHttpRequest();
+   }
+   else
+   {// code for IE6, IE5
+      xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+   }
+   try{
+      xmlhttp.overrideMimeType("text/plain; charset=utf-8");
+      xmlhttp.open("GET", theUrl, false );    
+      xmlhttp.send();    
+      if (xmlhttp.readyState == 4 && (xmlhttp.status == 200 || (xmlhttp.status == 0 && xmlhttp.responseText))) return true;
+      else return false;
+   } catch(err) {return false;}
+}
+
 function httpInclude(theUrl)
 {  // Reads from URL and writes to document in place 
    document.write(httpGet(theUrl));

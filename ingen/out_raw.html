@@ -20,36 +20,34 @@ if (multi_mat>0)
 {
    OUTS=OUTS+"# A MATRIX: ("+unitname(out_aunits)+"^-1)\n";
    aconv=1.0/conv_i2u(1.0,out_aunits,"time");
-   /*
-   b=0;
-   foreach (AMAT as mat) {   
-   OUTS=OUTS.sprintf("# Matrix for normal mode: %d \n", b);   
-   foreach (mat as row) {
-   foreach (row as el) {
-   OUTS=sprintf(OUTS."%20.12e  ",el*aconv);
+   
+   var i,j,b;
+   for (b=0; b<multi_mat; ++b) 
+   {
+      OUTS=OUTS+"# Matrix for normal mode: " + b + "\n";      
+      for (i=0; i<AMAT[b].length; ++i) 
+      {  
+         for (j=0; j<AMAT[b][i].length; j++)
+            OUTS=OUTS+fmtReal(AMAT[b][i][j]*aconv)+" ";
+         OUTS=OUTS+"\n";   
+      }
    }
-   OUTS=OUTS."\n";   
-   }
-   b=b+1;
-   }
-
+   
    if (CMAT != "" ) 
    {
-   OUTS=OUTS."# C MATRIX: (".unitname(out_cunits).")\n";
-   cconv=conv_i2u(1.0,out_cunits,"nrg");
-
-   b=0;
-   foreach (CMAT as mat) {
-   OUTS=OUTS.sprintf("# Matrix for normal mode: %d \n", b);   
-   foreach (mat as row) {
-   foreach (row as el) {
-   OUTS=sprintf(OUTS."%20.12e  ",el*cconv);
+      OUTS=OUTS+"# C MATRIX: ("+unitname(out_cunits)+")\n";
+      cconv=conv_i2u(1.0,out_cunits,"nrg");
+      for (b=0; b<multi_mat; ++b) 
+      {
+         OUTS=OUTS+"# Matrix for normal mode: " + b + "\n";      
+         for (i=0; i<CMAT[b].length; ++i) 
+         {  
+            for (j=0; j<CMAT[b][i].length; j++)
+               OUTS=OUTS+fmtReal(CMAT[b][i][j]*cconv)+" ";
+            OUTS=OUTS+"\n";   
+         }
+      }
    }
-   OUTS=OUTS."\n";   
-   }
-   b=b+1;   
-   }
-   }*/
 }
 else
 {
@@ -61,7 +59,7 @@ else
    for (i=0; i<AMAT.length; ++i) 
    {  
       for (j=0; j<AMAT[i].length; j++)
-         OUTS=OUTS+(AMAT[i][j]*aconv).toExponential(12)+"  ";
+         OUTS=OUTS+fmtReal(AMAT[i][j]*aconv)+" ";
       OUTS=OUTS+"\n";   
    }
 
@@ -72,7 +70,7 @@ else
       for (i=0; i<CMAT.length; ++i) 
       {  
          for (j=0; j<CMAT[i].length; j++)
-            OUTS=OUTS+(CMAT[i][j]*aconv).toExponential(12)+"  ";
+            OUTS=OUTS+fmtReal(CMAT[i][j]*aconv)+" ";
          OUTS=OUTS+"\n"; 
       }  
    }

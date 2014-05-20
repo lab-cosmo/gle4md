@@ -1,6 +1,31 @@
 // default values of options
 var gle_kind="optimal";
 
+function fmtReal(number)
+{
+   pad="                    ";
+   return (pad + number.toExponential(12)).slice(-pad.length) ;
+}
+
+function readMatrix(url, scale)
+{
+   scale = typeof scale !== "undefined" ? scale : 1.0;
+
+   try {
+      data = httpGet(url).replace(/\n/g," ").trim().split(/ +/);
+   } catch(err) { document.write("<b>Unable to read matrix data at "+url+" </b>"); }
+   mtx = []
+   var k=0; var ns=Math.sqrt(data.length);
+
+   for (i=0; i<ns; ++i)
+   {  
+      mtx[i]=[];
+      for (j=0; j<ns; ++j)
+        { mtx[i][j]=scale*data[k]; k++; }
+   }
+   return mtx;
+}
+
 function mkOption(curval,value,label,style)
 {
    style = typeof style !== "undefined" ? style : ""
