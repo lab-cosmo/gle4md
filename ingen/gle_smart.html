@@ -1,0 +1,63 @@
+<script type="text/javascript">
+
+libroot=libroot+"smart/smart-0.5_";
+
+//Parses GLE-specific parameters
+//$gle_wmax=$_POST['wmax'];       if ($gle_wmax=="")  $gle_wmax=4000;
+gle_wmax   = typeof pageQuery.wmax    !== "undefined" ? pageQuery.wmax     : 4000;
+gle_uwmax  = typeof pageQuery.uwmax   !== "undefined" ? pageQuery.uwmax    : "cm1";
+gle_smrange= typeof pageQuery.smrange !== "undefined" ? pageQuery.smrange  : "6-4";
+
+//list($gle_ns,$gle_ww)=explode("-", $gle_smrange);
+xset=gle_smrange.split("-"); 
+gle_ns=xset[0]; gle_ww=xset[1];
+
+DESC="# Generated at http://imx-cosmo.github.io/gle4md\n\
+# Please cite:\n\
+# M. Ceriotti, G. Bussi and M. Parrinello, J. Chem. Theory Comput. 6, 1170 (2010) \n\
+# M. Ceriotti, G. Bussi and M. Parrinello, Phys. Rev. Lett. 102, 020601 (2009)\n\
+# Smart-sampling GLE. Enforces efficient sampling, focussing the effort on the slowest mode \n\
+# accessible by the simulation. Generated from the parameter file\n\
+# $cvsroot$gle_smrange.a, \n\
+# and shifted so that they are effective for a system with fastest modes with frequency\n\
+# &omega;max="+(gle_wmax)+"&nbsp;"+unitname(gle_uwmax)+", and for a simulation which is \n\
+# at least "+Math.round((Math.pow(10.0,gle_ww)/conv_u2i(gle_wmax,gle_uwmax,"freq")),2)+" ps long.\n\
+";
+
+HELP="\
+     Smart-sampling GLE: similar to optimal sampling, but tries to improve the sampling\n\
+     efficiency for slower collective motion -- with the idea that fast modes will be \n\
+     sampled many times anyway. One needs to specify a rough estimate of the maximum \n\
+     frequency present in the system being studied, and estimate for how long the \n\
+     simulation will be run. The chosen parameters will yield a good compromise \n\
+     between sampling as efficiently as possible the slowest motion within the reach of the\n\
+     simulation, and sampling efficiently the faster modes. \n\
+     Enforces fluctuation-dissipation theorem, so canonical sampling will result.\n\
+";
+</script>
+
+<script type="text/javascript">
+mkField(gle_wmax,"wmax","&omega;max ",gle_uwmax,"freq");
+</script>
+
+<div class='label'>Ns/Range</div>&nbsp;<select name="smrange" onchange='this.form.submit()'>
+<script type="text/javascript">
+mkOption(gle_smrange,"6-2","Ns=6, &omega;max/&omega;min=10^2");
+mkOption(gle_smrange,"6-3","Ns=6, &omega;max/&omega;min=10^3");
+mkOption(gle_smrange,"6-4","Ns=6, &omega;max/&omega;min=10^4");
+mkOption(gle_smrange,"6-5","Ns=6, &omega;max/&omega;min=10^5");
+mkOption(gle_smrange,"6-6","Ns=6, &omega;max/&omega;min=10^6");
+mkOption(gle_smrange,"8-2","Ns=8, &omega;max/&omega;min=10^2");
+</script>
+</select><br/>
+<b>Recommended simulation length:</b><br/>
+<script type="text/javascript">
+ document.write(Math.round((Math.pow(10.0,gle_ww)/conv_u2i(gle_wmax,gle_uwmax,"freq")),2)+"&nbsp; ps or more");
+</script>
+
+<script type="text/javascript">
+gle_iwmax=2*Math.PI*conv_u2i(gle_wmax,gle_uwmax,"freq");    //we read a frequency but need an ANGULAR frequency
+
+AMAT=readMatrix(libroot+gle_smrange+".a", gle_iwmax); 
+CMAT="";
+</script>

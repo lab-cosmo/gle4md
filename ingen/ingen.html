@@ -3,6 +3,7 @@ gle_kind = typeof pageQuery.kind    !== "undefined" ? pageQuery.kind : "optimal"
 out_mode = typeof pageQuery.outmode !== "undefined" ? pageQuery.outmode : "raw";
 multi_mat=0;
 
+libroot="library/";
 HELP=OUTS=DESC="";
 DESC="# Shall generate a description of the parameters, sometime\n";
 </script>
@@ -52,7 +53,7 @@ case "pimd":
   include("ingen/gle_pimd.php");
   break;
 case "smart":
-  include("ingen/gle_smart.php");
+  httpInclude("ingen/gle_smart.html");
   break;  
 }
 </script>
@@ -101,14 +102,7 @@ EOT;
 break; 
 case "smart":
 echo <<<EOT
-     Smart-sampling GLE: similar to optimal sampling, but tries to improve the sampling
-     efficiency for slower collective motion -- with the idea that fast modes will be 
-     sampled many times anyway. One needs to specify a rough estimate of the maximum 
-     frequency present in the system being studied, and estimate for how long the 
-     simulation will be run. The chosen parameters will yield a good compromise 
-     between sampling as efficiently as possible the slowest motion within the reach of the
-     simulation, and sampling efficiently the faster modes. 
-     Enforces fluctuation-dissipation theorem, so canonical sampling will result.
+
 EOT;
 break; 
 case "quantum":
