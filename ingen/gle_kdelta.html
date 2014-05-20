@@ -37,11 +37,11 @@ mkField(gle_dw,"dw","&Delta;&omega; ",gle_udw,"freq");
 <script type="text/javascript">
 // computes matrices and parameters
 gle_igamma=1.0/conv_u2i(gle_gamma,gle_ugamma,"time"); //we are really reading in INVERSE gamma
-gle_iw0=2*M_PI*conv_u2i(gle_w0,gle_uw0,"freq");             //we read a frequency but need an ANGULAR frequency
-gle_idw=2*M_PI*conv_u2i(gle_dw,gle_udw,"freq");
+gle_iw0=2*Math.PI*conv_u2i(gle_w0,gle_uw0,"freq");             //we read a frequency but need an ANGULAR frequency
+gle_idw=2*Math.PI*conv_u2i(gle_dw,gle_udw,"freq");
 
 //now computes the matrices
-AMAT=[ [0.0, Math.sqrt(gle_igamma/(2*Math.PI)), Math.sqrt($gle_igamma/(2*Math.PI))], 
+AMAT=[ [0.0, Math.sqrt(gle_igamma/(2*Math.PI)), Math.sqrt(gle_igamma/(2*Math.PI))], 
 [ -Math.sqrt(gle_igamma/(2*Math.PI)), gle_idw, gle_iw0 ],
 [ -Math.sqrt(gle_igamma/(2*Math.PI)),-gle_iw0, gle_idw ] ] ;
 CMAT="";

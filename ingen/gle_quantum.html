@@ -1,6 +1,6 @@
 <script type="text/javascript">
-gle_set   = typeof pageQuery.parset  !== "undefined" ? pageQuery.set    : "50_6";
-xset=gle_set.split("-"); 
+gle_set   = typeof pageQuery.parset  !== "undefined" ? pageQuery.parset    : "50_6";
+xset=gle_set.split("_"); 
 gle_hwkt=xset[0]; gle_ns=xset[1];
 gle_temp  = typeof pageQuery.temp    !== "undefined" ? pageQuery.temp   : 300;
 gle_utemp = typeof pageQuery.utemp   !== "undefined" ? pageQuery.utemp  : "k";
@@ -52,7 +52,7 @@ mkField(gle_temp,"temp","Target T",gle_utemp,"nrg");
 
 <b>Max. frequency within range:</b><br>
 <script type="text/javascript">
-document.write("&omega;max="+(gle_hwkt*conv_u2i(gle_temp,gle_utemp,"nrg")*0.69503559)."&nbsp;cm^-1");
+document.write("&omega;max="+(gle_hwkt*conv_u2i(gle_temp,gle_utemp,"nrg")*0.69503559)+"&nbsp;cm^-1");
 </script>
 
 <script type="text/javascript">
