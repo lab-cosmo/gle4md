@@ -14,14 +14,14 @@ DESC="# Shall generate a description of the parameters, sometime\n";
 <b>GLE type: &nbsp;&nbsp; </b>
 <select name="kind" onchange='this.form.submit()'> 
 <script type="text/javascript">
-mkOption(gle_kind,"optimal",  "Optimal sampling", "color:blue"  );
+mkOption(gle_kind,"optimal",  "Optimal sampling"       );
 mkOption(gle_kind,"quantum",  "Quantum thermostat", "color:blue"  );
 mkOption(gle_kind,"piglet",   "PIGLET"  );
 mkOption(gle_kind,"pimd",     "PI+GLE", "color:blue"  );
 mkOption(gle_kind,"respa",    "GLE-RESPA", "color:blue"  );
 mkOption(gle_kind,"delta",    "Delta thermostat", "color:blue"  );
 mkOption(gle_kind,"exp2",     "Exponential 2x2"        );
-mkOption(gle_kind,"kdelta",   "Delta-like K(&omega;)", "color:blue"  );
+mkOption(gle_kind,"kdelta",   "Delta-like K(&omega;)"  );
 mkOption(gle_kind,"smart",    "Smart sampling", "color:red" );
 </script>
 </select> <br/>
@@ -35,13 +35,13 @@ case "piglet":
   httpInclude("ingen/gle_piglet.html");
   break;
 case "kdelta":
-  include("ingen/gle_kdelta.php");
+  httpInclude("ingen/gle_kdelta.html");
   break;
 case "respa":
   include("ingen/gle_respa.php");
   break;
 case "optimal":
-  include("ingen/gle_optimal.php");
+  httpInclude("ingen/gle_optimal.html");
   break;
 case "quantum":
   include("ingen/gle_quantum.php");
@@ -74,11 +74,7 @@ EOT;
 break; 
 case "kdelta":
 echo <<<EOT
-     &delta;-like memory kernel: the Fourier transform of the memory kernel is peaked at 
-     frequency &omega;0, has width &Delta;&omega; and strength &gamma;. Modes with 
-     frequency close to &omega;0 will be most affected by the GLE.
-     Enforces fluctuation-dissipation theorem, so canonical sampling will result: not to be
-     confused with the &delta; thermostat, which selectively excites a few normal modes.
+
 EOT;
 break; 
 case "respa":
@@ -94,10 +90,7 @@ EOT;
 break; 
 case "optimal":
 echo <<<EOT
-     Optimal-sampling GLE: tries to minimize the correlation time for sampling
-     potential or total energy for normal modes over a broad frequency range, 
-     geometrically centered at &omega;0. 
-     Enforces fluctuation-dissipation theorem, so canonical sampling will result.
+
 EOT;
 break; 
 case "smart":
