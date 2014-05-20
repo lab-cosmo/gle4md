@@ -1,0 +1,97 @@
+<script type="text/javascript">
+//Parses GLE-specific parameters
+gle_set   = typeof pageQuery.set    !== "undefined" ? pageQuery.set     : "50_8";
+gle_p     = typeof pageQuery.nbeads 
+
+xset=gle_set.split("-"); 
+gle_hwkt=xset[0]; gle_ns=xset[1];
+
+gle_temp  = typeof pageQuery.temp    !== "undefined" ? pageQuery.temp   : 300;
+gle_utemp = typeof pageQuery.utemp   !== "undefined" ? pageQuery.utemp  : "k";
+
+DESC="# Generated at http://imx-cosmo.github.io/gle4md \n\
+# Please cite: \n\
+# M. Ceriotti, D.E. Manolopoulos and M. Parrinello, J. Chem. Phys. 134, 084104 (2011) \n\
+# M. Ceriotti, G. Bussi and M. Parrinello, J. Chem. Theory Comput. 6, 1170 (2010) \n\
+# M. Ceriotti, G. Bussi and M. Parrinello, Phys. Rev. Lett. 103, 030603 (2009) \n\
+# PI+GLE parameters. Accelerate convergence of path integral dynamics. \n\
+# Use for simulations with $gle_p beads, using a RPMD (physical masses) representation \n\
+# of the path. \n\
+# The parameters were picked from \n\
+# libroot+pigle/pigle-{gle_p}_gle_set.[ac], \n\
+# and shifted so that correspond to quantum fluctuations at \n\ 
+# T=gle_temp"+" "+unitname(gle_utemp)+" \n\
+# and that they span a range up to 
+# &omega;max="+(gle_hwkt*conv_u2i(gle_temp,gle_utemp,"nrg")*0.69503559/sqrt(1+(gle_p/gle_hwkt)*(gle_p/gle_hwkt)))+"&nbsp;cm^-1 \n\
+";
+
+HELP="\
+     "PI+GLE": to be used in conjunction with imaginary time path integral MD  \n\
+     to accelerate convergence to the quantum mechanical results.  \n\
+     It is an extension of the quantum thermostat to allow systematic improvement \n\
+     of the accuracy of the modelling of nuclear quantum effects. \n\
+     This is a non-equilibrium GLE, breaking fluctuation-dissipation theorem. \n\
+     Quantum fluctuations are fitted up to a given cutoff in frequency \n\
+     (which depends on temperature, due to scaling laws).  \n\
+     Only configurational properties make sense. Also sampling efficiency has been  \n\
+     optimized, and should be comparable to the outcome of an "optimal sampling"  \n\
+     classical simulation.  \n\
+";
+
+</script>
+
+<div class='label'>Par. set</div>&nbsp;<select name="parset" onchange='this.form.submit()'>
+<script type="text/javascript"> 
+mkOption(gle_set,"2_8_n","Ns=8, &#8463;&omega;/kT=2");
+mkOption(gle_set,"5_8_n","Ns=8, &#8463;&omega;/kT=5");
+mkOption(gle_set,"10_8_n","Ns=8, &#8463;&omega;/kT=10");
+mkOption(gle_set,"20_8_n","Ns=8, &#8463;&omega;/kT=20");
+mkOption(gle_set,"50_8_n","Ns=8, &#8463;&omega;/kT=50");
+mkOption(gle_set,"100_8_n","Ns=8, &#8463;&omega;/kT=100");
+mkOption(gle_set,"200_8_n","Ns=8, &#8463;&omega;/kT=200");
+mkOption(gle_set,"500_8_n","Ns=8, &#8463;&omega;/kT=500");
+mkOption(gle_set,"1000_8_n","Ns=8, &#8463;&omega;/kT=1000");
+mkOption(gle_set,"2000_8_n","Ns=8, &#8463;&omega;/kT=2000");
+mkOption(gle_set,"5000_8_n","Ns=8, &#8463;&omega;/kT=5000");
+mkOption(gle_set,"50_8","Ns=8, &#8463;&omega;/kT=50, original paper");
+mkOption(gle_set,"20_8","Ns=8, &#8463;&omega;/kT=20, original paper");
+mkOption(gle_set,"10_8","Ns=8, &#8463;&omega;/kT=10, original paper");
+</script>
+</select><br/>
+<div class='label'>N. beads</div>&nbsp;<select name="nbeads" onchange='this.form.submit()'>
+<script type="text/javascript">
+matches = glob(""+libroot+"pigle/*"+gle_set+".a");
+ip=0;
+foreach (matches as par)
+{ pvals[ip++]=preg_replace("/+*pigle-([0-9]+)_gle_set.a/","$1",par); }
+sort(pvals, SORT_NUMERIC);
+pok=false;
+foreach (pvals as pval)
+{
+   if (gle_p=="") gle_p=$pval;
+   if (gle_p==pval) pok=true;
+   mkOption(gle_p,pval,pval);
+}
+if (!pok) gle_p=pval;
+</script>
+</select><br/>
+<script type="text/javascript">
+mkField(gle_temp,"temp","Target T",gle_utemp,"nrg");
+</script>
+
+<b>Max. physical frequency within range:</b><br>
+<script type="text/javascript">
+echo "
+&omega;max="+(gle_hwkt*conv_u2i(gle_temp,gle_utemp,"nrg")*0.69503559/sqrt(1+(gle_p/gle_hwkt)*(gle_p/gle_hwkt)))+"&nbsp;cm^-1";
+</script>
+
+<script type="text/javascript">
+gle_itemp=conv_u2i(gle_temp,gle_utemp,"nrg"); 
+AMAT=readMatrix(libroot+"pigle/pigle-gle_p"+"_gle_set.a", gle_itemp*0.13092049*gle_hwkt); 
+CMAT=readMatrix(libroot+"pigle/pigle-gle_p"+"_gle_set.c", gle_itemp); 
+
+if (!($afile = @file($cvsroot."pigle/pigle-gle_p"."_gle_set.a")))
+  { echo "<b>Unable to read matrix data at ${cvsroot}pigle/pigle-${gle_p}_$gle_set.a</b>"; }
+if (!($cfile = @file($cvsroot."pigle/pigle-$gle_p"."_$gle_set.c")))
+  { echo "<b>Unable to read matrix data at ${cvsroot}pigle/pigle-${gle_p}_$gle_set.c</b>"; } 
+</script>

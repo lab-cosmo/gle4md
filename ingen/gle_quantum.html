@@ -1,0 +1,62 @@
+<script type="text/javascript">
+gle_set   = typeof pageQuery.parset  !== "undefined" ? pageQuery.set    : "50_6";
+xset=gle_set.split("-"); 
+gle_hwkt=xset[0]; gle_ns=xset[1];
+gle_temp  = typeof pageQuery.temp    !== "undefined" ? pageQuery.temp   : 300;
+gle_utemp = typeof pageQuery.utemp   !== "undefined" ? pageQuery.utemp  : "k";
+
+DESC="# Generated at http://imx-cosmo.github.io/gle4md\n\
+# Please cite: \n\
+# M. Ceriotti, G. Bussi and M. Parrinello, J. Chem. Theory Comput. 6, 1170 (2010) \n\
+# M. Ceriotti, G. Bussi and M. Parrinello, Phys. Rev. Lett. 103, 030603 (2009) \n\
+# Quantum thermostat parameters. Model nuclear quantum effects by mimicking \n\
+# frequency-dependent behavior of average fluctuations in the harmonic limit. \n\
+# The parameters were picked from \n\
+# ${cvsroot}quantum/qt-$gle_set.a, \n\
+# and shifted so that correspond to quantum fluctuations at \n\
+# T=gle_temp"+" "+unitname(gle_utemp)+" \n\
+# and that they span a range up to \n\
+# &omega;max="+(gle_hwkt*conv_u2i(gle_temp,gle_utemp,"nrg")*0.69503559)+"&nbsp;cm^-1 \n\
+";
+
+HELP="Quantum thermostat: models nuclear quantum effects by pinning the \n\
+     stationary distribution for a harmonic oscillator to the quantum expectation \n\
+     value. This is a non-equilibrium GLE, breaking fluctuation-dissipation theorem. \n\
+     Quantum fluctuations are fitted up to a given cutoff in frequency \n\
+     (which depends on temperature, due to scaling laws). \n\
+     Both configurational properties and the momentum distribution make physical \n\
+     sense, but bear in mind that this is an approximate model, and the accuracy \n\
+     may vary depending on anharmonicity. Nevertheless, it was proven to give \n\
+     a very significant improvement over a purely classical description in many \n\
+     systems, and at no cost.\n\
+     Compare with path integral results on a smaller or simpler model if \n\
+     quantitative accuracy is very important! Note in particular that weakly-coupled\n\
+     parameters suffer a lot from anharmonicity, and shouldn't in general be used.";
+
+</script>
+<div class='label'>Par. set</div>&nbsp;<select name="parset" onchange='this.form.submit()'>
+<script type="text/javascript">
+mkOption(gle_set,"20_6","Ns=6, &#8463;&omega;/kT=20, strong coupling");
+mkOption(gle_set,"20_6_BAD","Ns=6, &#8463;&omega;/kT=20, WEAK COUPLING!");
+mkOption(gle_set,"50_6","Ns=6, &#8463;&omega;/kT=50, strong coupling");
+mkOption(gle_set,"100_6","Ns=6, &#8463;&omega;/kT=100, strong coupling");
+mkOption(gle_set,"20_8_w0.01","Ns=8, &#8463;&omega;/kT=20, K(w)~0.01 wmax");
+mkOption(gle_set,"20_8_w0.1","Ns=8, &#8463;&omega;/kT=20, K(w)~0.1 wmax");
+mkOption(gle_set,"100_8_w0.01","Ns=8, &#8463;&omega;/kT=100, K(w)~0.01 wmax");
+mkOption(gle_set,"100_8_w0.1","Ns=8, &#8463;&omega;/kT=100, K(w)~0.1 wmax");
+</script>
+</select><br/>
+<script type="text/javascript">
+mkField(gle_temp,"temp","Target T",gle_utemp,"nrg");
+</script>
+
+<b>Max. frequency within range:</b><br>
+<script type="text/javascript">
+document.write("&omega;max="+(gle_hwkt*conv_u2i(gle_temp,gle_utemp,"nrg")*0.69503559)."&nbsp;cm^-1");
+</script>
+
+<script type="text/javascript">
+gle_itemp=conv_u2i(gle_temp,gle_utemp,"nrg");         
+AMAT=readMatrix(libroot+"quantum/qt-"+gle_set+".a", gle_itemp*0.13092049*gle_hwkt);
+CMAT=readMatrix(libroot+"quantum/qt-"+gle_set+".c", gle_itemp);
+</script>

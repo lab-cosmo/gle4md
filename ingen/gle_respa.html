@@ -1,0 +1,53 @@
+<script type="text/javascript">
+//Parses GLE-specific parameters
+gle_ginf  = typeof pageQuery.ginf  !== "undefined" ? pageQuery.ginf  : 0.012;
+gle_g0    = typeof pageQuery.g0    !== "undefined" ? pageQuery.g0    : 100.0;
+gle_wf    = typeof pageQuery.wf    !== "undefined" ? pageQuery.wf    : 1600;
+gle_uginf = typeof pageQuery.uginf !== "undefined" ? pageQuery.uginf : "ps";
+gle_ug0   = typeof pageQuery.ug0   !== "undefined" ? pageQuery.ug0   : "ps";
+gle_uwf   = typeof pageQuery.uwf   !== "undefined" ? pageQuery.uwf   : "cm1";
+
+DESC="# Generated at http://imx-cosmo.github.io/gle4md\n\
+# Please cite: \n\
+# J.A. Morrone, T.E. Markland, M. Ceriotti and B.J. Berne, http://arxiv.org/pdf/1008.5377v1 \n\
+# M. Ceriotti, G. Bussi and M. Parrinello, J. Chem. Theory Comput. 6, 1170 (2010) \n\
+# GLE-RESPA stochastic dynamics: stabilization of MTS dynamics without affecting diffusion \n\
+# Parameters used were: \n\
+# gamma_infty=    gle_iginf ps^-1 \n\
+# gamma_0=    gle_ig0 ps^-1 \n\
+# w_F=       gle_wf "+unitname(gle_uwf)+" \n\
+# Modes above w_F are affected by a friction gamma_infty, while the effective friction \n\
+# decreases to gamma_zero as omega -> 0 \n\
+";
+
+HELP="\
+     Memory kernel suitable to stabilize RESPA multiple time step dynamics \n\
+     with a reduced effect on diffusion and low-frequency dynamics. \n\
+     Frequencies above &omega;F will be damped with an effective friction \n\ 
+     &gamma;&infin;, while the effective friction becomes negligible at \n\
+     much lower frequencies. The default values have been tested for biological systems \n\
+     with flexible water and an outer time step of 12fs. \n\
+     Enforces fluctuation-dissipation theorem, so canonical sampling will result. \n\
+";
+</script>
+
+<script type="text/javascript">
+mkField(gle_ginf,"ginf","1/&gamma;&infin; ",gle_uginf,"time");
+mkField(gle_g0,"g0","1/&gamma;0 ",gle_ug0,"time");
+mkField(gle_wf,"wf","&omega;F ",gle_uwf,"freq");
+</script>
+
+<script type="text/javascript">
+gle_iginf=1.0/conv_u2i(gle_ginf,gle_uginf,"time"); //we are really reading in INVERSE ginf
+gle_ig0=1.0/conv_u2i(gle_g0,gle_ug0,"time"); //we are really reading in INVERSE g0
+gle_iwf=2*Math.PI*conv_u2i(gle_wf,gle_uwf,"freq"); //we read a frequency but need an ANGULAR frequency
+
+//now computes the matrices
+sq3=Math.sqrt(3.0);
+sqsq3=Math.sqrt(sq3);
+AMAT=[ 
+[ gle_iginf, sqsq3*Math.sqrt((gle_iginf-gle_ig0)*gle_iwf), Math.((gle_iginf-gle_ig0)*gle_iwf)/sqsq3) ], 
+[ sqsq3*Math.sqrt((gle_iginf-gle_ig0)*gle_iwf), gle_iwf*sq3, gle_iwf],
+[ -Math.sqrt((gle_iginf-gle_ig0)*gle_iwf)/sqsq3, -gle_iwf, 0] ] ;
+CMAT="";
+</script>

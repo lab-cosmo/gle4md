@@ -16,7 +16,6 @@ HELP="Exponentially-damped noise, corresponding to a memory kernel &gamma; exp(-
      noise, which will reduced the contribution from frequencies larger than 1/&tau;. \
      Enforces fluctuation-dissipation theorem, so canonical sampling will result."; 
 
-
 // reads GET parameters and sets defaults
 gle_gamma  = typeof pageQuery.gamma !== "undefined" ? pageQuery.gamma : 1.0;
 gle_tau    = typeof pageQuery.tau   !== "undefined" ? pageQuery.tau : 1.0;

@@ -14,14 +14,14 @@ DESC="# Shall generate a description of the parameters, sometime\n";
 <b>GLE type: &nbsp;&nbsp; </b>
 <select name="kind" onchange='this.form.submit()'> 
 <script type="text/javascript">
-mkOption(gle_kind,"optimal",  "Optimal sampling"       );
-mkOption(gle_kind,"quantum",  "Quantum thermostat", "color:blue"  );
+mkOption(gle_kind,"optimal",  "Optimal sampling"      );
+mkOption(gle_kind,"quantum",  "Quantum thermostat"    );
 mkOption(gle_kind,"piglet",   "PIGLET"  );
-mkOption(gle_kind,"pimd",     "PI+GLE", "color:blue"  );
+mkOption(gle_kind,"pimd",     "PI+GLE"                );
 mkOption(gle_kind,"respa",    "GLE-RESPA", "color:blue"  );
-mkOption(gle_kind,"delta",    "Delta thermostat", "color:blue"  );
-mkOption(gle_kind,"exp2",     "Exponential 2x2"        );
-mkOption(gle_kind,"kdelta",   "Delta-like K(&omega;)"  );
+mkOption(gle_kind,"delta",    "Delta thermostat"      );
+mkOption(gle_kind,"exp2",     "Exponential 2x2"       );
+mkOption(gle_kind,"kdelta",   "Delta-like K(&omega;)" );
 mkOption(gle_kind,"smart",    "Smart sampling", "color:red" );
 </script>
 </select> <br/>
@@ -38,19 +38,19 @@ case "kdelta":
   httpInclude("ingen/gle_kdelta.html");
   break;
 case "respa":
-  include("ingen/gle_respa.php");
+  httpInclude("ingen/gle_respa.html");
   break;
 case "optimal":
   httpInclude("ingen/gle_optimal.html");
   break;
 case "quantum":
-  include("ingen/gle_quantum.php");
+  httpInclude("ingen/gle_quantum.html");
   break;
 case "delta":
-  include("ingen/gle_delta.php");
+  httpInclude("ingen/gle_delta.html");
   break;
 case "pimd":
-  include("ingen/gle_pimd.php");
+  httpInclude("ingen/gle_pimd.html");
   break;
 case "smart":
   httpInclude("ingen/gle_smart.html");
@@ -79,13 +79,7 @@ EOT;
 break; 
 case "respa":
 echo <<<EOT
-     Memory kernel suitable to stabilize RESPA multiple time step dynamics
-     with a reduced effect on diffusion and low-frequency dynamics.  
-     Frequencies above &omega;F will be damped with an effective friction 
-     &gamma;&infin;, while the effective friction becomes negligible at
-     much lower frequencies. The default values have been tested for biological systems
-     with flexible water and an outer time step of 12fs. 
-     Enforces fluctuation-dissipation theorem, so canonical sampling will result.
+
 EOT;
 break; 
 case "optimal":
@@ -100,33 +94,12 @@ EOT;
 break; 
 case "quantum":
 echo <<<EOT
-     "Quantum thermostat": models nuclear quantum effects by pinning the 
-     stationary distribution for a harmonic oscillator to the quantum expectation
-     value. This is a non-equilibrium GLE, breaking fluctuation-dissipation theorem.
-     Quantum fluctuations are fitted up to a given cutoff in frequency
-     (which depends on temperature, due to scaling laws). 
-     Both configurational properties and the momentum distribution make physical 
-     sense, but bear in mind that this is an approximate model, and the accuracy
-     may vary depending on anharmonicity. Nevertheless, it was proven to give 
-     a very significant improvement over a purely classical description in many 
-     systems, and at no cost.
-     Compare with path integral results on a smaller or simpler model if 
-     quantitative accuracy is very important! Note in particular that weakly-coupled
-     parameters suffer a lot from anharmonicity, and shouldn't in general be used.
+
 EOT;
 break; 
 case "pimd":
 echo <<<EOT
-     "PI+GLE": to be used in conjunction with imaginary time path integral MD 
-     to accelerate convergence to the quantum mechanical results. 
-     It is an extension of the quantum thermostat to allow systematic improvement
-     of the accuracy of the modelling of nuclear quantum effects.
-     This is a non-equilibrium GLE, breaking fluctuation-dissipation theorem.
-     Quantum fluctuations are fitted up to a given cutoff in frequency
-     (which depends on temperature, due to scaling laws). 
-     Only configurational properties make sense. Also sampling efficiency has been
-     optimized, and should be comparable to the outcome of an "optimal sampling" 
-     classical simulation. 
+
 EOT;
 break; 
 case "piglet":
@@ -136,10 +109,7 @@ EOT;
 break; 
 case "delta":
 echo <<<EOT
-     &delta; thermostat: only normal modes within a narrow frequency window are set to 
-     a large temperature, while all the others are kept frozen at a much lower T. 
-     This can be used to selectively excite normal modes. Note that an unconventional
-     ensemble will be sampled, and care must be taken to extract quantitative information.
+
 EOT;
 break; 
 }

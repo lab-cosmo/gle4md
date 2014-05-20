@@ -1,0 +1,48 @@
+<script type="text/javascript">
+//Parses GLE-specific parameters
+gle_gamma  = typeof pageQuery.gamma    !== "undefined" ? pageQuery.gamma     : 1.0;
+gle_w0     = typeof pageQuery.w0       !== "undefined" ? pageQuery.w0        : 1000;
+gle_dw     = typeof pageQuery.dw       !== "undefined" ? pageQuery.dw        : 10;
+gle_ugamma = typeof pageQuery.ugamma   !== "undefined" ? pageQuery.ugamma    : "ps";
+gle_uw0    = typeof pageQuery.uw0      !== "undefined" ? pageQuery.uw0       : "cm1";
+gle_udw    = typeof pageQuery.udw      !== "undefined" ? pageQuery.udw       : "cm1";
+
+DESC="# Generated at http://imx-cosmo.github.io/gle4md\n\
+# Please cite:\n\
+# M. Ceriotti, G. Bussi and M. Parrinello, J. Chem. Theory Comput. 6, 1170 (2010) \n\
+# M. Ceriotti, G. Bussi and M. Parrinello, Phys. Rev. Lett. 102, 020601 (2009) \n\
+# 3x3, delta-like memory kernel K(w)~gamma deltaw /[(w-w0)^2+deltaw^2] \n\
+# Parameters used were: \n\
+# gamma=    gle_igamma ps^-1 \n\
+# w0=       gle_w0 "+unitname(gle_uw0)+" \n\
+# deltaw=   gle_dw "+unitname(gle_udw)+" \n\
+# Affects mostly modes with frequency around w0. \n\
+";
+
+HELP="\
+     &delta;-like memory kernel: the Fourier transform of the memory kernel is peaked at \n\
+     frequency &omega;0, has width &Delta;&omega; and strength &gamma;. Modes with \n\
+     frequency close to &omega;0 will be most affected by the GLE. \n\
+     Enforces fluctuation-dissipation theorem, so canonical sampling will result: not to be \n\
+     confused with the &delta; thermostat, which selectively excites a few normal modes. \n\
+";
+</script>
+
+<script type="text/javascript">
+mkField(gle_gamma,"gamma","1/&gamma; ",gle_ugamma,"time");
+mkField(gle_w0,"w0","&omega;0 ",gle_uw0,"freq");
+mkField(gle_dw,"dw","&Delta;&omega; ",gle_udw,"freq");
+</script>
+
+<script type="text/javascript">
+// computes matrices and parameters
+gle_igamma=1.0/conv_u2i(gle_gamma,gle_ugamma,"time"); //we are really reading in INVERSE gamma
+gle_iw0=2*M_PI*conv_u2i(gle_w0,gle_uw0,"freq");             //we read a frequency but need an ANGULAR frequency
+gle_idw=2*M_PI*conv_u2i(gle_dw,gle_udw,"freq");
+
+//now computes the matrices
+AMAT=[ [0.0, Math.sqrt(gle_igamma/(2*Math.PI)), Math.sqrt($gle_igamma/(2*Math.PI))], 
+[ -Math.sqrt(gle_igamma/(2*Math.PI)), gle_idw, gle_iw0 ],
+[ -Math.sqrt(gle_igamma/(2*Math.PI)),-gle_iw0, gle_idw ] ] ;
+CMAT="";
+</script>

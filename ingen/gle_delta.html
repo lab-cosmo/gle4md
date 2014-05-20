@@ -1,0 +1,50 @@
+<script type="text/javascript">
+//Parses GLE-specific parameters
+gle_pset   = typeof pageQuery.pset  !== "undefined" ? pageQuery.pset  : "4-0001-01";
+gle_temp   = typeof pageQuery.temp  !== "undefined" ? pageQuery.temp  : 300;
+gle_utemp  = typeof pageQuery.utemp !== "undefined" ? pageQuery.utemp : "k";
+gle_freq   = typeof pageQuery.freq  !== "undefined" ? pageQuery.freq  : 1000;
+gle_ufreq  = typeof pageQuery.ufreq !== "undefined" ? pageQuery.ufreq : "cm1";
+
+DESC="# Generated at http://imx-cosmo.github.io/gle4md \n\
+# Please cite: \n\
+# M. Ceriotti, G. Bussi and M. Parrinello, J. Chem. Theory Comput. 6, 1170 (2010) \n\
+# M. Ceriotti and M. Parrinello, Proc. Comp. Sci. 1, 1601 (2010) \n\
+# Delta thermostat: selective normal-modes excitations. Normal modes close to \n\
+# the peak frequency will be thermalized at a high temperature, and the others will \n\
+# be kept frozen. \n\
+# The parameters were picked from \n\
+# libroot+delta/peak-gle_pset.a, \n\
+# libroot+delta/peak-gle_pset.c \n\
+# and shifted so that have a peak centered on \n\
+# wP=gle_freq"+" "+unitname(gle_ufreq)+" \n\
+# with peak temperature \n\
+# TP=gle_temp"+" "+unitname(gle_utemp)+" \n\
+";
+
+HELP="\
+     &delta; thermostat: only normal modes within a narrow frequency window are set to \n\
+     a large temperature, while all the others are kept frozen at a much lower T. \n\
+     This can be used to selectively excite normal modes. Note that an unconventional \n\
+     ensemble will be sampled, and care must be taken to extract quantitative information. \n\
+";
+
+</script>
+<div class='label'>Par. set</div>&nbsp;<select name="pset" onchange='this.form.submit()'>
+<script type="text/javascript">
+mkOption(gle_pset,"4-0001-01","Ns=4, Tpeak/T0=10^4, Peak width=0.01");
+mkOption(gle_pset,"2-01-01","Ns=2, Tpeak/T0=10^2, Peak width=0.01");
+</script>
+</select><br/>
+<script type="text/javascript">
+mkField(gle_temp,"temp","Peak T",gle_utemp,"nrg");
+mkField(gle_freq,"freq","Peak &omega;",gle_ufreq,"freq");
+</script>
+
+<script type="text/javascript">
+gle_itemp=conv_u2i(gle_temp,gle_utemp,"nrg");         
+gle_ifreq=2*Math.PI*conv_u2i(gle_freq,gle_ufreq,"freq");         
+
+AMAT=readMatrix(libroot+"delta/peak-"+gle_pset+".a", gle_ifreq); 
+CMAT=readMatrix(libroot+"delta/peak-"+gle_pset+".c", gle_itemp); 
+</script>
