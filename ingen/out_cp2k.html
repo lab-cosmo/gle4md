@@ -1,0 +1,36 @@
+NB: The given input parameters must me pasted into the MD section of 
+the CP2K input file, where other parameters such as temperature must
+be set!
+
+<script type="text/javascript">
+OUTS=OUTS+DESC;
+OUTS=OUTS+"# Begins CP2K input section \n";
+OUTS=OUTS+"\n\
+&THERMOSTAT\n\
+  REGION MASSIVE\n\
+  TYPE GLE\n\
+  &GLE\n\
+    NDIM "+AMAT.length+"\n\
+    A_SCALE [ps^-1] 1.00\n\
+";
+aconv=1.0/conv_i2u(1.0,"ps","time");
+for (i=0; i<AMAT.length; ++i) 
+{
+   OUTS=OUTS+"    A_LIST ";
+   for (j=0; j<AMAT[i].length; ++j) 
+      OUTS=OUTS+fmtReal(AMAT[i][j]*aconv);
+   OUTS=OUTS+"\n";   
+}
+if (CMAT != "" ) 
+{
+   cconv=conv_i2u(1.0,"k","nrg");
+   for (i=0; i<CMAT.length; ++i) 
+   {
+      OUTS=OUTS+"    C_LIST ";
+      for (j=0; j<CMAT[i].length; ++j) 
+         OUTS=OUTS+fmtReal(CMAT[i][j]*cconv);
+      OUTS=OUTS+"\n";   
+   }
+}
+OUTS=OUTS+"  &END GLE\n&END THERMOSTAT\n";
+</script>
