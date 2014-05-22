@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-
+  
 <head id="header">
+  <title id="static-title"> GLE4MD Project Homepage: colored noise thermostats for molecular dynamics </title>
+
   <meta charset="utf-8"/>
   <script type="text/javascript" src="dynamic.js"></script> 
   <script type="text/javascript"> composeHeader(pageQuery.page); </script>
@@ -21,14 +23,28 @@
 <body>
 <div class="main">
 <div class="centered">
-
  <div class="roundedbox" style="background: url('images/bgtile.png') repeat;  padding-bottom:0px;">
  <div class="rb tl"></div><div class="rb tr"></div>
  <div class="rbinside">
    <img src="images/gle4md-logo.png" alt="GLE4MD Logo" style="clear:both;"/>
    <div class="menu" style="margin:10px -1em 0 -1em" id="menu">
    </div>
+   <div id="static-menu">
+      This pages uses JavaScript to serve content. Without active JavaScript, very little content will be available.  <br/>
+      <ul>
+         <li><a href="pages/main.html"> Main </a></li>
+         <li><a href="pages/apps.html"> Applications </a></li>
+         <li><a href="pages/ipi.html"> i-PI </a></li>
+         <li><a href="pages/refs.html"> Papers </a></li>
+         <li><a href="pages/docs.html"> Docs </a></li>
+         <li><a href="pages/code.html"> Code </a></li>
+         <li><a href="pages/matrix.html"> Input </a></li>
+      </ul>
+   </div>
    <script type="text/javascript"> 
+     document.getElementById("static-menu").remove();
+     document.getElementById("static-title").remove();
+     sh=document.getElementById("static-head"); if (sh) sh.remove();
      mkMenu("main"," HOME ");
      mkMenu("apps", " APPLICATIONS ");
      mkMenu("ipi", "<b>i-PI</b>");
