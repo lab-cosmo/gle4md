@@ -126,7 +126,7 @@ break;
 <script type="text/javascript">
 mkOption(out_mode,"raw",      "Raw matrices"        );
 mkOption(out_mode,"cp2k",     "CP2K input section"  );
-mkOption(out_mode,"cpmd",     "CPMD input files", "color:blue"  );
+mkOption(out_mode,"cpmd",     "CPMD input files"    );
 mkOption(out_mode,"aims",     "FHI-AIMS input section", "color:blue"  );
 mkOption(out_mode,"ipi",      "i-PI input section" );
 </script>
@@ -141,7 +141,7 @@ case "cp2k":
   httpInclude("ingen/out_cp2k.html");
   break;
 case "cpmd":
-  include("ingen/out_cpmd.php");
+  httpInclude("ingen/out_cpmd.html");
   break;
 case "aims":
   include("ingen/out_aims.php");

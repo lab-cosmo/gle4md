@@ -1,0 +1,31 @@
+NB: The given GLE parameters must me pasted into a GLE-A 
+(and GLE-C if present) files, and the appropriate LANGEVIN CUSTOM string must be 
+inserted into the input file. Note that CPMD also provides default parameters
+for optimal-sampling and Car-Parrinello friendly GLEs.
+
+<script type="text/javascript">
+OUTS=OUTS+DESC;
+OUTS=OUTS+"# These lines must be pasted into the &CPMD section of the input\n";
+OUTS=OUTS+"  LANGEVIN CUSTOM\n   "+(AMAT.length-1)+"\n";
+
+OUTS=OUTS+"# A MATRIX: (au^-1) [paste the following in file GLE-A]\n";
+aconv=1.0/conv_i2u(1.0,"aut","time");
+for (i=0; i<AMAT.length; ++i) 
+{
+   for (j=0; j<AMAT[i].length; ++j) 
+      OUTS=OUTS+fmtReal(AMAT[i][j]*aconv);
+   OUTS=OUTS+"\n";   
+}
+
+if (CMAT != "" ) 
+{
+   cconv=conv_i2u(1.0,"k","nrg");
+   OUTS=OUTS+"# C MATRIX: (K) [paste the following in file GLE-C]\n";
+   for (i=0; i<CMAT.length; ++i) 
+   {
+      for (j=0; j<CMAT[i].length; ++j) 
+         OUTS=OUTS+fmtReal(CMAT[i][j]*cconv);
+      OUTS=OUTS+"\n";   
+   }
+}
+</script>
