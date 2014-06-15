@@ -1,0 +1,15 @@
+&inp
+seed = 12345
+temp = 1
+dt = 5e-2
+nstep = 2000000
+stride = 10
+wnw = 0
+glew = 1.0
+nhw = 0.0
+nchains = 0
+nhmts = 6
+wfile = 'freq'
+ndof = 2
+&end
+

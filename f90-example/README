@@ -1,0 +1,38 @@
+*                          *                           *
+      Generalised Langevin Equation - A toy code
+*                          *                           *
+
+An awkwardly simple code to test Generalised Langevin
+dynamics on a multidimensional harmonic oscillator.
+Licensed under GPLv3 [www.gnu.org], source can be used
+as a stub to implement GLE thermostat in existing codes.
+For comments and requests, write to
+michele dot ceriotti at gmail dot com
+
+
+* Program files:
+harmonic.f90       main, input parsing and md loop
+md-tools.f90       a couple of utility functions 
+md-nose.f90        simple implementation of NH chains
+md-gle.f90         GLE code, mostly self-contained
+
+* Compilation:
+A Makefile is provided, even if the code is so simple 
+compilation should be trivial. Adjust environment 
+variables in the Makefile's header, and just "make".
+
+* Use:
+Input is detailed in the source. Beside the actual input,
+one is required a 'freq' file containing the square root
+of the Hessian of the harmonic potential, and, if GLE is
+to be used, a GLE-A file containing the drift matrix,
+in the format
+ns
+app    ap_1 ... ap_ns
+bap_1  A11  ... A1ns
+.
+bap_ns Ans1 ... Ansns
+If non-FDT dynamics is to be performed, a similar GLE-C
+is required, containing the covariance matrix.
+
+
