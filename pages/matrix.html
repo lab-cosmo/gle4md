@@ -29,55 +29,12 @@ if (typeof indexLoaded === "undefined") window.location.replace("../index.html?p
    <a href="http://www.cp2k.org">CP2K</a>, 
    <a href="http://www.cpmd.org">CPMD</a> and <a href="https://aimsclub.fhi-berlin.mpg.de/">FHI-AIMS</a>).
 </p>
-<p style="color:red">
-berlios.de was disconnected, so GLE4MD is offline. We are working hard to get it back on github using a JavaScript interface, but it might take some time...
-Please report inconsistencies or errors to michele dot ceriotti at epfl dot ch.
-</p>
-<p style="color:blue">
-Items highlighted in blue are not functioning yet!
-</p>
 </div>
 </div>
 <form action='index.html' method='get' id='form_gle' name='form_gle'>
 <input type="hidden" name="page" value="matrix"/>
 <script type="text/javascript">
   httpInclude("ingen/ingen.html");
-</script>
-<!--
-<div class="columns">
-<div class="lcolumn">
-<b>GLE type: &nbsp;&nbsp; </b>
-<select name="gle_kind" id="gle_kind" onchange='gleUpdate()'>
-<script type="text/javascript">
-   mkOption(gle_kind, "optimal", "Optimal sampling");
-   mkOption(gle_kind, "quantum", "Quantum thermostat");   
-</script>
-</select>
-<div name="gle_input" id="gle_input">    
-
-</div>
-</div>
-<div class="rcolumn">
-Ciao
-</div>
-</div>
-
-<div class="columns"> </div>
-<div class="columns">
-<div class="lcolumn">
-<b>Output format: &nbsp;&nbsp; </b>
-
-
-</div>
-<div class="rcolumn">
-<b>Generated parameters:</b><br/>
-
-
-
-</div>
-</div>
-<div class="columns"> </div>
-<script type="text/javascript"> gleUpdate(); </script>
--->
+</script> 
 </form>
 

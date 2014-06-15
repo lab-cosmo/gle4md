@@ -64,57 +64,6 @@ case "smart":
   document.write(HELP);
 </script>
 
-<!--
-<?php
-switch($gle_kind) {
-case "exp2":
-echo <<<EOT
-     
-EOT;
-break; 
-case "kdelta":
-echo <<<EOT
-
-EOT;
-break; 
-case "respa":
-echo <<<EOT
-
-EOT;
-break; 
-case "optimal":
-echo <<<EOT
-
-EOT;
-break; 
-case "smart":
-echo <<<EOT
-
-EOT;
-break; 
-case "quantum":
-echo <<<EOT
-
-EOT;
-break; 
-case "pimd":
-echo <<<EOT
-
-EOT;
-break; 
-case "piglet":
-echo <<<EOT
-     
-EOT;
-break; 
-case "delta":
-echo <<<EOT
-
-EOT;
-break; 
-}
-?>-->
-
 </p>
 </div>
 </div>
@@ -127,7 +76,7 @@ break;
 mkOption(out_mode,"raw",      "Raw matrices"        );
 mkOption(out_mode,"cp2k",     "CP2K input section"  );
 mkOption(out_mode,"cpmd",     "CPMD input files"    );
-mkOption(out_mode,"aims",     "FHI-AIMS input section", "color:blue"  );
+mkOption(out_mode,"aims",     "FHI-AIMS input section");
 mkOption(out_mode,"ipi",      "i-PI input section" );
 </script>
 </select><br/>
@@ -144,7 +93,7 @@ case "cpmd":
   httpInclude("ingen/out_cpmd.html");
   break;
 case "aims":
-  include("ingen/out_aims.php");
+  httpInclude("ingen/out_aims.html");
   break;  
 case "ipi":
   httpInclude("ingen/out_ipi.html");
