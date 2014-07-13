@@ -57,9 +57,9 @@ else
    aconv=1.0/conv_i2u(1.0,out_aunits,"time");
    
    var i,j; 
-   OUTS=OUTS+" MD_gle_A ";
    for (i=0; i<AMAT.length; ++i) 
    {  
+      OUTS=OUTS+" MD_gle_A ";
       for (j=0; j<AMAT[i].length; j++)
          OUTS=OUTS+fmtReal(AMAT[i][j]*aconv)+" ";
       OUTS=OUTS+"\n";   
@@ -69,9 +69,9 @@ else
    {
       OUTS=OUTS+"\n";
       cconv=conv_i2u(1.0,out_cunits,"nrg");
-      OUTS=OUTS+" MD_gle_C ";
       for (i=0; i<CMAT.length; ++i) 
       {  
+         OUTS=OUTS+" MD_gle_C ";
          for (j=0; j<CMAT[i].length; j++)
             OUTS=OUTS+fmtReal(CMAT[i][j]*cconv)+" ";
          OUTS=OUTS+"\n"; 
