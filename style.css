@@ -100,6 +100,47 @@ div.menu .sel {
 div.menu .menu:hover {
   background:#b0d0ff; color:black; 
 }
+
+
+div.submenu {
+ vertical-align:middle; background: white; opacity:0.7;
+ width:auto;
+ text-align:left; 
+ padding:0.0em 0.5em 0.25em 0.5em; 
+}
+
+
+/* sub-menu */
+div.submenu .submenu {
+ text-align:center; 
+ background:white; color:black;  opacity:1.0;
+ text-decoration:none; font-size:1.1em;
+ padding: 0.2em 0.5em 0.1em 0.5em; margin: 0 0.5em 0 0.5em;
+ border:2px; border-top:0px; border-style:solid; border-color:#808080;
+}
+
+div.submenu .subsel {
+  background:#bbc3d0;color:black; 
+}
+
+div.submenu .submenu:hover {
+  background:#ebf3ff; color:black; 
+}
+
+/* collapsable boxes */
+div.cbox {
+  padding:0; margin:2em; background: #fff5f1; clear:both; display:block
+} 
+
+div.cbox .head {
+  background: #eebe8e; font-weight:bold;
+  padding:5px; margin:0; cursor:pointer;
+  }
+
+div.cbox .body {
+  padding:0.5em; margin:0; 
+  }
+
 /* links & c */
 a img { border:0 }
 
