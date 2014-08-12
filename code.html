@@ -16,13 +16,22 @@ if (typeof indexLoaded === "undefined") window.location.replace("../index.html?p
 <p>
 The GLE thermostat is currently implemented in the
  <a href="http://www.cp2k.org" target="new">CP2K</a> ab-initio MD package, 
-courtesy of Marcella Iannuzzi, Teodoro Laino and Joost VandeVondele.
+courtesy of <b>Marcella Iannuzzi</b>, <b>Teodoro Laino</b> and <b>Joost VandeVondele</b>.
  A complete implementation has been included in the latest 
- release of <a href="http://www.cpmd.org" target="new">CPMD</a>, thanks to
- the help of Teodoro Laino and Alessandro Curioni.
+release of <a href="http://www.cpmd.org" target="new">CPMD</a>, thanks to
+the help of <b>Teodoro Laino</b> and <b>Alessandro Curioni</b>, 
+as well as in <a href="http://aimsclub.fhi-berlin.mpg.de/" target="new">FHI-AIMS</a>,
+with the help of <b>Volker Blum</b> and <b>Mariana Rossi</b>.
+On the empirical-forcefields front, we are in the process of 
+implementing GLE thermostat in <a href="http://lammps.sandia.gov/" target="new">LAMMPS</a>,
+with the assistance of <b>Axel Kohlmeyer</b>. 
+A preliminary implementation is already available in Axel's
+<a href="https://sites.google.com/site/akohlmey/software/lammps-icms" target="new">LAMMPS-ICMS branch</a>.
+Please pay attention to units when generating GLE parameters for use with LAMMPS.
 Rudimentary implementations are also available for DLPOLY and 
 GROMACS (code on request, mail michele dot ceriotti at phys dot chem dot ethz dot ch).
 </p>
+
 <p>
 A set of tools to analyze and/or fit 
 the parameters for GLE dynamics (C++ code), as well as some 
