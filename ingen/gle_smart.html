@@ -4,9 +4,9 @@ libroot=libroot+"smart/smart-0.5_";
 
 //Parses GLE-specific parameters
 //$gle_wmax=$_POST['wmax'];       if ($gle_wmax=="")  $gle_wmax=4000;
-gle_tslow   = typeof pageQuery.tslow   !== "undefined" ? pageQuery.tslow     : 20;
+gle_tslow   = typeof pageQuery.tslow   !== "undefined" ? pageQuery.tslow     : 10;
 gle_utslow  = typeof pageQuery.utslow  !== "undefined" ? pageQuery.utslow   : "ps";
-gle_smrange= typeof pageQuery.smrange !== "undefined" ? pageQuery.smrange  : "6-4";
+gle_smrange= typeof pageQuery.smrange !== "undefined" ? pageQuery.smrange  : "6-3";
 
 //list($gle_ns,$gle_ww)=explode("-", $gle_smrange);
 xset=gle_smrange.split("-"); 
