@@ -7,15 +7,18 @@ gle_ugamma = typeof pageQuery.ugamma   !== "undefined" ? pageQuery.ugamma    : "
 gle_uw0    = typeof pageQuery.uw0      !== "undefined" ? pageQuery.uw0       : "cm1";
 gle_udw    = typeof pageQuery.udw      !== "undefined" ? pageQuery.udw       : "cm1";
 
+
+gle_igamma=1.0/conv_u2i(gle_gamma,gle_ugamma,"time"); //we are really reading in INVERSE gamma
+
 DESC="# Generated at http://epfl-cosmo.github.io/gle4md\n\
 # Please cite:\n\
 # M. Ceriotti, G. Bussi and M. Parrinello, J. Chem. Theory Comput. 6, 1170 (2010) \n\
 # M. Ceriotti, G. Bussi and M. Parrinello, Phys. Rev. Lett. 102, 020601 (2009) \n\
 # 3x3, delta-like memory kernel K(w)~gamma deltaw /[(w-w0)^2+deltaw^2] \n\
 # Parameters used were: \n\
-# gamma=    gle_igamma ps^-1 \n\
-# w0=       gle_w0 "+unitname(gle_uw0)+" \n\
-# deltaw=   gle_dw "+unitname(gle_udw)+" \n\
+# 1/gamma=  "+gle_ugamma+" "+unitname(gle_ugamma)+"\n\
+# w0=       "+gle_w0+" "+unitname(gle_uw0)+" \n\
+# deltaw=   "+gle_dw+" "+unitname(gle_udw)+" \n\
 # Affects mostly modes with frequency around w0. \n\
 ";
 
@@ -36,7 +39,6 @@ mkField(gle_dw,"dw","&Delta;&omega; ",gle_udw,"freq");
 
 <script type="text/javascript">
 // computes matrices and parameters
-gle_igamma=1.0/conv_u2i(gle_gamma,gle_ugamma,"time"); //we are really reading in INVERSE gamma
 gle_iw0=2*Math.PI*conv_u2i(gle_w0,gle_uw0,"freq");             //we read a frequency but need an ANGULAR frequency
 gle_idw=2*Math.PI*conv_u2i(gle_dw,gle_udw,"freq");
 

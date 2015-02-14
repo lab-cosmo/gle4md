@@ -1,0 +1,74 @@
+<script type="text/javascript">
+//Parses GLE-specific parameters
+gle_gamma  = typeof pageQuery.gamma    !== "undefined" ? pageQuery.gamma     : 0.1;
+gle_w0     = typeof pageQuery.w0       !== "undefined" ? pageQuery.w0        : 1000;
+gle_dw     = typeof pageQuery.dw       !== "undefined" ? pageQuery.dw        : 10;
+gle_gbase  = typeof pageQuery.gb       !== "undefined" ? pageQuery.gb        : 1;
+gle_tbase  = typeof pageQuery.tb       !== "undefined" ? pageQuery.tb        : 300;
+gle_tpeak  = typeof pageQuery.t0       !== "undefined" ? pageQuery.t0        : 1000;
+gle_ugamma = typeof pageQuery.ugamma   !== "undefined" ? pageQuery.ugamma    : "ps";
+gle_uw0    = typeof pageQuery.uw0      !== "undefined" ? pageQuery.uw0       : "cm1";
+gle_udw    = typeof pageQuery.udw      !== "undefined" ? pageQuery.udw       : "cm1";
+gle_ugbase = typeof pageQuery.ugb      !== "undefined" ? pageQuery.ugb       : "ps";
+gle_utbase = typeof pageQuery.utb      !== "undefined" ? pageQuery.utb       : "k";
+gle_utpeak = typeof pageQuery.ut0      !== "undefined" ? pageQuery.ut0       : "k";
+
+DESC="# Generated at http://epfl-cosmo.github.io/gle4md\n\
+# EXPERIMENTAL! Please contact Michele Ceriotti before using! \n\
+# Parameters used were: \n\
+# 1/gamma=  "+gle_gamma+" "+unitname(gle_ugamma)+"\n\
+# w0=       "+gle_w0+" "+unitname(gle_uw0)+" \n\
+# deltaw=   "+gle_dw+" "+unitname(gle_udw)+" \n\
+# Affects mostly modes with frequency around w0. \n\
+";
+
+HELP="\
+     Hot-spot non-equilibrium GLE. Use only if you know what you are doing! \n\
+";
+</script>
+
+<b>Baseline thermostat:</b><br/>
+
+<script type="text/javascript">
+mkField(gle_tbase,"tb","T<sub>base</sub> ",gle_utbase,"nrg");
+mkField(gle_gbase,"gb","1/&gamma;<sub>base</sub> ",gle_ugbase,"time");
+</script>
+
+<b>Hot-spot parameters:</b><br/>
+
+<script type="text/javascript">
+mkField(gle_tpeak,"t0","T<sub>peak</sub> ",gle_utpeak,"nrg");
+mkField(gle_gamma,"gamma","1/&gamma; ",gle_ugamma,"time");
+mkField(gle_w0,"w0","&omega;0 ",gle_uw0,"freq");
+mkField(gle_dw,"dw","&Delta;&omega; ",gle_udw,"freq");
+</script>
+
+<script type="text/javascript">
+// computes matrices and parameters
+gle_igamma=1.0/conv_u2i(gle_gamma,gle_ugamma,"time"); //we are really reading in INVERSE gamma
+gle_igbase=1.0/conv_u2i(gle_gbase,gle_ugbase,"time"); 
+gle_iw0=2*Math.PI*conv_u2i(gle_w0,gle_uw0,"freq");             //we read a frequency but need an ANGULAR frequency
+gle_idw=2*Math.PI*conv_u2i(gle_dw,gle_udw,"freq");
+
+dw=gle_idw;
+g0=gle_igamma;
+gb=gle_igbase;
+w0=gle_iw0;
+tb=conv_u2i(gle_tbase,gle_utbase,"nrg");
+// magic (and complicated!) conversion to make sure that in the harmonic limit
+// the combined base+peak dynamics leads to the desired peak temperature
+t0=(-(gb*(g0 + 2*dw*(dw + gb)*Math.PI)*tb) + 
+   (dw + gb)*(g0 + 2*dw*gb*Math.PI)*conv_u2i(gle_tpeak,gle_utpeak,"nrg"))/(dw*g0);
+q=dw*Math.sqrt(g0*2*Math.PI);
+r=(dw + gb)*(g0 + 2*dw*gb*Math.PI) + 2*dw*Math.PI*w0*w0;
+
+//now computes the matrices
+AMAT = [ [ gb, Math.sqrt(g0/(2*Math.PI)), 0.0 ], 
+       [-Math.sqrt(g0/(2*Math.PI)), dw, w0 ],
+       [ 0, -w0, 0 ] ];
+
+CMAT = [ [ (dw*g0*(t0 - tb))/r + tb, (gb*q*(t0 - tb))/r, (q*(-t0 + tb)*w0)/r ],
+         [ (gb*q*(t0 - tb))/r, t0 + (g0*gb*(-t0 + tb))/r, 0 ],
+         [ (q*(-t0 + tb)*w0)/r, 0, t0 + (g0*(dw + gb)*(-t0 + tb))/r ] ]; 
+
+</script>
