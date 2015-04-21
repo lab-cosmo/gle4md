@@ -57,8 +57,10 @@ w0=gle_iw0;
 tb=conv_u2i(gle_tbase,gle_utbase,"nrg");
 // magic (and complicated!) conversion to make sure that in the harmonic limit
 // the combined base+peak dynamics leads to the desired peak temperature
-t0=(-(gb*(g0 + 2*dw*(dw + gb)*Math.PI)*tb) + 
-   (dw + gb)*(g0 + 2*dw*gb*Math.PI)*conv_u2i(gle_tpeak,gle_utpeak,"nrg"))/(dw*g0);
+tpeak=conv_u2i(gle_tpeak,gle_utpeak,"nrg");
+t0=tpeak - (gb*(tb - tpeak)*(2*dw*(dw + gb)*Math.PI + g0*w0))/(dw*g0*w0);
+
+g0=g0*w0; // substitution to give proper, consistent units to A 
 q=dw*Math.sqrt(g0*2*Math.PI);
 r=(dw + gb)*(g0 + 2*dw*gb*Math.PI) + 2*dw*Math.PI*w0*w0;
 
