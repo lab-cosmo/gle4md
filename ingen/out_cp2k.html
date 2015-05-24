@@ -4,6 +4,14 @@ be set!
 
 <script type="text/javascript">
 OUTS=OUTS+DESC;
+if (multi_mat>0)
+{  
+   OUTS = OUTS+ " !!!! CP2K DOES NOT IMPLEMENT NATIVE MULTI-MATRIX  COLORED NOISE METHODS !!!!\n";
+   OUTS = OUTS+ " !!!! Why not check-out i-PI instead?                                    !!!!\n";
+}
+else
+{
+
 OUTS=OUTS+"# Begins CP2K input section \n";
 OUTS=OUTS+"\n\
 &THERMOSTAT\n\
@@ -33,4 +41,5 @@ if (CMAT != "" )
    }
 }
 OUTS=OUTS+"  &END GLE\n&END THERMOSTAT\n";
+}
 </script>

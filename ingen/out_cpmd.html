@@ -5,6 +5,15 @@ for optimal-sampling and Car-Parrinello friendly GLEs.
 
 <script type="text/javascript">
 OUTS=OUTS+DESC;
+if (multi_mat>0)
+{  
+   OUTS = OUTS+ " !!!! CPMD DOES NOT IMPLEMENT NATIVE PATH INTEGRAL COLORED NOISE METHODS !!!!\n";
+   OUTS = OUTS+ " !!!! Why not check-out i-PI instead?                                    !!!!\n";
+}
+else
+{
+
+OUTS=OUTS+DESC;
 OUTS=OUTS+"# These lines must be pasted into the &CPMD section of the input\n";
 OUTS=OUTS+"  LANGEVIN CUSTOM\n   "+(AMAT.length-1)+"\n";
 
@@ -27,5 +36,7 @@ if (CMAT != "" )
          OUTS=OUTS+fmtReal(CMAT[i][j]*cconv);
       OUTS=OUTS+"\n";   
    }
+}
+
 }
 </script>
