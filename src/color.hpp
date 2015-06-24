@@ -52,6 +52,7 @@ public:
 void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& dwq, double& dwp, double& lambdafp);
 void verlet_check(const DMatrix& A, const DMatrix& C, double w, double dt, double& q2, double& p2, double& pq);
 
+void harm_spectrum(const DMatrix& A, const DMatrix& BBT, double w, const std::valarray<double>& wl, std::valarray<double>& cqq, std::valarray<double>& cpp );
 void harm_peak(const DMatrix& A, const DMatrix& BBT, double w, double d, double &pi);
 
 //options for a colored complex thermostat.

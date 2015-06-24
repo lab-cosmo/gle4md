@@ -30,6 +30,8 @@ void banner()
             << " frequency value supplied. If -wi and -wf options are given, integral properties\n"
             << " are plotted as a function of the frequency. np is the number of data points to \n"
             << " be plotted, in both cases, on a log scale.                                     \n"
+            << " -w0 specifies the frequency of a harmonic mode for which to compute the GLE    \n"
+            << " modified vibrational spectrum.                                                 \n"
             << " If -tfree is provided, MSD and related properties are produced for a free      \n"
             << " particle, from time zero up to the specified time maxt.                        \n"
             << " -tex outputs data in a form which can be post-processed with latex to give     \n"
@@ -42,13 +44,14 @@ int main(int argc, char **argv)
 {
     CLParser clp(argc, argv);
     bool fhelp, fsingle, ffree, ftex, funit=false;
-    double wi, wf, ww, shifta, shiftc,tfree,dpeak,deltat;
+    double wi, wf, ww, w0, shifta, shiftc,tfree,dpeak,deltat;
     std::string amat, bmat, cmat, dmat;
     long np;
     bool fok=
             clp.getoption(wi,"wi",1e-2) &&
             clp.getoption(wf,"wf",1e2) &&
             clp.getoption(ww,"ww",-1.) &&
+            clp.getoption(w0,"w0",1.0) &&
             clp.getoption(tfree,"tfree",0.) &&
             clp.getoption(amat,"a") &&
             clp.getoption(bmat,"b",std::string("")) &&
@@ -63,8 +66,8 @@ int main(int argc, char **argv)
             clp.getoption(fhelp,"h",false);
 
     if (!fok || fhelp) {banner(); return 0;}
-    fsingle=(ww>0.); ffree=(tfree>0.);
-     
+    fsingle=(ww>0.); ffree=(tfree>0.); 
+         
     GLEABC abc;
     FMatrix<double> iA, iC;
     std::ifstream ifile;
@@ -192,10 +195,13 @@ int main(int argc, char **argv)
     else
     {           
         std::valarray<double> w(np), kw(np), hw(np), tq2(np), tp2(np), th(np), q2(np), p2(np), pq(np), dwq(np), dwp(np), hdist(np), lfp(np)
-                , q2dt(np), p2dt(np), pqdt(np);
+                , q2dt(np), p2dt(np), pqdt(np), sqq(np), spp(np);
+                
+        for (unsigned long ip=0; ip<np; ip++) w[ip]=pow(wi,(np-ip-1.)/(np-1.))*pow(wf,(1.*ip)/(np-1.));        
+        harm_spectrum(iA, iBBT, w0,w, sqq, spp);
+        
         for (unsigned long ip=0; ip<np; ip++)
         {
-            w[ip]=pow(wi,(np-ip-1.)/(np-1.))*pow(wf,(1.*ip)/(np-1.));
             abc.get_KH(w[ip], kw[ip], hw[ip]);
             
             harm_check(iA,iBBT,w[ip],tq2[ip],tp2[ip],th[ip],q2[ip],p2[ip],pq[ip],dwq[ip],dwp[ip], lfp[ip]);
@@ -205,7 +211,7 @@ int main(int argc, char **argv)
         if (!ftex)
         {
             std::cout<<"# D kT/m = "<<diff<<"\n";
-            std::cout<<"# omega  1/tau_h  1/tau_q2  1/tau_p2  K(omega)  H(omega)  <q2>(omega) <p2>(omega) <pq>(omega) DQ(omega)  DP(omega) lFP(omega) "<<
+            std::cout<<"# omega  1/tau_h  1/tau_q2  1/tau_p2  K(omega)  H(omega)  <q2>(omega) <p2>(omega) <pq>(omega) DQ(omega)  DP(omega) lFP(omega) Cqq["<<w0<<"](w) Cpp["<<w0<<"](w)"<<
                     (deltat>0.?" <q2>,<p2>,<pq>(dt=":"")<<(deltat>0.?float2str(deltat):std::string(""))<<(deltat>0.?")   ":"")<<
                     (dpeak>0.?"peak_dist(":"")<<(dpeak>0.?float2str(dpeak):std::string(""))<<(dpeak>0.?")":"")<<"\n";
             for (unsigned long ip=0; ip<np; ip++)
@@ -221,10 +227,13 @@ int main(int argc, char **argv)
                         <<"  "<<dwq[ip]
                         <<"  "<<dwp[ip]
                         <<"  "<<lfp[ip]
+                        <<"  "<<sqq[ip]
+                        <<"  "<<spp[ip]                        
                         <<"  "<<(deltat>0.?float2str(q2dt[ip]):"")
                         <<"  "<<(deltat>0.?float2str(p2dt[ip]):"")
                         <<"  "<<(deltat>0.?float2str(pqdt[ip]):"")
                         <<"  "<<(dpeak>0.?float2str(hdist[ip]):"")
+                        
                         <<std::endl; 
             }
         }

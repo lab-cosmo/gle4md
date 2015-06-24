@@ -496,6 +496,38 @@ void harm_peak(const DMatrix& A, const DMatrix& BBT, double w, double d, double 
     pi=2./toolbox::constant::pi*(AW1(1,1)-AW2(1,1))/xC(1,1);
 }
 
+void harm_spectrum(const DMatrix& A, const DMatrix& BBT, double w, const std::valarray<double>& wl, std::valarray<double>& cqq, std::valarray<double>& cpp )
+{
+    unsigned long n=A.rows();
+    
+    //prepares extended matrices
+    toolbox::FMatrix<double> xA(n+1,n+1), xBBT(n+1,n+1), xC;
+    xA*=0.; xBBT=xA;
+    for (int i=0; i<n;++i)for (int j=0; j<n;++j)
+    { xA(i+1,j+1)=A(i,j);  xBBT(i+1,j+1)=BBT(i,j); }
+    xA(0,1)=-1; xA(1,0)=w*w;   //sets the harmonic hamiltonian part
+    GLEABC abc; abc.set_A(xA); abc.set_BBT(xBBT);
+    
+    abc.get_C(xC);
+    
+    //get power spectrum peak intensity (should program a better way to integrate....)
+    //the total integral under the peak is Pi/2
+    FMatrix<double> xA2(xA), xAC, A2w(xA), ixA2w(xA), Cww;
+    
+    mult(xA,xA,xA2); mult(xA,xC,xAC);
+    
+    cqq.resize(wl.size());
+    cpp.resize(wl.size());
+    for (int i=0; i<wl.size(); ++i)
+    {
+        A2w=xA2; for (int j=0; j<n+1; ++j) A2w(j,j)+=(wl[i]*wl[i]);
+        MatrixInverse(A2w, ixA2w);
+        mult(ixA2w, xAC, Cww);
+        cqq[i]=Cww(0,0)/xC(0,0);
+        cpp[i]=Cww(1,1)/xC(1,1);
+    }    
+}
+
 
 void get_TS(const toolbox::FMatrix<double>& A, const toolbox::FMatrix<double>& C, const double& t, 
             toolbox::FMatrix<double>& T, toolbox::FMatrix<double>& S)

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # Load in pygtk and gtk
@@ -119,6 +119,7 @@ class plotarea(gtk.DrawingArea):
         cr.save(); cr.translate(-5,0); cr.scale(1,-1); cr.show_layout(txt); cr.restore();
         cr.save(); cr.translate(0,5); cr.scale(1,-1); cr.show_layout(txt); cr.restore();
 
+         
         cr.set_line_width(0.025)
         cr.set_source_rgb(0,0,0)
         cr.move_to(self.datax[0],0)
@@ -173,6 +174,7 @@ class mainwin:
             if self.glesel["kh"]: dd.append(math.log10(el[1]/el[0]));
             if self.glesel["cqq"]: dd.append(math.log10(el[6]));
             if self.glesel["cpp"]: dd.append(math.log10(el[7]));
+            if self.glesel["spectrum"]: dd.append(math.log10(math.fabs(el[13])));
             self.plot.data.append(dd)
         self.plot.bhw=self.bhw
         self.plot.expression=self.expression.get_text()
@@ -185,6 +187,10 @@ class mainwin:
     def set_sel(self, toggle, user1):
         self.glesel[user1]=toggle.get_active()
         self.selchanged()
+
+    def setcppw0(self,adj):
+        self.cppw0=10**adj.value
+        self.valuechanged()
 
     def apars(self,adj, user1):
         if (user1=="gamma0"): self.gamma0=adj.value;
@@ -207,7 +213,8 @@ class mainwin:
         self.fauto=False
         self.deltas=[]
         self.gledata=[]
-        self.glesel={"K" : True, "H" : False, "kv" : True, "kh" : False, "kk" : False, "cpp" : False, "cqq" : True}
+        self.cppw0=1.0
+        self.glesel={"K" : True, "H" : False, "kv" : True, "kh" : False, "kk" : False, "cpp" : False, "cqq" : True, "spectrum": False}
         self.gamma0=-20; self.temp0=0; self.bhw=1.0
         # Window and framework
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
@@ -266,6 +273,22 @@ class mainwin:
         hbox.show()
         vbox.pack_start(hbox,False,False)
 
+        hbox = gtk.HBox(homogeneous=False, spacing=3)
+        check=gtk.CheckButton("Cpp(ω)"); check.connect("toggled",self.set_sel,"spectrum"); check.show(); hbox.pack_start(check,False,False);
+        label=gtk.Label("ω0=")
+        hbox.pack_start(label,False,False)
+        label.show()
+        self.xadj=gtk.Adjustment(0.0, -5.0, 6.0, 0.01, 1.0, 1.0) 
+        self.xadj.connect("value_changed", self.setcppw0)
+        self.xslider=gtk.HScale(self.xadj)
+        self.xslider.connect("format-value", logvalue)
+        self.xslider.set_digits(1)
+        self.xslider.set_value_pos(gtk.POS_LEFT)
+        self.xslider.set_size_request(400,20)
+        hbox.pack_start(self.xslider,True,True)
+        self.xslider.show()
+        hbox.show()
+        vbox.pack_start(hbox,False,False)
 
         hbox = gtk.HBox(homogeneous=False, spacing=3)
         label=gtk.Label("n_δ=")
@@ -389,8 +412,8 @@ class mainwin:
             dfile.write("\n")
 
         afile.close()
-        dfile.close()
-        pgle=subprocess.Popen(["gle-analyze","-wi","1e-5","-wf","1e5","-np","500","-a",afilename,"-d",dfilename],stdout=ofile)
+        dfile.close()        
+        pgle=subprocess.Popen(["gle-analyze","-wi","1e-5","-wf","1e5","-np","500","-a",afilename,"-d",dfilename,"-w0",str(self.cppw0)],stdout=ofile)
         pgle.wait()
         ofile.close()
         ofile=open(ofilename,'r')
@@ -404,7 +427,7 @@ class mainwin:
             for el in line.split():
                 ldata.append(float(el))
             self.gledata.append(ldata)
-
+        
         self.selchanged()
 
 
