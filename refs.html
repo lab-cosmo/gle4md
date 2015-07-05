@@ -1,6 +1,6 @@
 <head id="static-head"> <!-- this is served to search engines, and removed when loaded on a JavaScript-active browser-->
-<title> GLE4MD Project: references and papers </title>
-<meta name="description" content="Papers and references concerning methods and applications of a generalized Langevin equation framework for enhanced molecular dynamics" />
+<title> GLE4MD Project: documentation and references and papers </title>
+<meta name="description" content="Documentation and references concerning methods and applications of a generalized Langevin equation framework for enhanced molecular dynamics" />
 <meta name="keywords" content="generalized Langevin equation, molecular dynamics, stochastic equations, canonical sampling, nuclear quantum effects, thermostat, references, papers" />
 </head>
 <script type="text/javascript">
@@ -10,8 +10,26 @@ if (typeof indexLoaded === "undefined") window.location.replace("../index.html?p
 
 <div class="columns">
 <div class="column">
+
+  <h2> Documentation and reviews </h2>
+<p>
+This <a href="http://e-collection.ethbib.ethz.ch/eserv/eth:2145/eth-2145-02.pdf">Ph.D. thesis</a> 
+contains a thorough introduction to the GLE thermostat, 
+which includes some background on stochastic differential
+equations and a number of example applications.
+</p>
+<p>
+A brief introduction to colored noise sampling for molecular dynamics is given in the 
+<a href="/data/ceri14psik-highlight.pdf">February 2014 highlight of the Psi-K newsletter</a>, 
+while the <a href="data/ceri15ias_juelich-pimd.pdf">lecture notes</a> for the 
+<a href="http://www.fz-juelich.de/conferences/STL-2015/EN/Home/home_node.html" target="_blank">2015 Juelich school</a> give
+a discussion specific to the simulation of nuclear quantum effects.
+</p>
+<p>
+See also the <a href="/index.html?page=docs">FAQ</a> 
+page. 
+</p>
   <h2> References </h2>
-  <h3> Methodological papers </h3>
   <ul>  
   <li> <b>“Efficient first-principles calculation of the quantum kinetic energy and momentum distribution of nuclei”</b>, 
            Michele Ceriotti and David E. Manolopoulos, Rev. Lett. 109, 100604 (2012)
@@ -67,36 +85,52 @@ positive-definite sparse matrix in linear-scaling time.</i>
     <br/><i>Introduction to the GLE framework for molecular dynamics. Applications to Car-Parrinello dynamics and to Drude-oscillator polarizable forcefields.</i>
   </li>
   </ul>
-  <h3> (incomplete) list of applications using GLE thermostatting</h3>
-  <ul>
-<li> <b>“Shape Modulation of Octanuclear Cu(I) or Ag(I) Dichalcogeno Template Clusters with Respect to the Nature of their Encapsulated Anions: A Combined Theoretical and Experimental Investigation”</b>,
-           Camille Latouche et al., J. Chem. Phys. 138, 014112 (2013)
-       <a href="http://dx.doi.org/10.1021/jc400959a" target="new">doi: 10.1021/jc400959a</a>
-</li>
-<li> <b>“Efficient methods and practical guidelines for simulating isotope effects”</b>, 
-           Michele Ceriotti and Thomas E. Markland, J. Chem. Phys. 138, 014112 (2013)
-       <a href="http://dx.doi.org/10.1063/1.4772676" target="new">doi: 10.1063/1.4772676</a>
-</li>  
-<li>  <b>“On the recombination of hydronium and hydroxide ions in water”</b>, Ali Hassanali,
-Meher K. Prakash, Hagai Eshet, and Michele Parrinello, Proc. Nat. Acad. Sci. 108, 201410 (2011) <a href="http://dx.doi.org/10.1073/pnas.1112486108" target="new">doi: 10.1073/pnas.1112486108</a>
-</li>
-<li>  <b>“Exploring the free energy surfaces of clusters using reconnaissance metadynamics”</b>, Gareth A. Tribello, J&eacute;r&ocirc;me Cuny, Hagai Eshet, and Michele Parrinello, J. Chem. Phys. 135, 114109 (2011) <a href="http://dx.doi.org/10.1063/1.3628676" target="new">doi: 10.1063/1.3628676</a>
-</li>
-<li>  <b>“Simplifying the representation of complex free-energy landscapes using sketch-map”</b>, Michele Ceriotti,
-Gareth A. Tribello, and
-Michele Parrinello, Proc. Nat. Acad. Sci. 108, 13023 (2011) <a href="http://dx.doi.org/10.1073/pnas.1108486108" target="new">doi: 10.1073/pnas.1108486108</a>
-</li>
-<li>  <b>“First-Principles Study of the High-Temperature Phase of Li<sub>2</sub>NH”</b>, Giacomo Miceli, Michele Ceriotti, Stefano Angioletti-Uberti, Marco Bernasconi, and Michele Parrinello, J. Phys. Chem. C, 115, 7076 (2011) <a href="http://dx.doi.org/10.1021/jp200076p" target="new">doi: 10.1021/jp200076p</a>
-</li>
-<li>  <b>“Ab initio quality neural-network potential for sodium”</b>, Hagai Eshet, Rustam Z. Khaliullin, Thomas D. Kühne, Jörg Behler, and Michele Parrinello, Phys. Rev. B 81, 184107 (2010) <a href="http://dx.doi.org/10.1103/PhysRevB.81.184107" target="new">doi: 10.1103/PhysRevB.81.184107</a>
-</li>
-<li>  <b>“Graphite-diamond phase coexistence study employing a neural-network mapping of the ab initio potential energy surface”</b>, Rustam Z. Khaliullin, Hagai Eshet, Thomas D. Kühne, Jörg Behler, and Michele Parrinello,  Phys. Rev. B 81, 100103(R) (2010) <a href="http://dx.doi.org/10.1103/PhysRevB.81.100103" target="new">doi: 10.1103/PhysRevB.81.100103</a>
-</li>
-<li>  <b>“Solid-liquid interface free energy through metadynamics simulations”</b>,  Stefano Angioletti-Uberti, Michele Ceriotti, Peter D. Lee, and Mike W. Finnis, Phys. Rev. B 81, 125416 (2010) <a href="http://dx.doi.org/10.1103/PhysRevB.81.125416" target="new">doi: 10.1103/PhysRevB.81.125416</a>
-</li>
-<li>  <b>“Nuclear quantum effects in ab initio dynamics: Theory and experiments for lithium imide”</b>, M. Ceriotti, G. Miceli, A. Pietropaolo, D. Colognesi, A. Nale, M. Catti, M. Bernasconi, and M. Parrinello, Phys. Rev. B 82, 174306 (2010) <a href="http://dx.doi.org/10.1103/PhysRevB.82.174306" target="new">doi: 10.1103/PhysRevB.82.174306</a>
-</li> 
-
- </ul>
+<h2>Slides and posters</h2>
+<p> A few (dated) posters and presentations introducing colored noise and 
+Generalized Langevin Equation thermostats.
+</p>
+<table>
+<tr>
+<td style="width:20%; text-align:center">
+<img src="images/thumbs/lugano10.png" alt="poster-lugano10"/>
+</td>
+<td style="width:80%">
+<b>"Nuclear quantum effects the colored way"</b>
+Poster presented in Lugano for the CECAM workshop "Quantum Monte Carlo meets Quantum Chemistry" (2010).
+Example application of the "quantum thermostat" to estimate nuclear quantum effects in condensed-phase
+systems. <a href="data/lugano10.pdf">Download PDF</a>
+</td>
+</tr>
+<tr>
+<td style="width:20%; text-align:center">
+<img src="images/thumbs/diss-zurich10.png" alt="slides-zurich10"/>
+</td>
+<td style="width:80%">
+<b>"A novel framework for enhanced molecular dynamics based on the generalized Langevin equation"</b>
+Slides presented for M. Ceriotti's Ph.D. dissertation. General overview of both canonical sampling and 
+non-equilibrium GLE thermostats. <a href="data/diss-zurich10.pdf">Download PDF</a>
+</td>
+</tr>
+<tr>
+<td style="width:20%; text-align:center">
+<img src="images/thumbs/tut-lugano10.png" alt="slides-lugano10"/>
+</td>
+<td style="width:80%">
+<b>"A tutorial on the Generalized Langevin Thermostat"</b>
+Slides for a group seminar. Introduction to the GLE, and thorough discussion of thermostat issues
+in the simulation of liquid water (classical, flexible forcefield). <a href="data/tut-lugano10.pdf">Download PDF</a>
+</td>
+</tr>
+<tr>
+<td style="width:20%; text-align:center">
+<img src="images/thumbs/julich09.png" alt="poster-julich09" />
+</td>
+<td style="width:80%">
+<b>"A tunable, all-purpose colored-noise thermostat"</b>
+Poster presented at Jülich, for the winter school "Multiscale simulation methods in molecular sciences" (2009).
+Applications of GLE thermostat to efficient sampling and to Car-Parrinello dynamics. <a href="data/julich09.pdf">Download PDF</a>
+</td>
+</tr>
+</table>
 </div>
 </div>
