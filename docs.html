@@ -25,6 +25,15 @@ GLEs - just as aggressive white-noise thermostatting - interferes with the accur
 and increases the drift of the conserved quantity. In general, however, this does not lead
 to measurable degradation of the accuracy of computed observables. </p>
 
+
+<h3>Q: How do I choose the value of &#8463;&omega;/kT in a QT/PI+GLE/PIGLET calculation? </h3>
+<p> A: You just need to know an order-of-magnitude estimate of the maximum frequency in your system.
+Pick the value of &#8463;&omega;/kT that approaches more closely this frequency: the colored noise
+will try to reproduce quantum effects for modes up to this cutoff. Choosing a value which is too 
+high is not inherently problematic, but might require the use of a smaller time step, since the 
+noise contains then very high frequency components.
+
+
 <h3>Q: The temperature in my quantum thermostat/PI+GLE/PIGLET run is not what I indicated. What's wrong? </h3>
 <p> A: Nothing is wrong. The "temperature" output by MD codes is typically just proportional to the instantaneous
 value of the classical kinetic energy, relying on the relation
