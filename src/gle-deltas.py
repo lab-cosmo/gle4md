@@ -122,7 +122,7 @@ class plotarea(gtk.DrawingArea):
          
         cr.set_line_width(0.025)
         cr.set_source_rgb(0,0,0)
-        cr.move_to(self.datax[0],0)
+        if len(self.datax)>0: cr.move_to(self.datax[0],0)
 
         expr="math.log10("+self.expression+")";
         expr=re.sub(r'bhw',str(self.bhw),expr)
