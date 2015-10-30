@@ -24,6 +24,7 @@ mkOption(gle_kind,"exp2",     "Exponential 2x2"       );
 mkOption(gle_kind,"kdelta",   "Delta-like K(&omega;)" );
 mkOption(gle_kind,"smart",    "Smart sampling", "color:red" );
 mkOption(gle_kind,"hotspot",  "Hot spot", "color:red" );
+mkOption(gle_kind,"piglesc",  "Venkat",   "color:red" );
 </script>
 </select> <br/>
 <b>GLE options:</b><br/>
@@ -52,6 +53,9 @@ case "delta":
   break;
 case "pimd":
   httpInclude("ingen/gle_pimd.html");
+  break;
+case "piglesc":
+  httpInclude("ingen/gle_piglesc.html");
   break;
 case "smart":
   httpInclude("ingen/gle_smart.html");
