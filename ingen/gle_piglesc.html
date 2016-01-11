@@ -18,7 +18,7 @@ DESC="# Generated at http://epfl-cosmo.github.io/gle4md \n\
 # Use for simulations with $gle_p beads, using a RPMD (physical masses) representation \n\
 # of the path. \n\
 # The parameters were picked from \n\
-# libroot+pigle/pigle-"+gle_p+"_"+gle_set+".[ac], \n\
+# "+libroot+"pigle-sc/pigle-"+gle_p+"_"+gle_set+".[ac], \n\
 # and shifted so that correspond to quantum fluctuations at \n\
 # T="+gle_temp+" "+unitname(gle_utemp)+" \n\
 # and that they span a range up to \n\
@@ -34,6 +34,7 @@ HELP="\
 <div class='label'>Par. set</div>&nbsp;<select name="parset" onchange='this.form.submit()'>
 <script type="text/javascript"> 
 mkOption(gle_set,"20_8_sc","Ns=8, &#8463;&omega;/kT=20");
+//mkOption(gle_set,"100_8_sc","Ns=8, &#8463;&omega;/kT=100");
 </script>
 </select><br/>
 <div class='label'>N. beads</div>&nbsp;<select name="nbeads" onchange='this.form.submit()'>
