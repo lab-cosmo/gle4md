@@ -209,7 +209,8 @@ int main(int argc, char **argv)
     fmat<<ercls.A;
     fmat.close();
     fmat.open((prefix+std::string(".C")).c_str());
-    fmat<<ercls.C;
+    FMatrix<double> Ct; transpose(ercls.C,Ct); 
+    fmat<<0.5*(ercls.C+Ct);
     fmat.close();
     FMatrix<double> oB;
     ercls.abc.get_BBT(oB);
