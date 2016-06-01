@@ -57,19 +57,6 @@ mkOption(gle_range,"kv_8-8","OPT(V), Ns=8, &omega;max/&omega;min=10^8","color:re
 mkField(gle_w0,"cw0","&omega;<sub>max</sub> ",gle_uw0,"freq");
 </script>
 <br/>
-<div class='label'>Par. set</div>&nbsp;<select name="parset" onchange='this.form.submit()'>
-<script type="text/javascript">
-mkOption(gle_set,"20_8_t","Ns=8, &#8463;&omega;/kT=20, PIGLET");
-mkOption(gle_set,"50_8_t","Ns=8, &#8463;&omega;/kT=50, PIGLET");
-mkOption(gle_set,"100_8_t","Ns=8, &#8463;&omega;/kT=100, PIGLET");
-mkOption(gle_set,"500_8_t","Ns=8, &#8463;&omega;/kT=500, PIGLET");
-mkOption(gle_set,"20_8_c","Ns=8, &#8463;&omega;/kT=20, CMD-2x","color:red");
-mkOption(gle_set,"20_8_4x","Ns=8, &#8463;&omega;/kT=20, CMD-4x","color:red");
-mkOption(gle_set,"20_8_k","Ns=8, &#8463;&omega;/kT=20, KINETIC","color:red");
-mkOption(gle_set,"50_8_k","Ns=8, &#8463;&omega;/kT=50, KINETIC","color:red");
-mkOption(gle_set,"20_8_w","Ns=8, &#8463;&omega;/kT=20, WATER","color:red");
-</script>
-</select><br/>
 
 <div class='label'>N. beads</div>&nbsp;<select name="nbeads" onchange='this.form.submit()'>
 <script type="text/javascript">
@@ -92,6 +79,20 @@ mkOption(gle_set,"20_8_w","Ns=8, &#8463;&omega;/kT=20, WATER","color:red");
 <script type="text/javascript">
 mkField(gle_temp,"temp","Target T",gle_utemp,"nrg");
 </script>
+
+<div class='label'>Par. set</div>&nbsp;<select name="parset" onchange='this.form.submit()'>
+<script type="text/javascript">
+mkOption(gle_set,"20_8_t","Ns=8, &#8463;&omega;/kT=20, PIGLET");
+mkOption(gle_set,"50_8_t","Ns=8, &#8463;&omega;/kT=50, PIGLET");
+mkOption(gle_set,"100_8_t","Ns=8, &#8463;&omega;/kT=100, PIGLET");
+mkOption(gle_set,"500_8_t","Ns=8, &#8463;&omega;/kT=500, PIGLET");
+mkOption(gle_set,"20_8_c","Ns=8, &#8463;&omega;/kT=20, CMD-2x","color:red");
+mkOption(gle_set,"20_8_4x","Ns=8, &#8463;&omega;/kT=20, CMD-4x","color:red");
+mkOption(gle_set,"20_8_k","Ns=8, &#8463;&omega;/kT=20, KINETIC","color:red");
+mkOption(gle_set,"50_8_k","Ns=8, &#8463;&omega;/kT=50, KINETIC","color:red");
+mkOption(gle_set,"20_8_w","Ns=8, &#8463;&omega;/kT=20, WATER","color:red");
+</script>
+</select><br/>
 
 <b>Max. physical frequency within range:</b><br>
 <script type="text/javascript">
