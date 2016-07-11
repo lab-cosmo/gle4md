@@ -60,7 +60,7 @@ mkField(gle_w0,"cw0","&omega;<sub>max</sub> ",gle_uw0,"freq");
 
 <div class='label'>N. beads</div>&nbsp;<select name="nbeads" onchange='this.form.submit()'>
 <script type="text/javascript">
-   var beadl = [ 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64 ];
+   var beadl = [ 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384, 512 ];
    pfound = false;
    for (i=0; i<beadl.length; ++i) // checks if a matrix file for this number of beads is available
    {
@@ -91,6 +91,9 @@ mkOption(gle_set,"20_8_4x","Ns=8, &#8463;&omega;/kT=20, CMD-4x","color:red");
 mkOption(gle_set,"20_8_k","Ns=8, &#8463;&omega;/kT=20, KINETIC","color:red");
 mkOption(gle_set,"50_8_k","Ns=8, &#8463;&omega;/kT=50, KINETIC","color:red");
 mkOption(gle_set,"20_8_w","Ns=8, &#8463;&omega;/kT=20, WATER","color:red");
+mkOption(gle_set,"1000_8_t","Ns=8, &#8463;&omega;/kT=1000, EXPERIMENTAL","color:red");
+mkOption(gle_set,"2000_8_t","Ns=8, &#8463;&omega;/kT=2000, EXPERIMENTAL","color:red");
+mkOption(gle_set,"3000_8_t","Ns=8, &#8463;&omega;/kT=3000, EXPERIMENTAL","color:red");
 </script>
 </select><br/>
 
