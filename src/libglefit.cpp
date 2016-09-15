@@ -77,6 +77,7 @@ std::istream& operator>> (std::istream& istr, GLEFPointType& value)
     else if (str=="cppdt")    value=CppDT;
     else if (str=="cqq"  )    value=Cqq;
     else if (str=="cpp"  )    value=Cpp;
+    else if (str=="rpimp")    value=RPImPole; /* 4MR */
     else istr.clear(std::ios::failbit);
     return istr;
 }
@@ -106,6 +107,7 @@ std::ostream& operator<< (std::ostream& ostr, const GLEFPointType& p)
         case CqqDT:    ostr<<" cqqdt ";    break;
         case Cpp:      ostr<<"  cpp  ";    break;
         case Cqq:      ostr<<"  cqq  ";    break;
+        case RPImPole: ostr<<" rpimp ";    break; /* 4MR */
     };
     return ostr;
 }

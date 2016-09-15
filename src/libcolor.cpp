@@ -435,6 +435,10 @@ void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, dou
     dwp=xC(1,1)/xDELTA(1,1);
 }
 
+void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double dw, double &repole, double& impole, double &reres)
+{
+    
+}
 /*
 //dirty, dirty way of making a recursive integration function...
 toolbox::FMatrix<double> __xA, __xC;
