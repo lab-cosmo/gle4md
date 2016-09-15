@@ -435,7 +435,7 @@ void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, dou
     dwp=xC(1,1)/xDELTA(1,1);
 }
 
-void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double dw, double &repole, double& impole, double &reres)
+void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double dw, double& impole) //double &repole, double& impole, double &reres)
 {
     
 }

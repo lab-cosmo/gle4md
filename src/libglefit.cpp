@@ -301,6 +301,7 @@ std::istream& operator>> (std::istream& istr, GLEFParOptions& op)
     IOMap iom;
     iom.insert(op.ns, "ns",(unsigned long) 1);
     iom.insert(op.deltat, "finite-dt",0.0);
+    iom.insert(op.rpomega, "rp-omega",0.0);
     iom.insert(op.pstyleC, "cstyle", CIndirect);
     iom.insert(op.pstyleA, "astyle", APReal);
     istr>>iom;
@@ -311,6 +312,7 @@ std::ostream& operator<< (std::ostream& ostr, const GLEFParOptions& op)
 {
     ostr<<" ns        "<<op.ns         <<"\n";
     ostr<<" finite-dt "<<op.deltat     <<"\n";
+    ostr<<" rp-omega  "<<op.rpomega    <<"\n";
     ostr<<" astyle    "<<op.pstyleA    <<"\n";
     ostr<<" cstyle    "<<op.pstyleC    <<"\n";
     return ostr;
@@ -1194,6 +1196,8 @@ void GLEFError::compute_points(const std::vector<double>& xp, std::vector<std::m
     {
         val[i].clear();
         harm_check(A,BBT,xp[i],val[i][TauQ2],val[i][TauP2],val[i][TauH],val[i][Cqq],val[i][Cpp],pq,val[i][DwQ],val[i][DwP],val[i][LFP]);
+        /* 4MR */
+        //rp_check(A, BBT, xp[i], opar.rpomega, opar.rpcoupling, val[i][RPImPole] ... )
         abc.get_KH(xp[i],val[i][Kw],val[i][Hw]);
         if (opar.deltat>0.) verlet_check(A,C,xp[i],opar.deltat,val[i][CqqDT],val[i][CppDT],pq); else  { val[i][CqqDT]=val[i][Cqq]; val[i][CppDT]=val[i][Cpp]; } //if requested, compute finite-dt corrections
         val[i][HonK]=val[i][Hw]/val[i][Kw];
