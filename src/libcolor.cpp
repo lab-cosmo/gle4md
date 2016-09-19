@@ -90,7 +90,7 @@ void GLEABC::get_evA(std::valarray<tblapack::complex>& ra)
     ra.resize(a.size()); ra=a;
 }
 
-void GLEABC::get_evA2(std::valarray<tblapack::complex>& ra2)
+void GLEABC::get_evA2(std::valarray<tblapack::complex>& ra2, FMatrix<tblapack::complex>& u, FMatrix<tblapack::complex>& u1)
 {
     mult(A,A,Asqd);                         //A^2
     if (!fr_eva)
@@ -99,6 +99,8 @@ void GLEABC::get_evA2(std::valarray<tblapack::complex>& ra2)
     }
     
     ra2.resize(a.size()); ra2=a;
+    // MR: do I need to resize below in any way?
+    u=O; u1=O1;
 }
 
 void GLEABC::get_KH(double w, double& kw, double& hw)
@@ -459,9 +461,11 @@ void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double
     xA(0,1)=-1; xA(1,0)=w2; xA(1,2)=dw; xA(2,3)=-1; xA(3,0)=dw; xA(3,2)=wrp2;   //sets the two coupled harmonic oscilators hamiltonian part
     GLEABC abc; abc.set_A(xA); abc.set_BBT(xBBT);
 
-    std::valarray<std::complex<double> >eva2; abc.get_evA2(eva2);
+    std::valarray<std::complex<double> >eva2; 
+    FMatrix<tblapack::complex> evec, evec1;
+    abc.get_evA2(eva2, evec, evec1);
     std::valarray<std::complex<double> > poles; poles=sqrt(-eva2);
-    //for (int i=0; i<n+3;++i) { poles(i)=sqrt(-eva2(i));}
+    
 
     //get power spectrum 
     toolbox::FMatrix<double> t1, t2, xDELTA;
