@@ -448,14 +448,14 @@ void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, dou
     dwp=xC(1,1)/xDELTA(1,1);
 }
 
-void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double dw, double& impole) //double &repole, double& impole, double &reres)
+void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double dw, double& impole, double& repole, double& reres)
 {
     unsigned long n=A.rows();
-    double w2=w*w, w4=w2*w2, wrp2=wrp*wrp; 
+    double w2=w*w, wrp2=wrp*wrp, dist, distnew; 
 
     // MR: I don't really know c++ and wrote this routine, so pardon any silly coding.
 
-    // build a model of two coupled oscillators
+    // build a model of two coupled oscillators of frequencies w and wrp, coupled by a constant dw
     toolbox::FMatrix<double> xA(n+3,n+3), xBBT(n+3,n+3), xC;
     xA*=0.; xBBT=xA;
     for (int i=0; i<n;++i)for (int j=0; j<n;++j)
@@ -467,7 +467,11 @@ void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double
     std::valarray<std::complex<double> >eva2, resq(n+3), resp(n+3); 
     CMatrix evec, evec1, evect, xvecC;
     abc.get_esA2(eva2, evec, evec1); 
+
+    //get poles
     std::valarray<std::complex<double> > poles(n+3); poles=sqrt(-eva2);
+
+    // get residues
     transpose(evec, evect); // Here I hope evec1 is just the inverse of evec...
     mult(evec1,xC,xvecC); // U-1 . C ... still hoping the above
 
@@ -476,14 +480,21 @@ void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double
         resp[k]=evec(1, k)*xvecC(k, 1)*poles[k]/xC(1, 1);
     }
 
-
-    //get power spectrum 
-    toolbox::FMatrix<double> t1, t2, xDELTA;
-    mult(xA,xA,t1);                         //A^2
-    for (int i=0; i<n+1;++i) t1(i,i)+=w2;   //A^2+w^2
-    MatrixInverse(t1,t2);                   //1/(A^2+w^2)
-    mult(xA,t2,t1);                         //A/(A^2+w^2)
-    mult(t1,xC,xDELTA);                     //A/(A^2+w^2)C
+    // Now here we need to find the pole that is closest to wrp and calculate
+    // as a quality measure the norm of the sum of three quantities, namely:
+    // 1) the difference between its real part and wrp, 2) its imaginary part, 3) its residue.
+    // This norm should be as close to zero as possible.
+    dist=wrp;
+    for (int k=0; k<(n+3);++k){
+       distnew=std::abs(wrp-std::real(poles[k]));
+       if (distnew<dist){
+          dist=distnew;
+          repole=std::real(poles[k]);
+          impole=std::imag(poles[k]);
+          reres=std::real(resq[k]); 
+          // MRTODO: check calculation of residues and take into account that residues for p and q may be different
+        }
+    }
     
 }
 /*
