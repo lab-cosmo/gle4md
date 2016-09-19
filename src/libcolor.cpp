@@ -90,7 +90,7 @@ void GLEABC::get_evA(std::valarray<tblapack::complex>& ra)
     ra.resize(a.size()); ra=a;
 }
 
-void GLEABC::get_evA2(std::valarray<tblapack::complex>& ra2, FMatrix<tblapack::complex>& u, FMatrix<tblapack::complex>& u1)
+void GLEABC::get_esA2(std::valarray<tblapack::complex>& ra2, FMatrix<tblapack::complex>& u, FMatrix<tblapack::complex>& u1)
 {
     mult(A,A,Asqd);                         //A^2
     if (!fr_eva)
@@ -453,6 +453,8 @@ void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double
     unsigned long n=A.rows();
     double w2=w*w, w4=w2*w2, wrp2=wrp*wrp; 
 
+    // MR: I don't really know c++ and wrote this routine, so pardon any silly coding.
+
     // build a model of two coupled oscillators
     toolbox::FMatrix<double> xA(n+3,n+3), xBBT(n+3,n+3), xC;
     xA*=0.; xBBT=xA;
@@ -460,12 +462,20 @@ void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double
     { xA(i+3,j+3)=A(i,j);  xBBT(i+3,j+3)=BBT(i,j); }
     xA(0,1)=-1; xA(1,0)=w2; xA(1,2)=dw; xA(2,3)=-1; xA(3,0)=dw; xA(3,2)=wrp2;   //sets the two coupled harmonic oscilators hamiltonian part
     GLEABC abc; abc.set_A(xA); abc.set_BBT(xBBT);
+    abc.get_C(xC);
 
-    std::valarray<std::complex<double> >eva2; 
-    FMatrix<tblapack::complex> evec, evec1;
-    abc.get_evA2(eva2, evec, evec1);
-    std::valarray<std::complex<double> > poles; poles=sqrt(-eva2);
-    
+    std::valarray<std::complex<double> >eva2, resq(n+3), resp(n+3); 
+    CMatrix evec, evec1, evect, xvecC;
+    abc.get_esA2(eva2, evec, evec1); 
+    std::valarray<std::complex<double> > poles(n+3); poles=sqrt(-eva2);
+    transpose(evec, evect); // Here I hope evec1 is just the inverse of evec...
+    mult(evec1,xC,xvecC); // U-1 . C ... still hoping the above
+
+    for (int k=0; k<(n+3);++k){
+        resq[k]=evec(0, k)*xvecC(k, 0)*poles[k]/xC(0, 0);
+        resp[k]=evec(1, k)*xvecC(k, 1)*poles[k]/xC(1, 1);
+    }
+
 
     //get power spectrum 
     toolbox::FMatrix<double> t1, t2, xDELTA;
