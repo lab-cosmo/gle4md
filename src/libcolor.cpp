@@ -459,8 +459,9 @@ void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double
     xA(0,1)=-1; xA(1,0)=w2; xA(1,2)=dw; xA(2,3)=-1; xA(3,0)=dw; xA(3,2)=wrp2;   //sets the two coupled harmonic oscilators hamiltonian part
     GLEABC abc; abc.set_A(xA); abc.set_BBT(xBBT);
 
-    std::valarray<std::complex<double> >eva; abc.get_evA2(eva);
-
+    std::valarray<std::complex<double> >eva2; abc.get_evA2(eva2);
+    std::valarray<std::complex<double> > poles; poles=sqrt(-eva2);
+    //for (int i=0; i<n+3;++i) { poles(i)=sqrt(-eva2(i));}
 
     //get power spectrum 
     toolbox::FMatrix<double> t1, t2, xDELTA;
