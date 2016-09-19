@@ -437,6 +437,27 @@ void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, dou
 
 void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double dw, double& impole) //double &repole, double& impole, double &reres)
 {
+    unsigned long n=A.rows();
+    double w2=w*w, w4=w2*w2, wrp2=wrp*wrp; 
+
+    // build a model of two coupled oscillators
+    toolbox::FMatrix<double> xA(n+3,n+3), xBBT(n+3,n+3), xC;
+    xA*=0.; xBBT=xA;
+    for (int i=0; i<n;++i)for (int j=0; j<n;++j)
+    { xA(i+3,j+3)=A(i,j);  xBBT(i+3,j+3)=BBT(i,j); }
+    xA(0,1)=-1; xA(1,0)=w2; xA(1,2)=dw; xA(2,3)=-1; xA(3,0)=dw; xA(3,2)=wrp2;   //sets the two coupled harmonic oscilators hamiltonian part
+    GLEABC abc; abc.set_A(xA); abc.set_BBT(xBBT);
+
+    std::valarray<std::complex<double> >eva; abc.get_evA(eva);
+
+
+    //get power spectrum 
+    toolbox::FMatrix<double> t1, t2, xDELTA;
+    mult(xA,xA,t1);                         //A^2
+    for (int i=0; i<n+1;++i) t1(i,i)+=w2;   //A^2+w^2
+    MatrixInverse(t1,t2);                   //1/(A^2+w^2)
+    mult(xA,t2,t1);                         //A/(A^2+w^2)
+    mult(t1,xC,xDELTA);                     //A/(A^2+w^2)C
     
 }
 /*
