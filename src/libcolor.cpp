@@ -90,6 +90,17 @@ void GLEABC::get_evA(std::valarray<tblapack::complex>& ra)
     ra.resize(a.size()); ra=a;
 }
 
+void GLEABC::get_evA2(std::valarray<tblapack::complex>& ra2)
+{
+    mult(A,A,Asqd);                         //A^2
+    if (!fr_eva)
+    {
+        EigenDecomposition(Asqd, O, O1, a); fr_eva=true;
+    }
+    
+    ra2.resize(a.size()); ra2=a;
+}
+
 void GLEABC::get_KH(double w, double& kw, double& hw)
 {
     if (!fr_c) prepare_C();
@@ -448,7 +459,7 @@ void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double
     xA(0,1)=-1; xA(1,0)=w2; xA(1,2)=dw; xA(2,3)=-1; xA(3,0)=dw; xA(3,2)=wrp2;   //sets the two coupled harmonic oscilators hamiltonian part
     GLEABC abc; abc.set_A(xA); abc.set_BBT(xBBT);
 
-    std::valarray<std::complex<double> >eva; abc.get_evA(eva);
+    std::valarray<std::complex<double> >eva; abc.get_evA2(eva);
 
 
     //get power spectrum 

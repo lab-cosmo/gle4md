@@ -19,7 +19,7 @@ private:
     DMatrix A, BBT, C;
     bool fr_eva, fr_c, fr_init, fr_hk;
     CMatrix O, O1; std::valarray<tblapack::complex> a;
-    DMatrix lA, lA1; std::valarray<double> lZap; CMatrix lAO, lAO1; std::valarray<tblapack::complex> la;
+    DMatrix lA, lA1, Asqd; std::valarray<double> lZap; CMatrix lAO, lAO1; std::valarray<tblapack::complex> la;
     CMatrix O1CT;
 
     void prepare_C();
@@ -37,6 +37,7 @@ public:
     void get_C(DMatrix& rC);
     void get_BBT(DMatrix& rBBT);
     void get_evA(std::valarray<tblapack::complex>& ra);
+    void get_evA2(std::valarray<tblapack::complex>& ra2);
 
     void get_KH(double w, double& kw, double& hw);
     void get_tau2(unsigned long i, unsigned long j, unsigned long k, unsigned long l, double& tau);
@@ -50,6 +51,7 @@ public:
 };
 
 void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& dwq, double& dwp, double& lambdafp);
+/* 4MR Add here rp_check after it is finished*/ 
 void verlet_check(const DMatrix& A, const DMatrix& C, double w, double dt, double& q2, double& p2, double& pq);
 
 void harm_spectrum(const DMatrix& A, const DMatrix& BBT, double w, const std::valarray<double>& wl, std::valarray<double>& cqq, std::valarray<double>& cpp );
