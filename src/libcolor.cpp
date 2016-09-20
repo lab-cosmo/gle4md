@@ -465,19 +465,20 @@ void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double
     abc.get_C(xC);
 
     std::valarray<std::complex<double> >eva2, resq(n+3), resp(n+3); 
-    CMatrix evec, evec1, evect, xvecC;
+    CMatrix evec, evec1, xvecC;
     abc.get_esA2(eva2, evec, evec1); 
 
     //get poles
     std::valarray<std::complex<double> > poles(n+3); poles=sqrt(-eva2);
 
     // get residues
-    transpose(evec, evect); // Here I hope evec1 is just the inverse of evec...
-    mult(evec1,xC,xvecC); // U-1 . C ... still hoping the above
+    // transpose(evec, evect); // Here I think I do not need to transpose
+    mult(evec1,xC,xvecC); // U-1 . C ... hoping evec1 is the inverse of evec
 
     for (int k=0; k<(n+3);++k){
-        resq[k]=evec(0, k)*xvecC(k, 0)*poles[k]/xC(0, 0);
-        resp[k]=evec(1, k)*xvecC(k, 1)*poles[k]/xC(1, 1);
+        resq[k]=(evec(0, k)*xvecC(k, 0)/xC(0, 0));
+        resp[k]=(evec(1, k)*xvecC(k, 1)/xC(1, 1));
+        printf("RES  %f  %f\n", std::real(resq[k]), std::imag(resq[k]) );
     }
 
     // Now here we need to find the pole that is closest to wrp and calculate
@@ -486,12 +487,12 @@ void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double
     // This norm should be as close to zero as possible.
     dist=wrp;
     for (int k=0; k<(n+3);++k){
-       distnew=std::abs(wrp-std::real(poles[k]));
+       distnew=std::abs(w-std::real(poles[k])); // gets the real part of the pole that is closest to physical frequency w
        if (distnew<dist){
           dist=distnew;
           repole=std::real(poles[k]);
           impole=std::imag(poles[k]);
-          reres=std::real(resq[k]); 
+          reres=std::abs(resq[k])+std::abs(resp[k]); 
           // MRTODO: check calculation of residues and take into account that residues for p and q may be different
         }
     }
