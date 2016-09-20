@@ -306,6 +306,7 @@ std::istream& operator>> (std::istream& istr, GLEFParOptions& op)
     iom.insert(op.ns, "ns",(unsigned long) 1);
     iom.insert(op.deltat, "finite-dt",0.0);
     iom.insert(op.rpomega, "rp-omega",0.0);
+    iom.insert(op.rpcoupling, "rp-domega",0.0);
     iom.insert(op.pstyleC, "cstyle", CIndirect);
     iom.insert(op.pstyleA, "astyle", APReal);
     istr>>iom;
@@ -317,6 +318,7 @@ std::ostream& operator<< (std::ostream& ostr, const GLEFParOptions& op)
     ostr<<" ns        "<<op.ns         <<"\n";
     ostr<<" finite-dt "<<op.deltat     <<"\n";
     ostr<<" rp-omega  "<<op.rpomega    <<"\n";
+    ostr<<" rp-domega "<<op.rpcoupling <<"\n";
     ostr<<" astyle    "<<op.pstyleA    <<"\n";
     ostr<<" cstyle    "<<op.pstyleC    <<"\n";
     return ostr;
