@@ -218,8 +218,8 @@ int main(int argc, char **argv)
             std::cout<<"# D kT/m = "<<diff<<"\n";
             std::cout<<"# omega  1/tau_h  1/tau_q2  1/tau_p2  K(omega)  H(omega)  <q2>(omega) <p2>(omega) <pq>(omega) DQ(omega)  DP(omega) lFP(omega) Cqq["<<w0<<"](w) Cpp["<<w0<<"](w)"<<
                     (deltat>0.?" <q2>,<p2>,<pq>(dt=":"")<<(deltat>0.?float2str(deltat):std::string(""))<<(deltat>0.?")   ":"")<<
-                    (dpeak>0.?"peak_dist(":"")<<(dpeak>0.?float2str(dpeak):std::string(""))<<(dpeak>0.?")":"")<<
-                    (wrpmd>0.?"rpmd(":"")<<(wrpmd>0.?float2str(wrpmd):std::string(""))<<(wrpmd>0.?"): repeak  impeak  speak":"")
+                    (dpeak>0.?" peak_dist(":"")<<(dpeak>0.?float2str(dpeak):std::string(""))<<(dpeak>0.?")":"")<<
+                    (wrpmd>0.?" rpmd(":"")<<(wrpmd>0.?float2str(wrpmd):std::string(""))<<(wrpmd>0.?"): repeak  impeak  speak":"")
                     <<"\n";
             for (unsigned long ip=0; ip<np; ip++)
             {
