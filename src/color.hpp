@@ -37,7 +37,7 @@ public:
     void get_C(DMatrix& rC);
     void get_BBT(DMatrix& rBBT);
     void get_evA(std::valarray<tblapack::complex>& ra);
-    void get_esA2(std::valarray<tblapack::complex>& ra2, CMatrix& u, CMatrix& u1);
+    void get_esA(std::valarray<tblapack::complex>& ra2, CMatrix& u, CMatrix& u1);
 
     void get_KH(double w, double& kw, double& hw);
     void get_tau2(unsigned long i, unsigned long j, unsigned long k, unsigned long l, double& tau);

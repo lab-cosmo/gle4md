@@ -1203,7 +1203,7 @@ void GLEFError::compute_points(const std::vector<double>& xp, std::vector<std::m
         val[i].clear();
         harm_check(A,BBT,xp[i],val[i][TauQ2],val[i][TauP2],val[i][TauH],val[i][Cqq],val[i][Cpp],pq,val[i][DwQ],val[i][DwP],val[i][LFP]);
         /* 4MR */
-        rp_check(A, BBT, xp[i], opar.rpomega,opar.rpalpha,val[i][RPImPole],val[i][RPRePole],val[i][RPReRes]);
+        rp_check(A, BBT, xp[i], opar.rpomega,opar.rpalpha,val[i][RPRePole],val[i][RPImPole],val[i][RPReRes]);
         //rp_check(A, BBT, xp[i], opar.rpomega, opar.rpcoupling, val[i][RPImPole] ... )
         abc.get_KH(xp[i],val[i][Kw],val[i][Hw]);
         if (opar.deltat>0.) verlet_check(A,C,xp[i],opar.deltat,val[i][CqqDT],val[i][CppDT],pq); else  { val[i][CqqDT]=val[i][Cqq]; val[i][CppDT]=val[i][Cpp]; } //if requested, compute finite-dt corrections

@@ -90,15 +90,14 @@ void GLEABC::get_evA(std::valarray<tblapack::complex>& ra)
     ra.resize(a.size()); ra=a;
 }
 
-void GLEABC::get_esA2(std::valarray<tblapack::complex>& ra2, FMatrix<tblapack::complex>& u, FMatrix<tblapack::complex>& u1)
+void GLEABC::get_esA(std::valarray<tblapack::complex>& ra, FMatrix<tblapack::complex>& u, FMatrix<tblapack::complex>& u1)
 {
-    mult(A,A,Asqd);                         //A^2
     if (!fr_eva)
     {
-        EigenDecomposition(Asqd, O, O1, a); fr_eva=true;
+        EigenDecomposition(A, O, O1, a); fr_eva=true;
     }
     
-    ra2.resize(a.size()); ra2=a;
+    ra.resize(a.size()); ra=a;
     // MR: do I need to resize below in any way?
     u=O; u1=O1;
 }
@@ -448,7 +447,7 @@ void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, dou
     dwp=xC(1,1)/xDELTA(1,1);
 }
 
-void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& impole, double& repole, double& reres)
+void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& repole, double& impole, double& reres)
 {
     unsigned long n=A.rows();
     double w2=w*w, wrp2=wrp*wrp, dist, distnew, dw; 
@@ -466,21 +465,21 @@ void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double
     GLEABC abc; abc.set_A(xA); abc.set_BBT(xBBT);
     abc.get_C(xC);
 
-    std::valarray<std::complex<double> >eva2, resq(n+3), resp(n+3); 
+    std::valarray<std::complex<double> >eva, resq(n+3), resp(n+3); 
     CMatrix evec, evec1, xvecC;
-    abc.get_esA2(eva2, evec, evec1); 
+    abc.get_esA(eva, evec, evec1); 
 
     //get poles
-    std::valarray<std::complex<double> > poles(n+3); poles=sqrt(-eva2);
+    std::valarray<std::complex<double> > poles(n+3); poles=eva*std::complex<double>(0,1);
 
     // get residues
     // transpose(evec, evect); // Here I think I do not need to transpose
     mult(evec1,xC,xvecC); // U-1 . C ... hoping evec1 is the inverse of evec
-
+    printf("Analysis for freqs %e   %e \n", w, wrp);
     for (int k=0; k<(n+3);++k){
         resq[k]=(evec(0, k)*xvecC(k, 0)/xC(0, 0));
         resp[k]=(evec(1, k)*xvecC(k, 1)/xC(1, 1));
-        printf("RES  %f  %f\n", std::real(resq[k]), std::imag(resq[k]) );
+        printf("RES  %d  %e  %e  %e  %e\n", k, std::real(poles[k]), std::imag(poles[k]), std::real(resq[k]), std::imag(resq[k]) );
     }
 
     // Now here we need to find the pole that is closest to wrp and calculate
@@ -489,6 +488,7 @@ void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double
     // This norm should be as close to zero as possible.
     dist=wrp;
     for (int k=0; k<(n+3);++k){
+       // the eig 
        distnew=std::abs(w-std::real(poles[k])); // gets the real part of the pole that is closest to physical frequency w
        if (distnew<dist){
           dist=distnew;
