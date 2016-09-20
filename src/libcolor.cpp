@@ -490,8 +490,8 @@ void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double
        distnew=std::abs(w-std::real(poles[k])); // gets the real part of the pole that is closest to physical frequency w
        if (distnew<dist){
           dist=distnew;
-          repole=std::real(poles[k]);
-          impole=std::imag(poles[k]);
+          repole=std::abs(std::real(poles[k]));
+          impole=std::abs(std::imag(poles[k]));
           reres=std::abs(resq[k])+std::abs(resp[k]); 
           // MRTODO: check calculation of residues and take into account that residues for p and q may be different
         }
