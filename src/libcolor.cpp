@@ -448,14 +448,16 @@ void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, dou
     dwp=xC(1,1)/xDELTA(1,1);
 }
 
-void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double dw, double& impole, double& repole, double& reres)
+void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& impole, double& repole, double& reres)
 {
     unsigned long n=A.rows();
-    double w2=w*w, wrp2=wrp*wrp, dist, distnew; 
+    double w2=w*w, wrp2=wrp*wrp, dist, distnew, dw; 
 
     // MR: I don't really know c++ and wrote this routine, so pardon any silly coding.
 
     // build a model of two coupled oscillators of frequencies w and wrp, coupled by a constant dw
+    dw=alpha*w*wrp;
+    
     toolbox::FMatrix<double> xA(n+3,n+3), xBBT(n+3,n+3), xC;
     xA*=0.; xBBT=xA;
     for (int i=0; i<n;++i)for (int j=0; j<n;++j)

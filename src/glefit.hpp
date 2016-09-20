@@ -40,7 +40,7 @@ class GLEFParOptions
 {
   public:
     unsigned long ns;
-    double deltat; double rpomega; double rpcoupling; /* 4MR */
+    double deltat; double rpomega; double rpalpha; /* 4MR */
     GLEFParStyleA pstyleA; GLEFParStyleC pstyleC;
 };
 

@@ -52,7 +52,7 @@ public:
 
 void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& dwq, double& dwp, double& lambdafp);
 /* 4MR Add here rp_check after it is finished*/ 
-void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double dw, double& impole, double& repole, double& reres);
+void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& impole, double& repole, double& reres);
 void verlet_check(const DMatrix& A, const DMatrix& C, double w, double dt, double& q2, double& p2, double& pq);
 
 void harm_spectrum(const DMatrix& A, const DMatrix& BBT, double w, const std::valarray<double>& wl, std::valarray<double>& cqq, std::valarray<double>& cpp );
