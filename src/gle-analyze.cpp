@@ -13,7 +13,7 @@ void banner()
     std::cerr
             << " USAGE: gle-analyze -a a-file [(-b b-file | -c c-file | -d d-file)] [-sa scale] \n" 
             << "     [-sc scale] [-wi w_i] [-wf w_f] [-np np] [-ww wacf] [-tex]                 \n"
-            << "     [-pk delta] [-dt dt] [-tfree maxt]                                         \n"
+            << "     [-pk delta] [-dt dt] [-tfree maxt] [-wrp wrpmd] [-dwrp rpalpha]            \n"
             << " performs in-depth analytical study of the generalized Langevin equation        \n"
             << "                            dx=-A x dt + B dW                                   \n"
             << " A matrix must be provided, wherease for the diffusion term one can provide     \n"
@@ -37,14 +37,16 @@ void banner()
             << " -tex outputs data in a form which can be post-processed with latex to give     \n"
             << " a 'facts sheet' about the matrices provided.                                   \n"
             << " -pk also performs a 'disturbance analysis' with relative window delta.         \n"
-            << " -dt computes also fluctuations which would result from finite-timestep verlet. \n";
+            << " -dt computes also fluctuations which would result from finite-timestep verlet. \n"
+            << " -wrp also computes the disturbance introduced on the dynamics from a rp mode.  \n"
+            << " -dwrp indicates the strength of coupling with the rpmd mode.                   \n";
 }
 
 int main(int argc, char **argv)
 {
     CLParser clp(argc, argv);
     bool fhelp, fsingle, ffree, ftex, funit=false;
-    double wi, wf, ww, w0, shifta, shiftc,tfree,dpeak,deltat;
+    double wi, wf, ww, w0, shifta, shiftc,tfree,dpeak,deltat, wrpmd, rpalpha;
     std::string amat, bmat, cmat, dmat;
     long np;
     bool fok=
@@ -61,6 +63,8 @@ int main(int argc, char **argv)
             clp.getoption(shiftc,"sc",1.) &&
             clp.getoption(dpeak,"pk",0.) &&
             clp.getoption(deltat,"dt",0.) &&
+            clp.getoption(wrpmd,"wrp",0.) &&
+            clp.getoption(rpalpha,"dwrp",0.) &&
             clp.getoption(np,"np",(long)1000) &&
             clp.getoption(ftex,"tex",false) &&
             clp.getoption(fhelp,"h",false);
@@ -195,7 +199,7 @@ int main(int argc, char **argv)
     else
     {           
         std::valarray<double> w(np), kw(np), hw(np), tq2(np), tp2(np), th(np), q2(np), p2(np), pq(np), dwq(np), dwp(np), hdist(np), lfp(np)
-                , q2dt(np), p2dt(np), pqdt(np), sqq(np), spp(np);
+                , q2dt(np), p2dt(np), pqdt(np), sqq(np), spp(np), rp_rew(np), rp_imw(np), rp_spw(np);
                 
         for (unsigned long ip=0; ip<np; ip++) w[ip]=pow(wi,(np-ip-1.)/(np-1.))*pow(wf,(1.*ip)/(np-1.));        
         harm_spectrum(iA, iBBT, w0,w, sqq, spp);
@@ -207,13 +211,16 @@ int main(int argc, char **argv)
             harm_check(iA,iBBT,w[ip],tq2[ip],tp2[ip],th[ip],q2[ip],p2[ip],pq[ip],dwq[ip],dwp[ip], lfp[ip]);
             if (dpeak>0.) harm_peak(iA,iBBT,w[ip],dpeak,hdist[ip]);
             if (deltat>0) verlet_check(iA,iC,w[ip],deltat,q2dt[ip],p2dt[ip],pqdt[ip]);
+            if (wrpmd>0) rp_check(iA, iBBT, w[ip], wrpmd, rpalpha, rp_rew[ip], rp_imw[ip], rp_spw[ip]);
         }
         if (!ftex)
         {
             std::cout<<"# D kT/m = "<<diff<<"\n";
             std::cout<<"# omega  1/tau_h  1/tau_q2  1/tau_p2  K(omega)  H(omega)  <q2>(omega) <p2>(omega) <pq>(omega) DQ(omega)  DP(omega) lFP(omega) Cqq["<<w0<<"](w) Cpp["<<w0<<"](w)"<<
                     (deltat>0.?" <q2>,<p2>,<pq>(dt=":"")<<(deltat>0.?float2str(deltat):std::string(""))<<(deltat>0.?")   ":"")<<
-                    (dpeak>0.?"peak_dist(":"")<<(dpeak>0.?float2str(dpeak):std::string(""))<<(dpeak>0.?")":"")<<"\n";
+                    (dpeak>0.?"peak_dist(":"")<<(dpeak>0.?float2str(dpeak):std::string(""))<<(dpeak>0.?")":"")<<
+                    (wrpmd>0.?"rpmd(":"")<<(wrpmd>0.?float2str(wrpmd):std::string(""))<<(wrpmd>0.?"): repeak  impeak  speak":"")
+                    <<"\n";
             for (unsigned long ip=0; ip<np; ip++)
             {
                 std::cout<<w[ip]<<"  "<<1./th[ip] //1./((pppp+qqqq+ppqq+qqpp)/(pppp0+qqqq0+ppqq0+qqpp0))
@@ -233,7 +240,9 @@ int main(int argc, char **argv)
                         <<"  "<<(deltat>0.?float2str(p2dt[ip]):"")
                         <<"  "<<(deltat>0.?float2str(pqdt[ip]):"")
                         <<"  "<<(dpeak>0.?float2str(hdist[ip]):"")
-                        
+                        <<"  "<<(wrpmd>0.?float2str(rp_rew[ip]):"")
+                        <<"  "<<(wrpmd>0.?float2str(rp_imw[ip]):"")
+                        <<"  "<<(wrpmd>0.?float2str(rp_spw[ip]):"")
                         <<std::endl; 
             }
         }
