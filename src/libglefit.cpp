@@ -79,7 +79,8 @@ std::istream& operator>> (std::istream& istr, GLEFPointType& value)
     else if (str=="cpp"  )    value=Cpp;
     else if (str=="rpimp")    value=RPImPole; /* 4MR */
     else if (str=="rprep")    value=RPRePole;
-    else if (str=="rpres")    value=RPReRes;
+    else if (str=="rpwq")     value=RPQRes;
+    else if (str=="rpwp")     value=RPPRes;
     else istr.clear(std::ios::failbit);
     return istr;
 }
@@ -111,7 +112,8 @@ std::ostream& operator<< (std::ostream& ostr, const GLEFPointType& p)
         case Cqq:      ostr<<"  cqq  ";    break;
         case RPImPole: ostr<<" rpimp ";    break; /* 4MR */
         case RPRePole: ostr<<" rprep ";    break; /* 4MR */
-        case RPReRes:  ostr<<" rpres ";    break; /* 4MR */
+        case RPQRes:   ostr<<" rpwq  ";    break; /* 4MR */
+        case RPPRes:   ostr<<" rpwp  ";    break; /* 4MR */
     };
     return ostr;
 }
@@ -1203,7 +1205,7 @@ void GLEFError::compute_points(const std::vector<double>& xp, std::vector<std::m
         val[i].clear();
         harm_check(A,BBT,xp[i],val[i][TauQ2],val[i][TauP2],val[i][TauH],val[i][Cqq],val[i][Cpp],pq,val[i][DwQ],val[i][DwP],val[i][LFP]);
         /* 4MR */
-        rp_check(A, BBT, xp[i], opar.rpomega,opar.rpalpha,val[i][RPRePole],val[i][RPImPole],val[i][RPReRes]);
+        rp_check(A, BBT, xp[i], opar.rpomega,opar.rpalpha,val[i][RPRePole],val[i][RPImPole],val[i][RPQRes],val[i][RPPRes]);
         //rp_check(A, BBT, xp[i], opar.rpomega, opar.rpcoupling, val[i][RPImPole] ... )
         abc.get_KH(xp[i],val[i][Kw],val[i][Hw]);
         if (opar.deltat>0.) verlet_check(A,C,xp[i],opar.deltat,val[i][CqqDT],val[i][CppDT],pq); else  { val[i][CqqDT]=val[i][Cqq]; val[i][CppDT]=val[i][Cpp]; } //if requested, compute finite-dt corrections

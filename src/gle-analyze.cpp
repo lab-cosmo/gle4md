@@ -199,7 +199,7 @@ int main(int argc, char **argv)
     else
     {           
         std::valarray<double> w(np), kw(np), hw(np), tq2(np), tp2(np), th(np), q2(np), p2(np), pq(np), dwq(np), dwp(np), hdist(np), lfp(np)
-                , q2dt(np), p2dt(np), pqdt(np), sqq(np), spp(np), rp_rew(np), rp_imw(np), rp_spw(np);
+                , q2dt(np), p2dt(np), pqdt(np), sqq(np), spp(np), rp_rew(np), rp_imw(np), rp_qw(np), rp_pw(np);
                 
         for (unsigned long ip=0; ip<np; ip++) w[ip]=pow(wi,(np-ip-1.)/(np-1.))*pow(wf,(1.*ip)/(np-1.));        
         harm_spectrum(iA, iBBT, w0,w, sqq, spp);
@@ -211,7 +211,7 @@ int main(int argc, char **argv)
             harm_check(iA,iBBT,w[ip],tq2[ip],tp2[ip],th[ip],q2[ip],p2[ip],pq[ip],dwq[ip],dwp[ip], lfp[ip]);
             if (dpeak>0.) harm_peak(iA,iBBT,w[ip],dpeak,hdist[ip]);
             if (deltat>0) verlet_check(iA,iC,w[ip],deltat,q2dt[ip],p2dt[ip],pqdt[ip]);
-            if (wrpmd>0) rp_check(iA, iBBT, w[ip], wrpmd, rpalpha, rp_rew[ip], rp_imw[ip], rp_spw[ip]);
+            if (wrpmd>0) rp_check(iA, iBBT, w[ip], wrpmd, rpalpha, rp_rew[ip], rp_imw[ip], rp_qw[ip], rp_pw[ip]);
         }
         if (!ftex)
         {
@@ -219,7 +219,7 @@ int main(int argc, char **argv)
             std::cout<<"# omega  1/tau_h  1/tau_q2  1/tau_p2  K(omega)  H(omega)  <q2>(omega) <p2>(omega) <pq>(omega) DQ(omega)  DP(omega) lFP(omega) Cqq["<<w0<<"](w) Cpp["<<w0<<"](w)"<<
                     (deltat>0.?" <q2>,<p2>,<pq>(dt=":"")<<(deltat>0.?float2str(deltat):std::string(""))<<(deltat>0.?")   ":"")<<
                     (dpeak>0.?" peak_dist(":"")<<(dpeak>0.?float2str(dpeak):std::string(""))<<(dpeak>0.?")":"")<<
-                    (wrpmd>0.?" rpmd(":"")<<(wrpmd>0.?float2str(wrpmd):std::string(""))<<(wrpmd>0.?"): repeak  impeak  speak":"")
+                    (wrpmd>0.?" rpmd(":"")<<(wrpmd>0.?float2str(wrpmd):std::string(""))<<(wrpmd>0.?"): repeak  impeak  qpeakw  ppeakw":"")
                     <<"\n";
             for (unsigned long ip=0; ip<np; ip++)
             {
@@ -242,7 +242,8 @@ int main(int argc, char **argv)
                         <<"  "<<(dpeak>0.?float2str(hdist[ip]):"")
                         <<"  "<<(wrpmd>0.?float2str(rp_rew[ip]):"")
                         <<"  "<<(wrpmd>0.?float2str(rp_imw[ip]):"")
-                        <<"  "<<(wrpmd>0.?float2str(rp_spw[ip]):"")
+                        <<"  "<<(wrpmd>0.?float2str(rp_qw[ip]):"")
+                        <<"  "<<(wrpmd>0.?float2str(rp_pw[ip]):"")
                         <<std::endl; 
             }
         }

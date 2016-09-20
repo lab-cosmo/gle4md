@@ -447,7 +447,7 @@ void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, dou
     dwp=xC(1,1)/xDELTA(1,1);
 }
 
-void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& repole, double& impole, double& reres)
+void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& repole, double& impole, double& qres, double& pres)
 {
     unsigned long n=A.rows();
     double w2=w*w, wrp2=wrp*wrp, dist, distnew, dw; 
@@ -476,11 +476,11 @@ void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double
     // transpose(evec, evect); // Here I think I do not need to transpose
     mult(evec1,xC,xvecC); // U-1 . C ... hoping evec1 is the inverse of evec
     printf("Analysis for freqs %e   %e \n", w, wrp);
-    double tres;
+    double tres=0.0;
     for (int k=0; k<(n+3);++k){
         resq[k]=(evec(0, k)*xvecC(k, 0)/xC(0, 0));
         resp[k]=(evec(1, k)*xvecC(k, 1)/xC(1, 1));
-        printf("RES  %d  %e  %e  %e  %e\n", k, std::real(poles[k]), std::imag(poles[k]), std::real(resq[k]), std::imag(resq[k]) );
+        printf("RES  %d  %e  %e  %e  %e  %e  %e\n", k, std::real(poles[k]), std::imag(poles[k]), std::real(resq[k]), std::imag(resq[k]),  std::real(resp[k]), std::imag(resp[k]) );
         tres += std::real(resq[k]) + std::real(resp[k]);
     }
 
@@ -489,14 +489,16 @@ void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double
     // 1) the difference between its real part and wrp, 2) its imaginary part, 3) its residue.
     // This norm should be as close to zero as possible.
     dist=wrp;
+    double mxw=0, kw;
     for (int k=0; k<(n+3);++k){
        // the eig 
-       distnew=std::abs(w-std::real(poles[k])); // gets the real part of the pole that is closest to physical frequency w
-       if (distnew<dist){
-          dist=distnew;
-          repole=std::abs(std::real(poles[k]));
-          impole=std::abs(std::imag(poles[k]));
-          reres=(std::abs(resq[k])+std::abs(resp[k]))*2.0/tres; 
+       kw  = (std::abs(resq[k])+std::abs(resp[k]))*2.0/tres; 
+       if (kw > mxw){
+          mxw = kw;
+          repole = std::abs(std::real(poles[k]));
+          impole = std::abs(std::imag(poles[k]));
+          qres = 2.0*std::real(resq[k]);
+          pres = 2.0*std::real(resp[k]);
           // MRTODO: check calculation of residues and take into account that residues for p and q may be different
         }
     }
