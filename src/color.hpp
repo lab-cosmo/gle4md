@@ -50,9 +50,9 @@ public:
     void get_msd(unsigned long i, double t, double& msd, double& dmsd);
 };
 
-void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& lambdafp, double& repole, double& impole, double& qres, double& pres, double& wavgq, double& wspreadq, double &wimgq, double& wavgp, double& wspreadp, double &wimgp);
+void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& lambdafp, double& repole, double& impole, double& qres, double& pres, double& wavgq, double &wimgq, double& wspreadq, double& wavgp, double &wimgp, double& wspreadp);
 /* 4MR Add here rp_check after it is finished*/ 
-void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& repole, double& impole, double& qres, double& pres, double& wavgq, double& wspreadq, double &wimgq, double& wavgp, double& wspreadp, double &wimgp);
+void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& repole, double& impole, double& qres, double& pres, double& wavgq, double &wimgq, double& wspreadq, double& wavgp, double &wimgp, double& wspreadp);
 void verlet_check(const DMatrix& A, const DMatrix& C, double w, double dt, double& q2, double& p2, double& pq);
 
 void harm_spectrum(const DMatrix& A, const DMatrix& BBT, double w, const std::valarray<double>& wl, std::valarray<double>& cqq, std::valarray<double>& cpp );

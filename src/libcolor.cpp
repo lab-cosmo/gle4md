@@ -405,7 +405,6 @@ void spectral_analysis(GLEABC& abc, double& repole, double& impole, double& qres
     std::valarray<std::complex<double> > poles(n); poles=eva*std::complex<double>(0,1);
 
     // get residues
-    // transpose(evec, evect); // Here I think I do not need to transpose
     mult(evec1,xC,xvecC); // U-1 . C ... hoping evec1 is the inverse of evec    
     double tres=0.0; 
     for (int k=0; k<(n);++k){
@@ -414,10 +413,8 @@ void spectral_analysis(GLEABC& abc, double& repole, double& impole, double& qres
         tres += std::real(resq[k]) + std::real(resp[k]);
     }
 
-    // Now here we need to find the pole that is closest to wrp and calculate
-    // as a quality measure the norm of the sum of three quantities, namely:
-    // 1) the difference between its real part and wrp, 2) its imaginary part, 3) its residue.
-    // This norm should be as close to zero as possible.    
+    // now here we are calculating a bunch of stuff. real and imaginary averages of the poles, their spread, as well as the
+    // pole which has the highest weight and picking it for further characterization. 
     double mxw=0, kw;    
     wavgq=wavgp=wspreadq=wspreadp=wimgq=wimgp=0;
     for (int k=0; k<(n);++k){
@@ -443,7 +440,7 @@ void spectral_analysis(GLEABC& abc, double& repole, double& impole, double& qres
     wspreadq=std::sqrt(wspreadq);    
 }
 
-void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& lambdafp, double& repole, double& impole, double& qres, double& pres, double& wavgq, double& wspreadq, double &wimgq, double& wavgp, double& wspreadp, double &wimgp)
+void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& lambdafp, double& repole, double& impole, double& qres, double& pres, double& wavgq, double& wimgq, double& wspreadq, double& wavgp, double &wimgp, double& wspreadp)
 {
     unsigned long n=A.rows();
     double w2=w*w, w4=w2*w2; 
@@ -490,7 +487,7 @@ void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, dou
     spectral_analysis(abc, repole, impole, qres, pres, wavgq, wspreadq, wimgq, wavgp, wspreadp, wimgp);
 }
 
-void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& repole, double& impole, double& qres, double& pres, double& wavgq, double& wspreadq, double &wimgq, double& wavgp, double& wspreadp, double &wimgp)
+void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& repole, double& impole, double& qres, double& pres, double& wavgq, double &wimgq, double& wspreadq, double& wavgp, double& wimgp, double& wspreadp)
 {
     unsigned long n=A.rows();
     double w2=w*w, wrp2=wrp*wrp, dw; 
