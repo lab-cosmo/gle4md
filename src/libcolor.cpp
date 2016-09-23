@@ -492,7 +492,7 @@ void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double
     double mxw=0, kw;
     for (int k=0; k<(n+3);++k){
        // the eig 
-       kw  = (std::abs(resq[k])+std::abs(resp[k]))*2.0/tres; 
+       kw  = (std::real(resq[k])*std::real(resp[k]));
        if (kw > mxw){
           mxw = kw;
           repole = std::abs(std::real(poles[k]));
