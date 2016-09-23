@@ -447,7 +447,7 @@ void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, dou
     dwp=xC(1,1)/xDELTA(1,1);
 }
 
-void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& repole, double& impole, double& qres, double& pres)
+void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& repole, double& impole, double& qres, double& pres, double& wavgq, double& wspreadq, double &wimgq, double& wavgp, double& wspreadp, double &wimgp)
 {
     unsigned long n=A.rows();
     double w2=w*w, wrp2=wrp*wrp, dist, distnew, dw; 
@@ -476,11 +476,10 @@ void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double
     // transpose(evec, evect); // Here I think I do not need to transpose
     mult(evec1,xC,xvecC); // U-1 . C ... hoping evec1 is the inverse of evec
     printf("Analysis for freqs %e   %e \n", w, wrp);
-    double tres=0.0;
+    double tres=0.0; 
     for (int k=0; k<(n+3);++k){
         resq[k]=(evec(0, k)*xvecC(k, 0)/xC(0, 0));
         resp[k]=(evec(1, k)*xvecC(k, 1)/xC(1, 1));
-        printf("RES  %d  %e  %e  %e  %e  %e  %e\n", k, std::real(poles[k]), std::imag(poles[k]), std::real(resq[k]), std::imag(resq[k]),  std::real(resp[k]), std::imag(resp[k]) );
         tres += std::real(resq[k]) + std::real(resp[k]);
     }
 
@@ -489,8 +488,13 @@ void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double
     // 1) the difference between its real part and wrp, 2) its imaginary part, 3) its residue.
     // This norm should be as close to zero as possible.
     dist=wrp;
-    double mxw=0, kw;
+    double mxw=0, kw;    
+    wavgq=wavgp=wspreadq=wspreadp=wimgq=wimgp=0;
     for (int k=0; k<(n+3);++k){
+       wavgq += std::abs(std::real(poles[k]))*std::real(resq[k]);
+       wavgp += std::abs(std::real(poles[k]))*std::real(resp[k]);
+       wimgq += std::abs(std::imag(poles[k]))*std::real(resq[k]);
+       wimgp += std::abs(std::imag(poles[k]))*std::real(resp[k]);       
        // the eig 
        kw  = (std::real(resq[k])*std::real(resp[k]));
        if (kw > mxw){
@@ -498,11 +502,15 @@ void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double
           repole = std::abs(std::real(poles[k]));
           impole = std::abs(std::imag(poles[k]));
           qres = 2.0*std::real(resq[k]);
-          pres = 2.0*std::real(resp[k]);
-          // MRTODO: check calculation of residues and take into account that residues for p and q may be different
+          pres = 2.0*std::real(resp[k]);          
         }
     }
-    
+    for (int k=0; k<(n+3);++k){
+        wspreadq += (std::abs(std::real(poles[k]))-wavgq)*(std::abs(std::real(poles[k]))-wavgq)*std::real(resq[k]);
+        wspreadp += (std::abs(std::real(poles[k]))-wavgp)*(std::abs(std::real(poles[k]))-wavgp)*std::real(resp[k]);
+    }
+    wspreadq=std::sqrt(wspreadq);
+    wspreadq=std::sqrt(wspreadq);    
 }
 /*
 //dirty, dirty way of making a recursive integration function...

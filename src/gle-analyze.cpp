@@ -203,7 +203,7 @@ int main(int argc, char **argv)
                 
         for (unsigned long ip=0; ip<np; ip++) w[ip]=pow(wi,(np-ip-1.)/(np-1.))*pow(wf,(1.*ip)/(np-1.));        
         harm_spectrum(iA, iBBT, w0,w, sqq, spp);
-        
+        double dummy;
         for (unsigned long ip=0; ip<np; ip++)
         {
             abc.get_KH(w[ip], kw[ip], hw[ip]);
@@ -211,7 +211,7 @@ int main(int argc, char **argv)
             harm_check(iA,iBBT,w[ip],tq2[ip],tp2[ip],th[ip],q2[ip],p2[ip],pq[ip],dwq[ip],dwp[ip], lfp[ip]);
             if (dpeak>0.) harm_peak(iA,iBBT,w[ip],dpeak,hdist[ip]);
             if (deltat>0) verlet_check(iA,iC,w[ip],deltat,q2dt[ip],p2dt[ip],pqdt[ip]);
-            if (wrpmd>0) rp_check(iA, iBBT, w[ip], wrpmd, rpalpha, rp_rew[ip], rp_imw[ip], rp_qw[ip], rp_pw[ip]);
+            if (wrpmd>0) rp_check(iA, iBBT, w[ip], wrpmd, rpalpha, rp_rew[ip], rp_imw[ip], rp_qw[ip], rp_pw[ip], dummy, dummy, dummy, dummy, dummy, dummy);
         }
         if (!ftex)
         {
