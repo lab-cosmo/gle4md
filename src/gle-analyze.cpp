@@ -164,8 +164,8 @@ int main(int argc, char **argv)
     {
         GLEABC abcww;
         toolbox::FMatrix<double> Aw(n,n), BBtw(n,n), Cw;
-        double tq2, tp2, th, q2, p2, pq, dwq, dwp,lfp;
-        harm_check(iA,iBBT,ww,tq2,tp2,th,q2,p2,pq,dwq,dwp,lfp);
+        double tq2, tp2, th, q2, p2, pq, dwq, dwp,lfp, dummy;
+        harm_check(iA,iBBT,ww,tq2,tp2,th,q2,p2,pq,lfp, dummy, dummy, dummy, dummy, dummy, dummy, dummy, dummy, dummy, dummy);
         
         Aw*=0.; BBtw=Aw;
         for (int i=0; i<n-1;++i)for (int j=0; j<n-1;++j)
@@ -208,7 +208,7 @@ int main(int argc, char **argv)
         {
             abc.get_KH(w[ip], kw[ip], hw[ip]);
             
-            harm_check(iA,iBBT,w[ip],tq2[ip],tp2[ip],th[ip],q2[ip],p2[ip],pq[ip],dwq[ip],dwp[ip], lfp[ip]);
+            harm_check(iA,iBBT,w[ip],tq2[ip],tp2[ip],th[ip],q2[ip],p2[ip],pq[ip],lfp[ip], dummy, dummy, dummy, dummy, dummy, dummy, dummy, dummy, dummy, dummy);//dwq[ip],dwp[ip], lfp[ip]);
             if (dpeak>0.) harm_peak(iA,iBBT,w[ip],dpeak,hdist[ip]);
             if (deltat>0) verlet_check(iA,iC,w[ip],deltat,q2dt[ip],p2dt[ip],pqdt[ip]);
             if (wrpmd>0) rp_check(iA, iBBT, w[ip], wrpmd, rpalpha, rp_rew[ip], rp_imw[ip], rp_qw[ip], rp_pw[ip], dummy, dummy, dummy, dummy, dummy, dummy);

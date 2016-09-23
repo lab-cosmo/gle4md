@@ -1203,7 +1203,7 @@ void GLEFError::compute_points(const std::vector<double>& xp, std::vector<std::m
     for (int i=0; i<xp.size(); i++)
     {
         val[i].clear();
-        harm_check(A,BBT,xp[i],val[i][TauQ2],val[i][TauP2],val[i][TauH],val[i][Cqq],val[i][Cpp],pq,val[i][DwQ],val[i][DwP],val[i][LFP]);
+        harm_check(A,BBT,xp[i],val[i][TauQ2],val[i][TauP2],val[i][TauH],val[i][Cqq],val[i][Cpp],pq, val[i][LFP], dummy, dummy, dummy, dummy, dummy, dummy, dummy, dummy, dummy, dummy); //val[i][DwQ],val[i][DwP],val[i][LFP]);
         /* 4MR */
         rp_check(A, BBT, xp[i], opar.rpomega,opar.rpalpha,val[i][RPRePole],val[i][RPImPole],val[i][RPQRes],val[i][RPPRes], dummy, dummy, dummy, dummy, dummy, dummy);
         //rp_check(A, BBT, xp[i], opar.rpomega, opar.rpcoupling, val[i][RPImPole] ... )

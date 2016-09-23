@@ -392,7 +392,58 @@ void verlet_check(const DMatrix& A, const DMatrix& C, double w, double dt, doubl
     q2=R3(0,0).real()*w*w; p2=R3(1,1).real(); pq=R3(0,1).real();
 }
 
-void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& dwq, double& dwp, double& lambdafp)
+void spectral_analysis(GLEABC& abc, double& repole, double& impole, double& qres, double& pres, double& wavgq, double& wspreadq, double &wimgq, double& wavgp, double& wspreadp, double &wimgp)
+{
+    toolbox::FMatrix<double> xA, xC;
+    abc.get_A(xA); abc.get_C(xC);
+    unsigned int n=xA.rows();
+    std::valarray<std::complex<double> >eva, resq(n), resp(n); 
+    CMatrix evec, evec1, xvecC;
+    abc.get_esA(eva, evec, evec1); 
+
+    //get poles
+    std::valarray<std::complex<double> > poles(n); poles=eva*std::complex<double>(0,1);
+
+    // get residues
+    // transpose(evec, evect); // Here I think I do not need to transpose
+    mult(evec1,xC,xvecC); // U-1 . C ... hoping evec1 is the inverse of evec    
+    double tres=0.0; 
+    for (int k=0; k<(n);++k){
+        resq[k]=(evec(0, k)*xvecC(k, 0)/xC(0, 0));
+        resp[k]=(evec(1, k)*xvecC(k, 1)/xC(1, 1));
+        tres += std::real(resq[k]) + std::real(resp[k]);
+    }
+
+    // Now here we need to find the pole that is closest to wrp and calculate
+    // as a quality measure the norm of the sum of three quantities, namely:
+    // 1) the difference between its real part and wrp, 2) its imaginary part, 3) its residue.
+    // This norm should be as close to zero as possible.    
+    double mxw=0, kw;    
+    wavgq=wavgp=wspreadq=wspreadp=wimgq=wimgp=0;
+    for (int k=0; k<(n);++k){
+       wavgq += std::abs(std::real(poles[k]))*std::real(resq[k]);
+       wavgp += std::abs(std::real(poles[k]))*std::real(resp[k]);
+       wimgq += std::abs(std::imag(poles[k]))*std::real(resq[k]);
+       wimgp += std::abs(std::imag(poles[k]))*std::real(resp[k]);       
+       // the eig 
+       kw  = (std::real(resq[k])*std::real(resp[k]));
+       if (kw > mxw){
+          mxw = kw;
+          repole = std::abs(std::real(poles[k]));
+          impole = std::abs(std::imag(poles[k]));
+          qres = 2.0*std::real(resq[k]);
+          pres = 2.0*std::real(resp[k]);          
+        }
+    }
+    for (int k=0; k<(n);++k){
+        wspreadq += (std::abs(std::real(poles[k]))-wavgq)*(std::abs(std::real(poles[k]))-wavgq)*std::real(resq[k]);
+        wspreadp += (std::abs(std::real(poles[k]))-wavgp)*(std::abs(std::real(poles[k]))-wavgp)*std::real(resp[k]);
+    }
+    wspreadq=std::sqrt(wspreadq);
+    wspreadq=std::sqrt(wspreadq);    
+}
+
+void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& lambdafp, double& repole, double& impole, double& qres, double& pres, double& wavgq, double& wspreadq, double &wimgq, double& wavgp, double& wspreadp, double &wimgp)
 {
     unsigned long n=A.rows();
     double w2=w*w, w4=w2*w2; 
@@ -436,23 +487,13 @@ void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, dou
     tq2=qqqq/qqqq0;
     
     //get power spectrum peak widths
-    toolbox::FMatrix<double> t1, t2, xDELTA;
-    mult(xA,xA,t1);                         //A^2
-    for (int i=0; i<n+1;++i) t1(i,i)+=w2;   //A^2+w^2
-    MatrixInverse(t1,t2);                   //1/(A^2+w^2)
-    mult(xA,t2,t1);                         //A/(A^2+w^2)
-    mult(t1,xC,xDELTA);                     //A/(A^2+w^2)C
-    
-    dwq=xC(0,0)/xDELTA(0,0);
-    dwp=xC(1,1)/xDELTA(1,1);
+    spectral_analysis(abc, repole, impole, qres, pres, wavgq, wspreadq, wimgq, wavgp, wspreadp, wimgp);
 }
 
 void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& repole, double& impole, double& qres, double& pres, double& wavgq, double& wspreadq, double &wimgq, double& wavgp, double& wspreadp, double &wimgp)
 {
     unsigned long n=A.rows();
-    double w2=w*w, wrp2=wrp*wrp, dist, distnew, dw; 
-
-    // MR: I don't really know c++ and wrote this routine, so pardon any silly coding.
+    double w2=w*w, wrp2=wrp*wrp, dw; 
 
     // build a model of two coupled oscillators of frequencies w and wrp, coupled by a constant dw
     dw=alpha*w*wrp;
@@ -465,52 +506,8 @@ void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double
     GLEABC abc; abc.set_A(xA); abc.set_BBT(xBBT);
     abc.get_C(xC);
 
-    std::valarray<std::complex<double> >eva, resq(n+3), resp(n+3); 
-    CMatrix evec, evec1, xvecC;
-    abc.get_esA(eva, evec, evec1); 
-
-    //get poles
-    std::valarray<std::complex<double> > poles(n+3); poles=eva*std::complex<double>(0,1);
-
-    // get residues
-    // transpose(evec, evect); // Here I think I do not need to transpose
-    mult(evec1,xC,xvecC); // U-1 . C ... hoping evec1 is the inverse of evec
-    printf("Analysis for freqs %e   %e \n", w, wrp);
-    double tres=0.0; 
-    for (int k=0; k<(n+3);++k){
-        resq[k]=(evec(0, k)*xvecC(k, 0)/xC(0, 0));
-        resp[k]=(evec(1, k)*xvecC(k, 1)/xC(1, 1));
-        tres += std::real(resq[k]) + std::real(resp[k]);
-    }
-
-    // Now here we need to find the pole that is closest to wrp and calculate
-    // as a quality measure the norm of the sum of three quantities, namely:
-    // 1) the difference between its real part and wrp, 2) its imaginary part, 3) its residue.
-    // This norm should be as close to zero as possible.
-    dist=wrp;
-    double mxw=0, kw;    
-    wavgq=wavgp=wspreadq=wspreadp=wimgq=wimgp=0;
-    for (int k=0; k<(n+3);++k){
-       wavgq += std::abs(std::real(poles[k]))*std::real(resq[k]);
-       wavgp += std::abs(std::real(poles[k]))*std::real(resp[k]);
-       wimgq += std::abs(std::imag(poles[k]))*std::real(resq[k]);
-       wimgp += std::abs(std::imag(poles[k]))*std::real(resp[k]);       
-       // the eig 
-       kw  = (std::real(resq[k])*std::real(resp[k]));
-       if (kw > mxw){
-          mxw = kw;
-          repole = std::abs(std::real(poles[k]));
-          impole = std::abs(std::imag(poles[k]));
-          qres = 2.0*std::real(resq[k]);
-          pres = 2.0*std::real(resp[k]);          
-        }
-    }
-    for (int k=0; k<(n+3);++k){
-        wspreadq += (std::abs(std::real(poles[k]))-wavgq)*(std::abs(std::real(poles[k]))-wavgq)*std::real(resq[k]);
-        wspreadp += (std::abs(std::real(poles[k]))-wavgp)*(std::abs(std::real(poles[k]))-wavgp)*std::real(resp[k]);
-    }
-    wspreadq=std::sqrt(wspreadq);
-    wspreadq=std::sqrt(wspreadq);    
+    spectral_analysis(abc, repole, impole, qres, pres, wavgq, wspreadq, wimgq, wavgp, wspreadp, wimgp);
+    
 }
 /*
 //dirty, dirty way of making a recursive integration function...
