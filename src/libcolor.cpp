@@ -405,12 +405,12 @@ void spectral_analysis(GLEABC& abc, double& repole, double& impole, double& qres
     std::valarray<std::complex<double> > poles(n); poles=eva*std::complex<double>(0,1);
 
     // get residues
-    mult(evec1,xC,xvecC); // U-1 . C ... hoping evec1 is the inverse of evec    
-    double tres=0.0; 
-    for (int k=0; k<(n);++k){
+    mult(evec1,xC,xvecC); // U-1 . C ... hoping evec1 is the inverse of evec        
+    for (int k=0; k<(n);++k) {
         resq[k]=(evec(0, k)*xvecC(k, 0)/xC(0, 0));
         resp[k]=(evec(1, k)*xvecC(k, 1)/xC(1, 1));
-        tres += std::real(resq[k]) + std::real(resp[k]);
+        std::cerr<< k <<" " << std::real(poles[k])<< " "<<std::imag(poles[k])<<" "<<
+         std::real(resq[k])<<" "<< std::real(resp[k])<<"\n";
     }
 
     // now here we are calculating a bunch of stuff. real and imaginary averages of the poles, their spread, as well as the
@@ -423,7 +423,7 @@ void spectral_analysis(GLEABC& abc, double& repole, double& impole, double& qres
        wimgq += std::abs(std::imag(poles[k]))*std::real(resq[k]);
        wimgp += std::abs(std::imag(poles[k]))*std::real(resp[k]);       
        // the eig 
-       kw  = (std::real(resq[k])*std::real(resp[k]));
+       kw  = std::real(resq[k]); // selects based only on q to avoid ambiguity
        if (kw > mxw){
           mxw = kw;
           repole = std::abs(std::real(poles[k]));
