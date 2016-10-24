@@ -404,7 +404,7 @@ void spectral_analysis(GLEABC& abc, double& repole, double& impole, double& qres
     //get poles
     std::valarray<std::complex<double> > poles(n); poles=eva*std::complex<double>(0,1);
 
-    // get residues
+    // get residues or weights
     mult(evec1,xC,xvecC); // U-1 . C ... hoping evec1 is the inverse of evec        
     for (int k=0; k<(n);++k) {
         resq[k]=(evec(0, k)*xvecC(k, 0)/xC(0, 0));
@@ -493,7 +493,7 @@ void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double
     double w2=w*w, wrp2=wrp*wrp, dw; 
 
     // build a model of two coupled oscillators of frequencies w and wrp, coupled by a constant dw
-    dw=alpha*w*wrp;
+    dw=alpha*w*wrp/(1+(std::abs(w-wrp)/w));
     
     toolbox::FMatrix<double> xA(n+3,n+3), xBBT(n+3,n+3), xC;
     xA*=0.; xBBT=xA;
