@@ -392,7 +392,7 @@ void verlet_check(const DMatrix& A, const DMatrix& C, double w, double dt, doubl
     q2=R3(0,0).real()*w*w; p2=R3(1,1).real(); pq=R3(0,1).real();
 }
 
-void spectral_analysis(GLEABC& abc, double& repole, double& impole, double& qres, double& pres, double& wavgq, double& wspreadq, double &wimgq, double& wavgp, double& wspreadp, double &wimgp)
+void spectral_analysis(GLEABC& abc, double& repole, double& impole, double& qres, double& pres, double& wavgq, double& wspreadq, double& wkurtq, double &wimgq, double& wavgp, double& wspreadp, double& wkurtp, double &wimgp)
 {
     toolbox::FMatrix<double> xA, xC;
     abc.get_A(xA); abc.get_C(xC);
@@ -404,7 +404,7 @@ void spectral_analysis(GLEABC& abc, double& repole, double& impole, double& qres
     //get poles
     std::valarray<std::complex<double> > poles(n); poles=eva*std::complex<double>(0,1);
 
-    // get residues
+    // get residues or weights
     mult(evec1,xC,xvecC); // U-1 . C ... hoping evec1 is the inverse of evec        
     for (int k=0; k<(n);++k) {
         resq[k]=(evec(0, k)*xvecC(k, 0)/xC(0, 0));
@@ -415,8 +415,8 @@ void spectral_analysis(GLEABC& abc, double& repole, double& impole, double& qres
 
     // now here we are calculating a bunch of stuff. real and imaginary averages of the poles, their spread, as well as the
     // pole which has the highest weight and picking it for further characterization. 
-    double mxw=0, kw;    
-    wavgq=wavgp=wspreadq=wspreadp=wimgq=wimgp=0;
+    double mxw=0, kw, diffq, diffp;    
+    wavgq=wavgp=wspreadq=wspreadp=wimgq=wimgp=wkurtq=wkurtp=0;
     for (int k=0; k<(n);++k){
        wavgq += std::abs(std::real(poles[k]))*std::real(resq[k]);
        wavgp += std::abs(std::real(poles[k]))*std::real(resp[k]);
@@ -433,14 +433,20 @@ void spectral_analysis(GLEABC& abc, double& repole, double& impole, double& qres
         }
     }
     for (int k=0; k<(n);++k){
-        wspreadq += (std::abs(std::real(poles[k]))-wavgq)*(std::abs(std::real(poles[k]))-wavgq)*std::real(resq[k]);
-        wspreadp += (std::abs(std::real(poles[k]))-wavgp)*(std::abs(std::real(poles[k]))-wavgp)*std::real(resp[k]);
+        diffq=(std::abs(std::real(poles[k]))-wavgq);
+        diffp=(std::abs(std::real(poles[k]))-wavgp);
+        wspreadq += diffq*diffq*std::real(resq[k]);
+        wspreadp += diffp*diffp*std::real(resp[k]);
+        wkurtq += pow(diffq,4)*std::real(resq[k]);
+        wkurtp += pow(diffp,4)*std::real(resp[k]);
     }
+    wkurtq=wkurtq/pow(wspreadq, 2);
+    wkurtp=wkurtp/pow(wspreadp, 2);
     wspreadq=std::sqrt(wspreadq);
     wspreadq=std::sqrt(wspreadq);    
 }
 
-void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& lambdafp, double& repole, double& impole, double& qres, double& pres, double& wavgq, double& wimgq, double& wspreadq, double& wavgp, double &wimgp, double& wspreadp)
+void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& lambdafp, double& repole, double& impole, double& qres, double& pres, double& wavgq, double& wimgq, double& wspreadq, double& wkurtq, double& wavgp, double &wimgp, double& wspreadp, double& wkurtp)
 {
     unsigned long n=A.rows();
     double w2=w*w, w4=w2*w2; 
@@ -484,16 +490,16 @@ void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, dou
     tq2=qqqq/qqqq0;
     
     //get power spectrum peak widths
-    spectral_analysis(abc, repole, impole, qres, pres, wavgq, wspreadq, wimgq, wavgp, wspreadp, wimgp);
+    spectral_analysis(abc, repole, impole, qres, pres, wavgq, wspreadq, wkurtq, wimgq, wavgp, wspreadp, wkurtp, wimgp);
 }
 
-void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& repole, double& impole, double& qres, double& pres, double& wavgq, double &wimgq, double& wspreadq, double& wavgp, double& wimgp, double& wspreadp)
+void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& repole, double& impole, double& qres, double& pres, double& wavgq, double &wimgq, double& wspreadq, double& wkurtq, double& wavgp, double& wimgp, double& wspreadp, double& wkurtp)
 {
     unsigned long n=A.rows();
     double w2=w*w, wrp2=wrp*wrp, dw; 
 
     // build a model of two coupled oscillators of frequencies w and wrp, coupled by a constant dw
-    dw=alpha*w*wrp;
+    dw=alpha*w*wrp/(1+(std::abs(w-wrp)/w));
     
     toolbox::FMatrix<double> xA(n+3,n+3), xBBT(n+3,n+3), xC;
     xA*=0.; xBBT=xA;
@@ -503,7 +509,7 @@ void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double
     GLEABC abc; abc.set_A(xA); abc.set_BBT(xBBT);
     abc.get_C(xC);
 
-    spectral_analysis(abc, repole, impole, qres, pres, wavgq, wspreadq, wimgq, wavgp, wspreadp, wimgp);
+    spectral_analysis(abc, repole, impole, qres, pres, wavgq, wspreadq, wkurtq, wimgq, wavgp, wspreadp, wkurtp, wimgp);
     
 }
 /*
