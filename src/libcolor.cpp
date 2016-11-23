@@ -567,6 +567,41 @@ void harm_peak(const DMatrix& A, const DMatrix& BBT, double w, double d, double 
     pi=2./toolbox::constant::pi*(AW1(1,1)-AW2(1,1))/xC(1,1);
 }
 
+tblapack::complex ataninv(tblapack::complex x) { return atan(1./x); }
+
+//integrates the peak of the velocity-velocity correlation function from w*(1-d) to w*(1+d)
+void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double d, double &pmedian, double &pinterquartile)
+{
+    unsigned long n=A.rows();
+    
+    //prepares extended matrices
+    toolbox::FMatrix<double> xA(n+1,n+1), xBBT(n+1,n+1), xC;
+    xA*=0.; xBBT=xA;
+    for (int i=0; i<n;++i)for (int j=0; j<n;++j)
+    { xA(i+1,j+1)=A(i,j);  xBBT(i+1,j+1)=BBT(i,j); }
+    xA(0,1)=-1; xA(1,0)=w*w;   //sets the harmonic hamiltonian part
+    GLEABC abc; abc.set_A(xA); abc.set_BBT(xBBT);
+    
+    //std::cerr<<" ---  C in tauw "<<w<<" ----\n"<<xC<<" ---------- \n";
+    abc.get_C(xC);
+    
+    //find 1,2,3 quartiles
+    //the total integral under the peak is Pi/2
+    FMatrix<double> AWL(xA), atAWL;
+    
+    double L = w, cdfL=0;
+    // computes the integral of Cpp from 0 to L
+    while (cdfL<0.75)
+    {
+        L*=2;
+        AWL=xA; AWL*=L;        
+        MatrixFunction(AWL,&ataninv,atAWL);
+        mult(atAWL,xC,AWL); 
+        cdfL = 2/toolbox::constant::pi*AWL(1,1)/xC(1,1); // gets pp term of the integral
+        std::cerr<<"CDF "<<L<<" "<<cdfL<<std::endl;    
+    }
+}
+
 void harm_spectrum(const DMatrix& A, const DMatrix& BBT, double w, const std::valarray<double>& wl, std::valarray<double>& cqq, std::valarray<double>& cpp )
 {
     unsigned long n=A.rows();
