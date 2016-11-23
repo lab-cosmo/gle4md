@@ -576,6 +576,26 @@ void harm_peak(const DMatrix& A, const DMatrix& BBT, double w, double d, double 
 
 tblapack::complex ataninv(tblapack::complex x) { return atan(1./x); }
 
+double harm_cdf(FMatrix<double>& xA, FMatrix<double>& xC, double L)
+{
+    FMatrix<double> AWL(xA), atAWL;
+    AWL*=(1./L);
+    MatrixFunction(AWL,&ataninv,atAWL);
+    mult(atAWL,xC,AWL); 
+    return 2/toolbox::constant::pi*AWL(1,1)/xC(1,1); // gets pp term of the integral
+}
+
+#define BISEC_ACCURACY 1e-6
+void spectral_bisection(FMatrix<double>& xA, FMatrix<double>& xC, double target, double low, double flow, double high, double fhigh, double &ret)
+{
+    double mid=0.5*(low+high), fmid=harm_cdf(xA, xC, mid);
+    std::cerr << mid <<" "<< fmid<<"bisec\n";
+    if (fabs(fmid-target)<BISEC_ACCURACY) { ret=mid;  return; }
+    if (fmid>target) spectral_bisection(xA, xC, target, low, flow, mid, fmid, ret);
+    else spectral_bisection(xA, xC, target, mid, fmid, high, fhigh, ret);
+}
+
+
 //integrates the peak of the velocity-velocity correlation function from w*(1-d) to w*(1+d)
 void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double &pmedian, double &pinterquartile)
 {
@@ -594,20 +614,38 @@ void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double &pmedian,
     
     //find 1,2,3 quartiles
     //the total integral under the peak is Pi/2
-    FMatrix<double> AWL(xA), atAWL;
     
-    double L = w, cdfL=0;
+    
+    double Lhigh = w, cdfhigh=harm_cdf(xA, xC, Lhigh);
+    double Llow=w, cdflow=cdfhigh;
+    double Lmid=w, cdfmid=cdfhigh;
     // computes the integral of Cpp from 0 to L
-    while (cdfL<0.75)
+    while (cdfhigh<0.75)
     {
-        L*=2;
-        AWL=xA; AWL*=(1./L);        
-        MatrixFunction(AWL,&ataninv,atAWL);
-        mult(atAWL,xC,AWL); 
-        cdfL = 2/toolbox::constant::pi*AWL(1,1)/xC(1,1); // gets pp term of the integral
-        std::cerr<<"CDF "<<L<<" "<<cdfL<<std::endl;    
+        Lhigh*=2;
+        cdfhigh= harm_cdf(xA, xC, Lhigh);
+        std::cerr<<"hCDF "<<Lhigh<<" "<<cdfhigh<<std::endl;
     }
+    while (cdflow>0.25) 
+    {
+        Llow/=2;
+        cdflow=harm_cdf(xA, xC, Llow);  
+    }
+    std::cerr<<"CDFl "<<Llow<<" "<<cdflow<<std::endl;
+    std::cerr<<"CDFh "<<Lhigh<<" "<<cdfhigh<<std::endl;
+    // then call bissection to 0.5 with these limits
+    // bissection to 0.25 with low and 0.5 limit
+    // bissection to 0.75 with 0.5 limit and high
+    // temporary bissection technique here for 0.5
+    double LD50, LD25, LD75;
+    spectral_bisection(xA, xC, 0.5, Llow, cdflow, Lhigh, cdfhigh, LD50);
+    spectral_bisection(xA, xC, 0.75, LD50, 0.5, Lhigh, cdfhigh, LD75);
+    spectral_bisection(xA, xC, 0.25, Llow, cdflow, LD50, 0.5, LD25);
+    
+    std::cerr<<"LDs "<< LD25<<" "<< LD50 <<" "<< LD75 << std::endl;
 }
+
+
 
 void harm_spectrum(const DMatrix& A, const DMatrix& BBT, double w, const std::valarray<double>& wl, std::valarray<double>& cqq, std::valarray<double>& cpp )
 {
