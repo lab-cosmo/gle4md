@@ -576,7 +576,7 @@ void harm_peak(const DMatrix& A, const DMatrix& BBT, double w, double d, double 
 tblapack::complex ataninv(tblapack::complex x) { return atan(1./x); }
 
 //integrates the peak of the velocity-velocity correlation function from w*(1-d) to w*(1+d)
-void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double d, double &pmedian, double &pinterquartile)
+void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double &pmedian, double &pinterquartile)
 {
     unsigned long n=A.rows();
     
@@ -601,7 +601,7 @@ void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double d, double
     {
         L*=2;
         AWL=xA; AWL*=L;        
-        MatrixFunction(AWL,&ataninv,atAWL);
+        MatrixFunction(AWL,&atan,atAWL);
         mult(atAWL,xC,AWL); 
         cdfL = 2/toolbox::constant::pi*AWL(1,1)/xC(1,1); // gets pp term of the integral
         std::cerr<<"CDF "<<L<<" "<<cdfL<<std::endl;    

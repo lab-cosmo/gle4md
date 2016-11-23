@@ -209,7 +209,8 @@ int main(int argc, char **argv)
         for (unsigned long ip=0; ip<np; ip++)
         {
             abc.get_KH(w[ip], kw[ip], hw[ip]);
-            
+            double med, iquart;
+            harm_shape(iA,iBBT,w[ip],med, iquart);
             harm_check(iA,iBBT,w[ip],tq2[ip],tp2[ip],th[ip],q2[ip],p2[ip],pq[ip],lfp[ip], rew[ip], imw[ip], qw[ip], pw[ip], wavq[ip], wimq[ip], wspq[ip], wkurtq[ip], wavp[ip], wimp[ip], wspp[ip], wkurtp[ip]);//dwq[ip],dwp[ip], lfp[ip]);
             std::cerr<<"HC "<<rew[ip] <<"  "<< imw[ip] <<"  "<< qw[ip] <<"  "<< pw[ip] <<"  "<< wavq[ip] <<"  "<< wimq[ip] <<"  "<< wspq[ip] <<" "<< wkurtq[ip] <<" "<< wavp[ip] <<"  "<< wimp[ip] <<" "<< wspp[ip] <<" "<< wkurtp[ip];
             if (dpeak>0.) harm_peak(iA,iBBT,w[ip],dpeak,hdist[ip]);
