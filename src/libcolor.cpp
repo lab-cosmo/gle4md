@@ -409,7 +409,7 @@ void spectral_analysis(GLEABC& abc, double& repole, double& impole, double& qres
     for (int k=0; k<(n);++k) {
         resq[k]=(evec(0, k)*xvecC(k, 0)/xC(0, 0));
         resp[k]=(evec(1, k)*xvecC(k, 1)/xC(1, 1));
-        std::cerr<< k <<" " << std::real(poles[k])<< " "<<std::imag(poles[k])<<" "<<
+        std::cerr<< "SPEC " << k <<" " << std::real(poles[k])<< " "<<std::imag(poles[k])<<" "<<
          std::real(resq[k])<<" "<< std::real(resp[k])<<"\n";
     }
 
@@ -432,6 +432,7 @@ void spectral_analysis(GLEABC& abc, double& repole, double& impole, double& qres
           pres = 2.0*std::real(resp[k]);          
         }
     }
+
     for (int k=0; k<(n);++k){
         diffq=(std::abs(std::real(poles[k]))-wavgq);
         diffp=(std::abs(std::real(poles[k]))-wavgp);
