@@ -601,8 +601,8 @@ void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double &pmedian,
     while (cdfL<0.75)
     {
         L*=2;
-        AWL=xA; AWL*=L;        
-        MatrixFunction(AWL,&atan,atAWL);
+        AWL=xA; AWL*=(1./L);        
+        MatrixFunction(AWL,&ataninv,atAWL);
         mult(atAWL,xC,AWL); 
         cdfL = 2/toolbox::constant::pi*AWL(1,1)/xC(1,1); // gets pp term of the integral
         std::cerr<<"CDF "<<L<<" "<<cdfL<<std::endl;    
