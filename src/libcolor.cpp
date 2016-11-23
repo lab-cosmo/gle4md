@@ -595,6 +595,9 @@ void spectral_bisection(FMatrix<double>& xA, FMatrix<double>& xC, double target,
     else spectral_bisection(xA, xC, target, mid, fmid, high, fhigh, ret);
 }
 
+double lormodel(double& a, double& b, double& w){
+    return (2*a*(a*a + b*b + w*w)/(toolbox::constant::pi*(a*a + b*b)*(a*a + b*b) + 2*(a - b)*(a + b)*w*w + w*w*w*w));
+}
 
 //integrates the peak of the velocity-velocity correlation function from w*(1-d) to w*(1+d)
 void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double &pmedian, double &pinterquartile)
@@ -633,18 +636,23 @@ void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double &pmedian,
     }
     std::cerr<<"CDFl "<<Llow<<" "<<cdflow<<std::endl;
     std::cerr<<"CDFh "<<Lhigh<<" "<<cdfhigh<<std::endl;
-    // then call bissection to 0.5 with these limits
-    // bissection to 0.25 with low and 0.5 limit
-    // bissection to 0.75 with 0.5 limit and high
-    // temporary bissection technique here for 0.5
     double LD50, LD25, LD75;
     spectral_bisection(xA, xC, 0.5, Llow, cdflow, Lhigh, cdfhigh, LD50);
     spectral_bisection(xA, xC, 0.75, LD50, 0.5, Lhigh, cdfhigh, LD75);
     spectral_bisection(xA, xC, 0.25, Llow, cdflow, LD50, 0.5, LD25);
     
     std::cerr<<"LDs "<< LD25<<" "<< LD50 <<" "<< LD75 << std::endl;
-}
 
+    // Here define a fake Lorentzian with these parameters
+    double alor, blor, lmodel; 
+    alor=(LD75-LD25)*0.5;
+    blor=std::sqrt(LD50*LD50-alor*alor);
+    lmodel=lormodel(alor, blor, w);
+
+
+    // Now here compute difference between 
+
+}
 
 
 void harm_spectrum(const DMatrix& A, const DMatrix& BBT, double w, const std::valarray<double>& wl, std::valarray<double>& cqq, std::valarray<double>& cpp )
