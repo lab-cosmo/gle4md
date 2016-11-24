@@ -597,7 +597,7 @@ void spectral_bisection(FMatrix<double>& xA, FMatrix<double>& xC, double target,
 }
 
 double lormodel(double& a, double& b, double& w){
-    return (2*a*(a*a + b*b + w*w)/(toolbox::constant::pi*(a*a + b*b)*(a*a + b*b) + 2*(a - b)*(a + b)*w*w + w*w*w*w));
+    return 2*a*(a*a + b*b + w*w)/(toolbox::constant::pi*((a*a + b*b)*(a*a + b*b) + 2*(a - b)*(a + b)*w*w + w*w*w*w));
 }
 
 double ppspectrum(FMatrix<double>& xA, FMatrix<double>& xC, double& w){
@@ -613,7 +613,7 @@ double ppspectrum(FMatrix<double>& xA, FMatrix<double>& xC, double& w){
 
 
 double l2norm(double& a, double& b){
-    return a; //(a-b)*(a-b);
+    return (a-b)*(a-b);
 }
 
 double adaptiveintegration(FMatrix<double>& xA, FMatrix<double>& xC, double& alor, double& blor, double a, double b, double epsilon, int bottom) {                 
@@ -695,7 +695,7 @@ void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double &pmedian,
     std::cerr<<"LDs "<< LD25<<" "<< LD50 <<" "<< LD75 << std::endl;
 
     // integrate square distance between both from 0 to wf with an adaptive grid...
-    double wi=0, wf=LD50+6*(LD75-LD25);
+    double wi=0, wf=LD50+100*(LD75-LD25);
     double alor, blor, integral; 
 
 
