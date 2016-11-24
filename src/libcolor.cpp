@@ -600,20 +600,20 @@ double lormodel(double& a, double& b, double& w){
     return (2*a*(a*a + b*b + w*w)/(toolbox::constant::pi*(a*a + b*b)*(a*a + b*b) + 2*(a - b)*(a + b)*w*w + w*w*w*w));
 }
 
-double ppspectrum(FMatrix<double>& xA, FMatrix<double>& xC, double& w, unsigned long& n){
-    toolbox::FMatrix<double> xAC(n,n), xIn(n,n), xAux(n,n);
-    xAux=xA;
-    toolbox::mult(xA,xC, xAC);
-    for( int i = 0; i < n+1; ++i )
+double ppspectrum(FMatrix<double>& xA, FMatrix<double>& xC, double& w){
+    toolbox::FMatrix<double> xAC(xA), xIn(xA), xAux(xA);
+    toolbox::mult(xA, xA, xAux);    
+    for( int i = 0; i < xA.rows(); ++i )
     {    xAux(i,i)+=w*w;   }
     toolbox::MatrixInverse(xAux, xIn);
-    toolbox::mult(xAC, xIn, xAux);
-    return xAux(1,1)/xC(1,1); // pp part
+    toolbox::mult(xA, xC, xAC);
+    toolbox::mult(xIn, xAC, xAux);
+    return xAux(1,1)/xC(1,1)*2.0/toolbox::constant::pi; // pp part
 }
 
 
 double l2norm(double& a, double& b){
-    return (a-b)*(a-b);
+    return a; //(a-b)*(a-b);
 }
 
 double adaptiveSimpsonsAux(FMatrix<double>& xA, FMatrix<double>& xC, double& alor, double& blor, unsigned long& n, double a, double b, double epsilon,                 
@@ -623,17 +623,16 @@ double adaptiveSimpsonsAux(FMatrix<double>& xA, FMatrix<double>& xC, double& alo
     double fd, fe; 
     double spec, lmodel;
 
-    spec=ppspectrum(xA, xC, d, n);
+    spec=ppspectrum(xA, xC, d);
     lmodel=lormodel(alor, blor, d);
     fd=l2norm(spec, lmodel);
-    spec=ppspectrum(xA, xC, e, n);
+    spec=ppspectrum(xA, xC, e);
     lmodel=lormodel(alor, blor, e);
     fe=l2norm(spec, lmodel);                                                                
                                                                      
     double Sleft = (h/12)*(fa + 4*fd + fc);                                                           
     double Sright = (h/12)*(fc + 4*fe + fb);                                                          
-    double S2 = Sleft + Sright;
-    std::cerr<<"numbers "<< Sleft<<" "<< Sright << std::endl;                                                                       
+    double S2 = Sleft + Sright;                                                                     
     if (bottom <= 0 || std::fabs(S2 - S) <= 15*epsilon)   // magic 15 comes from error analysis                                       
       return S2 + (S2 - S)/15;                                                                        
     return adaptiveSimpsonsAux(xA, xC, alor, blor, n, a, c, epsilon/2, Sleft,  fa, fc, fd, bottom-1) +                    
@@ -648,14 +647,14 @@ double adaptiveintegration(FMatrix<double>& xA, FMatrix<double>& xC, double& alo
    double c = (wi + wf)*0.5, h = wf - wi;
    double fa, fb, fc;                                                                  
    double spec, lmodel;
-   spec=ppspectrum(xA, xC, wi, n);
+   spec=ppspectrum(xA, xC, wi);
    lmodel=lormodel(alor, blor, wi);
    fa=l2norm(spec, lmodel);
    std::cerr<<"spec and lmodel "<< spec<<" "<< lmodel << std::endl; 
-   spec=ppspectrum(xA, xC, wf, n);
+   spec=ppspectrum(xA, xC, wf);
    lmodel=lormodel(alor, blor, wf);
    fb=l2norm(spec, lmodel);
-   spec=ppspectrum(xA, xC, c, n);
+   spec=ppspectrum(xA, xC, c);
    lmodel=lormodel(alor, blor, c);
    fc=l2norm(spec, lmodel);                                                          
    double S = (h/6)*(fa + 4*fc + fb);                                                                
@@ -726,6 +725,7 @@ void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double &pmedian,
     integral=adaptiveintegration(xA, xC, alor, blor, n, wi, wf, 0.001, 200);
 
     std::cerr<<"LDs "<< LD25<<" "<< LD50 <<" "<< LD75 << std::endl;
+    std::cerr<<"sqdiff: "<<integral<<std::endl;
 
 
 }
