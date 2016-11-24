@@ -413,38 +413,39 @@ void spectral_analysis(GLEABC& abc, double& repole, double& impole, double& qres
          std::real(resq[k])<<" "<< std::real(resp[k])<<"\n";
     }
 
-    // now here we are calculating a bunch of stuff. real and imaginary averages of the poles, their spread, as well as the
-    // pole which has the highest weight and picking it for further characterization. 
-    double mxw=0, kw, diffq, diffp;    
-    wavgq=wavgp=wspreadq=wspreadp=wimgq=wimgp=wkurtq=wkurtp=0;
-    for (int k=0; k<(n);++k){
-       wavgq += std::abs(std::real(poles[k]))*std::real(resq[k]);
-       wavgp += std::abs(std::real(poles[k]))*std::real(resp[k]);
-       wimgq += std::abs(std::imag(poles[k]))*std::real(resq[k]);
-       wimgp += std::abs(std::imag(poles[k]))*std::real(resp[k]);       
-       // the eig 
-       kw  = std::real(resq[k]); // selects based only on q to avoid ambiguity
-       if (kw > mxw){
-          mxw = kw;
-          repole = std::abs(std::real(poles[k]));
-          impole = std::abs(std::imag(poles[k]));
-          qres = 2.0*std::real(resq[k]);
-          pres = 2.0*std::real(resp[k]);          
-        }
-    }
-
-    for (int k=0; k<(n);++k){
-        diffq=(std::abs(std::real(poles[k]))-wavgq);
-        diffp=(std::abs(std::real(poles[k]))-wavgp);
-        wspreadq += diffq*diffq*std::real(resq[k]);
-        wspreadp += diffp*diffp*std::real(resp[k]);
-        wkurtq += pow(diffq,4)*std::real(resq[k]);
-        wkurtp += pow(diffp,4)*std::real(resp[k]);
-    }
-    wkurtq=wkurtq/pow(wspreadq, 2);
-    wkurtp=wkurtp/pow(wspreadp, 2);
-    wspreadq=std::sqrt(wspreadq);
-    wspreadq=std::sqrt(wspreadq);    
+    // this is all obsolete now
+//    // now here we are calculating a bunch of stuff. real and imaginary averages of the poles, their spread, as well as the
+//    // pole which has the highest weight and picking it for further characterization. 
+//    double mxw=0, kw, diffq, diffp;    
+//    wavgq=wavgp=wspreadq=wspreadp=wimgq=wimgp=wkurtq=wkurtp=0;
+//    for (int k=0; k<(n);++k){
+//       wavgq += std::abs(std::real(poles[k]))*std::real(resq[k]);
+//       wavgp += std::abs(std::real(poles[k]))*std::real(resp[k]);
+//       wimgq += std::abs(std::imag(poles[k]))*std::real(resq[k]);
+//       wimgp += std::abs(std::imag(poles[k]))*std::real(resp[k]);       
+//       // the eig 
+//       kw  = std::real(resq[k]); // selects based only on q to avoid ambiguity
+//       if (kw > mxw){
+//          mxw = kw;
+//          repole = std::abs(std::real(poles[k]));
+//          impole = std::abs(std::imag(poles[k]));
+//          qres = 2.0*std::real(resq[k]);
+//          pres = 2.0*std::real(resp[k]);          
+//        }
+//    }
+//
+//    for (int k=0; k<(n);++k){
+//        diffq=(std::abs(std::real(poles[k]))-wavgq);
+//        diffp=(std::abs(std::real(poles[k]))-wavgp);
+//        wspreadq += diffq*diffq*std::real(resq[k]);
+//        wspreadp += diffp*diffp*std::real(resp[k]);
+//        wkurtq += pow(diffq,4)*std::real(resq[k]);
+//        wkurtp += pow(diffp,4)*std::real(resp[k]);
+//    }
+//    wkurtq=wkurtq/pow(wspreadq, 2);
+//    wkurtp=wkurtp/pow(wspreadp, 2);
+//    wspreadq=std::sqrt(wspreadq);
+//    wspreadq=std::sqrt(wspreadq);    
 }
 
 void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& lambdafp, double& repole, double& impole, double& qres, double& pres, double& wavgq, double& wimgq, double& wspreadq, double& wkurtq, double& wavgp, double &wimgp, double& wspreadp, double& wkurtp)
@@ -599,6 +600,71 @@ double lormodel(double& a, double& b, double& w){
     return (2*a*(a*a + b*b + w*w)/(toolbox::constant::pi*(a*a + b*b)*(a*a + b*b) + 2*(a - b)*(a + b)*w*w + w*w*w*w));
 }
 
+double ppspectrum(FMatrix<double>& xA, FMatrix<double>& xC, double& w, unsigned long& n){
+    toolbox::FMatrix<double> xAC(n,n), xIn(n,n), xAux(n,n);
+    xAux=xA;
+    toolbox::mult(xA,xC, xAC);
+    for( int i = 0; i < n+1; ++i )
+    {    xAux(i,i)+=w*w;   }
+    toolbox::MatrixInverse(xAux, xIn);
+    toolbox::mult(xAC, xIn, xAux);
+    return xAux(1,1)/xC(1,1); // pp part
+}
+
+
+double l2norm(double& a, double& b){
+    return (a-b)*(a-b);
+}
+
+double adaptiveSimpsonsAux(FMatrix<double>& xA, FMatrix<double>& xC, double& alor, double& blor, unsigned long& n, double a, double b, double epsilon,                 
+                         double S, double fa, double fb, double fc, int bottom) {                 
+    double c = (a + b)/2, h = b - a;                                                                  
+    double d = (a + c)/2, e = (c + b)/2;
+    double fd, fe; 
+    double spec, lmodel;
+
+    spec=ppspectrum(xA, xC, d, n);
+    lmodel=lormodel(alor, blor, d);
+    fd=l2norm(spec, lmodel);
+    spec=ppspectrum(xA, xC, e, n);
+    lmodel=lormodel(alor, blor, e);
+    fe=l2norm(spec, lmodel);                                                                
+                                                                     
+    double Sleft = (h/12)*(fa + 4*fd + fc);                                                           
+    double Sright = (h/12)*(fc + 4*fe + fb);                                                          
+    double S2 = Sleft + Sright;
+    std::cerr<<"numbers "<< Sleft<<" "<< Sright << std::endl;                                                                       
+    if (bottom <= 0 || std::fabs(S2 - S) <= 15*epsilon)   // magic 15 comes from error analysis                                       
+      return S2 + (S2 - S)/15;                                                                        
+    return adaptiveSimpsonsAux(xA, xC, alor, blor, n, a, c, epsilon/2, Sleft,  fa, fc, fd, bottom-1) +                    
+           adaptiveSimpsonsAux(xA, xC, alor, blor, n, c, b, epsilon/2, Sright, fc, fb, fe, bottom-1);                     
+}
+
+
+double adaptiveintegration(FMatrix<double>& xA, FMatrix<double>& xC, double& alor, double& blor, unsigned long& n,   // ptr to function
+                           double wi, double wf,  // interval [a,b]
+                           double epsilon,  // error tolerance
+                           int maxRecursionDepth) {   // recursion cap        
+   double c = (wi + wf)*0.5, h = wf - wi;
+   double fa, fb, fc;                                                                  
+   double spec, lmodel;
+   spec=ppspectrum(xA, xC, wi, n);
+   lmodel=lormodel(alor, blor, wi);
+   fa=l2norm(spec, lmodel);
+   std::cerr<<"spec and lmodel "<< spec<<" "<< lmodel << std::endl; 
+   spec=ppspectrum(xA, xC, wf, n);
+   lmodel=lormodel(alor, blor, wf);
+   fb=l2norm(spec, lmodel);
+   spec=ppspectrum(xA, xC, c, n);
+   lmodel=lormodel(alor, blor, c);
+   fc=l2norm(spec, lmodel);                                                          
+   double S = (h/6)*(fa + 4*fc + fb);                                                                
+   return adaptiveSimpsonsAux(xA, xC, alor, blor, n, wi, wf, epsilon, S, fa, fb, fc, maxRecursionDepth);                   
+} 
+
+
+
+
 //integrates the peak of the velocity-velocity correlation function from w*(1-d) to w*(1+d)
 void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double &pmedian, double &pinterquartile)
 {
@@ -643,14 +709,24 @@ void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double &pmedian,
     
     std::cerr<<"LDs "<< LD25<<" "<< LD50 <<" "<< LD75 << std::endl;
 
+    // integrate square distance between both from 0 to wf with an adaptive grid...
+    double wi=0, wf=LD50+6*(LD75-LD25);
+    double alor, blor, integral; 
+
+
     // Here define a fake Lorentzian with these parameters
-    double alor, blor, lmodel; 
     alor=(LD75-LD25)*0.5;
-    blor=std::sqrt(LD50*LD50-alor*alor);
-    lmodel=lormodel(alor, blor, w);
+    blor=LD50*LD50-alor*alor;
+    if (blor>0.0) { blor=std::sqrt(blor);}
+    else{ blor=0.0; }
 
+    std::cerr<<"A and B lorentizan "<< alor <<" "<< blor <<" \n";
+ 
+    n=n+1;
+    integral=adaptiveintegration(xA, xC, alor, blor, n, wi, wf, 0.001, 200);
 
-    // Now here compute difference between 
+    std::cerr<<"LDs "<< LD25<<" "<< LD50 <<" "<< LD75 << std::endl;
+
 
 }
 
