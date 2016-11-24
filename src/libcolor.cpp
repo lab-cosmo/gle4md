@@ -616,51 +616,37 @@ double l2norm(double& a, double& b){
     return a; //(a-b)*(a-b);
 }
 
-double adaptiveSimpsonsAux(FMatrix<double>& xA, FMatrix<double>& xC, double& alor, double& blor, unsigned long& n, double a, double b, double epsilon,                 
-                         double S, double fa, double fb, double fc, int bottom) {                 
+double adaptiveintegration(FMatrix<double>& xA, FMatrix<double>& xC, double& alor, double& blor, double a, double b, double epsilon, int bottom) {                 
     double c = (a + b)/2, h = b - a;                                                                  
     double d = (a + c)/2, e = (c + b)/2;
-    double fd, fe; 
+    double fa, fb, fc, fd, fe; 
     double spec, lmodel;
 
+    spec=ppspectrum(xA, xC, a);
+    lmodel=lormodel(alor, blor, a);
+    fa=l2norm(spec, lmodel);
+    spec=ppspectrum(xA, xC, b);
+    lmodel=lormodel(alor, blor, b);
+    fb=l2norm(spec, lmodel);
+    spec=ppspectrum(xA, xC, c);
+    lmodel=lormodel(alor, blor, c);
+    fc=l2norm(spec, lmodel);
     spec=ppspectrum(xA, xC, d);
     lmodel=lormodel(alor, blor, d);
     fd=l2norm(spec, lmodel);
     spec=ppspectrum(xA, xC, e);
     lmodel=lormodel(alor, blor, e);
     fe=l2norm(spec, lmodel);                                                                
-                                                                     
-    double Sleft = (h/12)*(fa + 4*fd + fc);                                                           
-    double Sright = (h/12)*(fc + 4*fe + fb);                                                          
-    double S2 = Sleft + Sright;                                                                     
-    if (bottom <= 0 || std::fabs(S2 - S) <= 15*epsilon)   // magic 15 comes from error analysis                                       
-      return S2 + (S2 - S)/15;                                                                        
-    return adaptiveSimpsonsAux(xA, xC, alor, blor, n, a, c, epsilon/2, Sleft,  fa, fc, fd, bottom-1) +                    
-           adaptiveSimpsonsAux(xA, xC, alor, blor, n, c, b, epsilon/2, Sright, fc, fb, fe, bottom-1);                     
+ 
+    double Q1 = h/6  * (fa + 4*fc + fb);
+    double Q2 = h/12 * (fa + 4*fd + 2*fc + 4*fe + fb);
+                                                                    
+    if (bottom <= 0 || std::fabs(Q2- Q1) <= epsilon)                                         
+      return Q2 + (Q2 - Q1)/15;            
+    else                                                                    
+    return adaptiveintegration(xA, xC, alor, blor, a, c, epsilon/2, bottom-1) +                    
+           adaptiveintegration(xA, xC, alor, blor, c, b, epsilon/2, bottom-1);                     
 }
-
-
-double adaptiveintegration(FMatrix<double>& xA, FMatrix<double>& xC, double& alor, double& blor, unsigned long& n,   // ptr to function
-                           double wi, double wf,  // interval [a,b]
-                           double epsilon,  // error tolerance
-                           int maxRecursionDepth) {   // recursion cap        
-   double c = (wi + wf)*0.5, h = wf - wi;
-   double fa, fb, fc;                                                                  
-   double spec, lmodel;
-   spec=ppspectrum(xA, xC, wi);
-   lmodel=lormodel(alor, blor, wi);
-   fa=l2norm(spec, lmodel);
-   std::cerr<<"spec and lmodel "<< spec<<" "<< lmodel << std::endl; 
-   spec=ppspectrum(xA, xC, wf);
-   lmodel=lormodel(alor, blor, wf);
-   fb=l2norm(spec, lmodel);
-   spec=ppspectrum(xA, xC, c);
-   lmodel=lormodel(alor, blor, c);
-   fc=l2norm(spec, lmodel);                                                          
-   double S = (h/6)*(fa + 4*fc + fb);                                                                
-   return adaptiveSimpsonsAux(xA, xC, alor, blor, n, wi, wf, epsilon, S, fa, fb, fc, maxRecursionDepth);                   
-} 
-
 
 
 
@@ -721,8 +707,7 @@ void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double &pmedian,
 
     std::cerr<<"A and B lorentizan "<< alor <<" "<< blor <<" \n";
  
-    n=n+1;
-    integral=adaptiveintegration(xA, xC, alor, blor, n, wi, wf, 0.001, 200);
+    integral=adaptiveintegration(xA, xC, alor, blor, wi, wf, 0.0001, 500);
 
     std::cerr<<"LDs "<< LD25<<" "<< LD50 <<" "<< LD75 << std::endl;
     std::cerr<<"sqdiff: "<<integral<<std::endl;
