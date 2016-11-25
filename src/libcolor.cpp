@@ -392,7 +392,7 @@ void verlet_check(const DMatrix& A, const DMatrix& C, double w, double dt, doubl
     q2=R3(0,0).real()*w*w; p2=R3(1,1).real(); pq=R3(0,1).real();
 }
 
-void spectral_analysis(GLEABC& abc, double& repole, double& impole, double& qres, double& pres, double& wavgq, double& wspreadq, double& wkurtq, double &wimgq, double& wavgp, double& wspreadp, double& wkurtp, double &wimgp)
+void spectral_analysis(GLEABC& abc, double& repole, double& impole, double& qres, double& pres)
 {
     toolbox::FMatrix<double> xA, xC;
     abc.get_A(xA); abc.get_C(xC);
@@ -409,30 +409,30 @@ void spectral_analysis(GLEABC& abc, double& repole, double& impole, double& qres
     for (int k=0; k<(n);++k) {
         resq[k]=(evec(0, k)*xvecC(k, 0)/xC(0, 0));
         resp[k]=(evec(1, k)*xvecC(k, 1)/xC(1, 1));
-        std::cerr<< "SPEC " << k <<" " << std::real(poles[k])<< " "<<std::imag(poles[k])<<" "<<
-         std::real(resq[k])<<" "<< std::real(resp[k])<<"\n";
+        // std::cerr<< "SPEC " << k <<" " << std::real(poles[k])<< " "<<std::imag(poles[k])<<" "<<
+        // std::real(resq[k])<<" "<< std::real(resp[k])<<"\n";
     }
 
     // this is all obsolete now
-//    // now here we are calculating a bunch of stuff. real and imaginary averages of the poles, their spread, as well as the
-//    // pole which has the highest weight and picking it for further characterization. 
-//    double mxw=0, kw, diffq, diffp;    
-//    wavgq=wavgp=wspreadq=wspreadp=wimgq=wimgp=wkurtq=wkurtp=0;
-//    for (int k=0; k<(n);++k){
-//       wavgq += std::abs(std::real(poles[k]))*std::real(resq[k]);
-//       wavgp += std::abs(std::real(poles[k]))*std::real(resp[k]);
-//       wimgq += std::abs(std::imag(poles[k]))*std::real(resq[k]);
-//       wimgp += std::abs(std::imag(poles[k]))*std::real(resp[k]);       
-//       // the eig 
-//       kw  = std::real(resq[k]); // selects based only on q to avoid ambiguity
-//       if (kw > mxw){
-//          mxw = kw;
-//          repole = std::abs(std::real(poles[k]));
-//          impole = std::abs(std::imag(poles[k]));
-//          qres = 2.0*std::real(resq[k]);
-//          pres = 2.0*std::real(resp[k]);          
-//        }
-//    }
+    // now here we are calculating a bunch of stuff. real and imaginary averages of the poles, their spread, as well as the
+    // pole which has the highest weight and picking it for further characterization. 
+    double mxw=0, kw, diffq, diffp;    
+    // wavgq=wavgp=wspreadq=wspreadp=wimgq=wimgp=wkurtq=wkurtp=0;
+    for (int k=0; k<(n);++k){
+       //wavgq += std::abs(std::real(poles[k]))*std::real(resq[k]);
+       //wavgp += std::abs(std::real(poles[k]))*std::real(resp[k]);
+       //wimgq += std::abs(std::imag(poles[k]))*std::real(resq[k]);
+       //wimgp += std::abs(std::imag(poles[k]))*std::real(resp[k]);       
+       // the eig 
+       kw  = std::real(resq[k]); // selects based only on q to avoid ambiguity
+       if (kw > mxw){
+          mxw = kw;
+          repole = std::abs(std::real(poles[k]));
+          impole = std::abs(std::imag(poles[k]));
+          qres = 2.0*std::real(resq[k]);
+          pres = 2.0*std::real(resp[k]);          
+        }
+    }
 //
 //    for (int k=0; k<(n);++k){
 //        diffq=(std::abs(std::real(poles[k]))-wavgq);
@@ -448,131 +448,12 @@ void spectral_analysis(GLEABC& abc, double& repole, double& impole, double& qres
 //    wspreadq=std::sqrt(wspreadq);    
 }
 
-void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& lambdafp, double& repole, double& impole, double& qres, double& pres, double& wavgq, double& wimgq, double& wspreadq, double& wkurtq, double& wavgp, double &wimgp, double& wspreadp, double& wkurtp)
-{
-    unsigned long n=A.rows();
-    double w2=w*w, w4=w2*w2; 
-    
-    //prepares extended matrices
-    toolbox::FMatrix<double> xA(n+1,n+1), xBBT(n+1,n+1), xC;
-    xA*=0.; xBBT=xA;
-    for (int i=0; i<n;++i)for (int j=0; j<n;++j)
-    { xA(i+1,j+1)=A(i,j);  xBBT(i+1,j+1)=BBT(i,j); }
-    xA(0,1)=-1; xA(1,0)=w2;   //sets the harmonic hamiltonian part
-    GLEABC abc; abc.set_A(xA); abc.set_BBT(xBBT);
-    
-    std::valarray<std::complex<double> >eva; abc.get_evA(eva);
-    lambdafp=eva[0].real(); 
-    for (int i=0; i<n+1; i++) lambdafp=(eva[i].real()<lambdafp?eva[i].real():lambdafp);
-    
-//    std::cerr<<" ---  C in tauw "<<w<<" ----\n"<<xC<<" ---------- \n";
-    abc.get_C(xC);
-    double c00=xC(0,0), c01=xC(0,1), c11=xC(1,1); 
-    
-    q2=c00*w2;
-    p2=c11;
-    pq=c01*w;
-
-    double t00, t01, t11;
-    abc.get_tau2(0,0,0,0,t00); abc.get_tau2(0,0,1,1,t01); abc.get_tau2(1,1,1,1,t11);
-
-    double qqqq=t00*w4;
-    double qqpp=t01*w2;
-    double ppqq=qqpp; //come on, the simmetry is evident. let's save time!
-    double pppp=t11;
-
-//    std::cerr<<"NEW: "<<qqqq<<","<<qqpp<<","<<ppqq<<","<<pppp<<"\n";
-    double qqqq0=q2*q2;
-    double qqpp0=pq*pq;
-    double ppqq0=qqpp0;
-    double pppp0=p2*p2;
-
-    th=(pppp+qqqq+ppqq+qqpp)/(pppp0+qqqq0+ppqq0+qqpp0);
-    tp2=pppp/pppp0;
-    tq2=qqqq/qqqq0;
-    
-    //get power spectrum peak widths
-    spectral_analysis(abc, repole, impole, qres, pres, wavgq, wspreadq, wkurtq, wimgq, wavgp, wspreadp, wkurtp, wimgp);
-}
-
-void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& repole, double& impole, double& qres, double& pres, double& wavgq, double &wimgq, double& wspreadq, double& wkurtq, double& wavgp, double& wimgp, double& wspreadp, double& wkurtp)
-{
-    unsigned long n=A.rows();
-    double w2=w*w, wrp2=wrp*wrp, dw; 
-
-    // build a model of two coupled oscillators of frequencies w and wrp, coupled by a constant dw
-    dw=alpha*w*wrp/(1+(std::abs(w-wrp)/w));
-    
-    toolbox::FMatrix<double> xA(n+3,n+3), xBBT(n+3,n+3), xC;
-    xA*=0.; xBBT=xA;
-    for (int i=0; i<n;++i)for (int j=0; j<n;++j)
-    { xA(i+3,j+3)=A(i,j);  xBBT(i+3,j+3)=BBT(i,j); }
-    xA(0,1)=-1; xA(1,0)=w2; xA(1,2)=dw; xA(2,3)=-1; xA(3,0)=dw; xA(3,2)=wrp2;   //sets the two coupled harmonic oscilators hamiltonian part
-    GLEABC abc; abc.set_A(xA); abc.set_BBT(xBBT);
-    abc.get_C(xC);
-
-    spectral_analysis(abc, repole, impole, qres, pres, wavgq, wspreadq, wkurtq, wimgq, wavgp, wspreadp, wkurtp, wimgp);
-    
-}
-/*
-//dirty, dirty way of making a recursive integration function...
-toolbox::FMatrix<double> __xA, __xC;
-double __vvac(double w)
-{
-    toolbox::FMatrix<double> t1, t2, xDELTA;
-    mult(__xA,__xA,t1);                         //A^2
-    for (int i=0; i<__xA.rows();++i) t1(i,i)+=w*w;   //A^2+w^2
-    MatrixInverse(t1,t2);                   //1/(A^2+w^2)
-    mult(__xA,t2,t1);                         //A/(A^2+w^2)
-    mult(t1,__xC,xDELTA);                     //A/(A^2+w^2)C
-    return xDELTA(0,0)/__xC(0,0);
-}
-
-#define __PW_INTACCU 1e-3
-double __intme(double xa, double xb, double fa, double fb)
-{
-    double xc=0.5*(xb+xa), fc=__vvac(xc), 
-       io=((xb-xa)*(fa+fb)*0.5), in=(xb-xc)*(fb+fc)*0.5+(xc-xa)*(fa+fc)*0.5;
-   if (fabs((in-io)/in)<__PW_INTACCU) return in; else return __intme(xa,xc,fa,fc)+__intme(xc,xb,fc,fb);
-}
-*/
-
 tblapack::complex atan(tblapack::complex c)
 {
     const tblapack::complex i(0.0,1.0);
     const tblapack::complex one(1.0,0.0);
     const tblapack::complex r=log( (one + i * c) / (one - i * c)) / tblapack::complex(0.0,2.0);
     return log( (one + i * c) / (one - i * c)) / tblapack::complex(0.0,2.0);
-}
-
-//integrates the peak of the velocity-velocity correlation function from w*(1-d) to w*(1+d)
-void harm_peak(const DMatrix& A, const DMatrix& BBT, double w, double d, double &pi)
-{
-    unsigned long n=A.rows();
-    
-    //prepares extended matrices
-    toolbox::FMatrix<double> xA(n+1,n+1), xBBT(n+1,n+1), xC;
-    xA*=0.; xBBT=xA;
-    for (int i=0; i<n;++i)for (int j=0; j<n;++j)
-    { xA(i+1,j+1)=A(i,j);  xBBT(i+1,j+1)=BBT(i,j); }
-    xA(0,1)=-1; xA(1,0)=w*w;   //sets the harmonic hamiltonian part
-    GLEABC abc; abc.set_A(xA); abc.set_BBT(xBBT);
-    
-    //std::cerr<<" ---  C in tauw "<<w<<" ----\n"<<xC<<" ---------- \n";
-    abc.get_C(xC);
-    
-    //get power spectrum peak intensity (should program a better way to integrate....)
-    //the total integral under the peak is Pi/2
-    FMatrix<double> AW1(xA), AW2(xA), atAW1, atAW2;
-    
-    AW1*=(1./(w*(1.-d/2.)));
-    AW2*=(1./(w*(1.+d/2.)));
-    
-    MatrixFunction(AW1,&atan,atAW1);
-    MatrixFunction(AW2,&atan,atAW2);
-    mult(atAW1,xC,AW1); mult(atAW2,xC,AW2);
-    
-    pi=2./toolbox::constant::pi*(AW1(1,1)-AW2(1,1))/xC(1,1);
 }
 
 tblapack::complex ataninv(tblapack::complex x) { return atan(1./x); }
@@ -590,7 +471,7 @@ double harm_cdf(FMatrix<double>& xA, FMatrix<double>& xC, double L)
 void spectral_bisection(FMatrix<double>& xA, FMatrix<double>& xC, double target, double low, double flow, double high, double fhigh, double &ret)
 {
     double mid=0.5*(low+high), fmid=harm_cdf(xA, xC, mid);
-    std::cerr << mid <<" "<< fmid<<"bisec\n";
+    // std::cerr << mid <<" "<< fmid<<"bisec\n";
     if (fabs(fmid-target)<BISEC_ACCURACY) { ret=mid;  return; }
     if (fmid>target) spectral_bisection(xA, xC, target, low, flow, mid, fmid, ret);
     else spectral_bisection(xA, xC, target, mid, fmid, high, fhigh, ret);
@@ -651,7 +532,7 @@ double adaptiveintegration(FMatrix<double>& xA, FMatrix<double>& xC, double& alo
 
 
 //integrates the peak of the velocity-velocity correlation function from w*(1-d) to w*(1+d)
-void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double &pmedian, double &pinterquartile)
+void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double& specdiff, double& median, double& interq)
 {
     unsigned long n=A.rows();
     
@@ -678,15 +559,15 @@ void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double &pmedian,
     {
         Lhigh*=2;
         cdfhigh= harm_cdf(xA, xC, Lhigh);
-        std::cerr<<"hCDF "<<Lhigh<<" "<<cdfhigh<<std::endl;
+    //    std::cerr<<"hCDF "<<Lhigh<<" "<<cdfhigh<<std::endl;
     }
     while (cdflow>0.25) 
     {
         Llow/=2;
         cdflow=harm_cdf(xA, xC, Llow);  
     }
-    std::cerr<<"CDFl "<<Llow<<" "<<cdflow<<std::endl;
-    std::cerr<<"CDFh "<<Lhigh<<" "<<cdfhigh<<std::endl;
+    // std::cerr<<"CDFl "<<Llow<<" "<<cdflow<<std::endl;
+    // std::cerr<<"CDFh "<<Lhigh<<" "<<cdfhigh<<std::endl;
     double LD50, LD25, LD75;
     spectral_bisection(xA, xC, 0.5, Llow, cdflow, Lhigh, cdfhigh, LD50);
     spectral_bisection(xA, xC, 0.75, LD50, 0.5, Lhigh, cdfhigh, LD75);
@@ -696,24 +577,152 @@ void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double &pmedian,
 
     // integrate square distance between both from 0 to wf with an adaptive grid...
     double wi=0, wf=LD50+100*(LD75-LD25);
-    double alor, blor, integral; 
+    double alor, blor; 
 
 
     // Here define a fake Lorentzian with these parameters
     alor=(LD75-LD25)*0.5;
     blor=LD50*LD50-alor*alor;
+    median=LD50;
+    interq=(LD75-LD25);
     if (blor>0.0) { blor=std::sqrt(blor);}
     else{ blor=0.0; }
 
-    std::cerr<<"A and B lorentizan "<< alor <<" "<< blor <<" \n";
+    // std::cerr<<"A and B lorentizan "<< alor <<" "<< blor <<" \n";
  
-    integral=adaptiveintegration(xA, xC, alor, blor, wi, wf, 0.0001, 500);
+    specdiff=adaptiveintegration(xA, xC, alor, blor, wi, wf, 0.0001, 500);
 
-    std::cerr<<"LDs "<< LD25<<" "<< LD50 <<" "<< LD75 << std::endl;
-    std::cerr<<"sqdiff: "<<integral<<std::endl;
+    // std::cerr<<"LDs "<< LD25<<" "<< LD50 <<" "<< LD75 << std::endl;
+    // std::cerr<<"sqdiff: "<<specdiff<<std::endl;
 
 
 }
+
+
+void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& lambdafp, double& repole, double& impole, double& qres, double& pres, double& median, double& interq, double& specdiff)
+{
+    unsigned long n=A.rows();
+    double w2=w*w, w4=w2*w2; 
+    
+    //prepares extended matrices
+    toolbox::FMatrix<double> xA(n+1,n+1), xBBT(n+1,n+1), xC;
+    xA*=0.; xBBT=xA;
+    for (int i=0; i<n;++i)for (int j=0; j<n;++j)
+    { xA(i+1,j+1)=A(i,j);  xBBT(i+1,j+1)=BBT(i,j); }
+    xA(0,1)=-1; xA(1,0)=w2;   //sets the harmonic hamiltonian part
+    GLEABC abc; abc.set_A(xA); abc.set_BBT(xBBT);
+    
+    std::valarray<std::complex<double> >eva; abc.get_evA(eva);
+    lambdafp=eva[0].real(); 
+    for (int i=0; i<n+1; i++) lambdafp=(eva[i].real()<lambdafp?eva[i].real():lambdafp);
+    
+//    std::cerr<<" ---  C in tauw "<<w<<" ----\n"<<xC<<" ---------- \n";
+    abc.get_C(xC);
+    double c00=xC(0,0), c01=xC(0,1), c11=xC(1,1); 
+    
+    q2=c00*w2;
+    p2=c11;
+    pq=c01*w;
+
+    double t00, t01, t11;
+    abc.get_tau2(0,0,0,0,t00); abc.get_tau2(0,0,1,1,t01); abc.get_tau2(1,1,1,1,t11);
+
+    double qqqq=t00*w4;
+    double qqpp=t01*w2;
+    double ppqq=qqpp; //come on, the simmetry is evident. let's save time!
+    double pppp=t11;
+
+//    std::cerr<<"NEW: "<<qqqq<<","<<qqpp<<","<<ppqq<<","<<pppp<<"\n";
+    double qqqq0=q2*q2;
+    double qqpp0=pq*pq;
+    double ppqq0=qqpp0;
+    double pppp0=p2*p2;
+
+    th=(pppp+qqqq+ppqq+qqpp)/(pppp0+qqqq0+ppqq0+qqpp0);
+    tp2=pppp/pppp0;
+    tq2=qqqq/qqqq0;
+    
+    //get power spectrum peak widths
+    spectral_analysis(abc, repole, impole, qres, pres);
+
+    // get difference in shapes of spectra
+    harm_shape(xA, xBBT, w, specdiff, median, interq);
+}
+
+void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& repole, double& impole, double& qres, double& pres)
+{
+    unsigned long n=A.rows();
+    double w2=w*w, wrp2=wrp*wrp, dw; 
+
+    // build a model of two coupled oscillators of frequencies w and wrp, coupled by a constant dw
+    dw=alpha*w*wrp/(1+(std::abs(w-wrp)/w));
+    
+    toolbox::FMatrix<double> xA(n+3,n+3), xBBT(n+3,n+3), xC;
+    xA*=0.; xBBT=xA;
+    for (int i=0; i<n;++i)for (int j=0; j<n;++j)
+    { xA(i+3,j+3)=A(i,j);  xBBT(i+3,j+3)=BBT(i,j); }
+    xA(0,1)=-1; xA(1,0)=w2; xA(1,2)=dw; xA(2,3)=-1; xA(3,0)=dw; xA(3,2)=wrp2;   //sets the two coupled harmonic oscilators hamiltonian part
+    GLEABC abc; abc.set_A(xA); abc.set_BBT(xBBT);
+    abc.get_C(xC);
+
+    spectral_analysis(abc, repole, impole, qres, pres);
+    
+}
+/*
+//dirty, dirty way of making a recursive integration function...
+toolbox::FMatrix<double> __xA, __xC;
+double __vvac(double w)
+{
+    toolbox::FMatrix<double> t1, t2, xDELTA;
+    mult(__xA,__xA,t1);                         //A^2
+    for (int i=0; i<__xA.rows();++i) t1(i,i)+=w*w;   //A^2+w^2
+    MatrixInverse(t1,t2);                   //1/(A^2+w^2)
+    mult(__xA,t2,t1);                         //A/(A^2+w^2)
+    mult(t1,__xC,xDELTA);                     //A/(A^2+w^2)C
+    return xDELTA(0,0)/__xC(0,0);
+}
+
+#define __PW_INTACCU 1e-3
+double __intme(double xa, double xb, double fa, double fb)
+{
+    double xc=0.5*(xb+xa), fc=__vvac(xc), 
+       io=((xb-xa)*(fa+fb)*0.5), in=(xb-xc)*(fb+fc)*0.5+(xc-xa)*(fa+fc)*0.5;
+   if (fabs((in-io)/in)<__PW_INTACCU) return in; else return __intme(xa,xc,fa,fc)+__intme(xc,xb,fc,fb);
+}
+*/
+
+
+//integrates the peak of the velocity-velocity correlation function from w*(1-d) to w*(1+d)
+void harm_peak(const DMatrix& A, const DMatrix& BBT, double w, double d, double &pi)
+{
+    unsigned long n=A.rows();
+    
+    //prepares extended matrices
+    toolbox::FMatrix<double> xA(n+1,n+1), xBBT(n+1,n+1), xC;
+    xA*=0.; xBBT=xA;
+    for (int i=0; i<n;++i)for (int j=0; j<n;++j)
+    { xA(i+1,j+1)=A(i,j);  xBBT(i+1,j+1)=BBT(i,j); }
+    xA(0,1)=-1; xA(1,0)=w*w;   //sets the harmonic hamiltonian part
+    GLEABC abc; abc.set_A(xA); abc.set_BBT(xBBT);
+    
+    //std::cerr<<" ---  C in tauw "<<w<<" ----\n"<<xC<<" ---------- \n";
+    abc.get_C(xC);
+    
+    //get power spectrum peak intensity (should program a better way to integrate....)
+    //the total integral under the peak is Pi/2
+    FMatrix<double> AW1(xA), AW2(xA), atAW1, atAW2;
+    
+    AW1*=(1./(w*(1.-d/2.)));
+    AW2*=(1./(w*(1.+d/2.)));
+    
+    MatrixFunction(AW1,&atan,atAW1);
+    MatrixFunction(AW2,&atan,atAW2);
+    mult(atAW1,xC,AW1); mult(atAW2,xC,AW2);
+    
+    pi=2./toolbox::constant::pi*(AW1(1,1)-AW2(1,1))/xC(1,1);
+}
+
+
 
 
 void harm_spectrum(const DMatrix& A, const DMatrix& BBT, double w, const std::valarray<double>& wl, std::valarray<double>& cqq, std::valarray<double>& cpp )
