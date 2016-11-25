@@ -640,6 +640,7 @@ double adaptiveSimpsonsAux(FMatrix<double>& xA, FMatrix<double>& xC, double& alo
 }
 
 
+
 double adaptiveintegration(FMatrix<double>& xA, FMatrix<double>& xC, double& alor, double& blor, unsigned long& n,   // ptr to function
                            double wi, double wf,  // interval [a,b]
                            double epsilon,  // error tolerance
@@ -662,7 +663,9 @@ double adaptiveintegration(FMatrix<double>& xA, FMatrix<double>& xC, double& alo
 } 
 
 
-
+double symlor(tbdeff:complex& l, double& w){
+    return (2*a*(a*a + b*b + w*w)/(toolbox::constant::pi*(a*a + b*b)*(a*a + b*b) + 2*(a - b)*(a + b)*w*w + w*w*w*w));
+}
 
 //integrates the peak of the velocity-velocity correlation function from w*(1-d) to w*(1+d)
 void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double &pmedian, double &pinterquartile)
