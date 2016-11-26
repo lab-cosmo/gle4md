@@ -618,7 +618,7 @@ g))*toolbox::constant::pi*(w)*(w)))/(((b)*(b) + (a + g)*(a + \
 g))*((b)*(b) + (a + g)*(a + g)) + 2*(a - b + g)*(a + b + g)*(w)*(w) + \
 (w)*(w)*(w)*(w))/(toolbox::constant::pi*toolbox::constant::pi);
  */
-    b=b/w;
+    b=b/w;  // more complicated but more stable expression
     return (2*c*(g)*(g) + c*(w)*(w))/(2*(g)*(g)*(g) + 2*g*(w)*(w))/toolbox::constant::pi
     + (-2*c*(a - g)*(g)*(g)*(a + g)*(a + g)*(a + g) + 4*b*d*(g)*(g)*(g)*(a 
 + g)*(a + g)*w - c*(a + g)*((a)*(a)*(a) - (a)*(a)*g + a*(-1 + 
@@ -630,50 +630,7 @@ g))*((b)*(b) + (a + g)*(a + g)) + 2*(a - b + g)*(a + b + g)*(w)*(w) + \
 + g)*(a + g) + (-1 + b)*(-1 + b)*(w)*(w))*((a + g)*(a + g) + (1 + 
 b)*(1 + b)*(w)*(w)))/toolbox::constant::pi;
 }
-/*
-// L2 norm of a lorenzian with median w and interquartile distance g
-void overlap_lorlor(double g, double w, double& ri, double& di)
-{
-    ri = g/(2.*((g)*(g) + (w)*(w)))/toolbox::constant::pi;
-    di = 1/(2*toolbox::constant::pi*g);
-}
 
-// L2 norm of a the peak originating from an eigenvalue a+Ib with weight c+Id
-void overlap_spec(double a, double b, double c, double d, double& ri, double& di)
-{
-    ri = (2*b*c*d + a*((c)*(c) - (d)*(d)))/(2.*((a)*(a) + (b)*(b)))/toolbox::constant::pi;
-    di = ((c)*(c) + (d)*(d))/(2.*a)/toolbox::constant::pi;
-}
-
-void overlap_lorspec(double g, double w, double a, double b, double c, double d, double& ri, double& di)
-{
-    ri = (2*(g)*(g)*(-(((a)*(a) + (b)*(b))*c) + 2*b*d*g + c*(g)*(g))*((b)*(b) 
-+ (a + g)*(a + g)) + (-(((a)*(a) + (b)*(b))*((a)*(a) + (b)*(b))*c) + 
-4*b*((a)*(a) + (b)*(b))*d*g + 2*((a)*(a)*c + 3*(b)*(b)*c + 
-4*a*b*d)*(g)*(g) + 4*a*c*(g)*(g)*(g) + 3*c*(g)*(g)*(g)*(g))*(w)*(w) - 
-2*((a)*(a)*c + b*(-(b*c) + 2*d*g))*(w)*(w)*(w)*(w) - 
-c*(w)*(w)*(w)*(w)*(w)*(w))/(2.*g*((a + g)*(a + g) + (b - w)*(b - 
-w))*((g)*(g) + (w)*(w))*((a + g)*(a + g) + (b + w)*(b + w)))/toolbox::constant::pi;    
-    di = (2*c*(g)*(g) + c*(w)*(w))/(2*(g)*(g)*(g) + 2*g*(w)*(w))/toolbox::constant::pi;
-    std::cerr<<"RERERE "<<(2*(g)*(g)*(-(((a)*(a) + (b)*(b))*c) + 2*b*d*g + c*(g)*(g))*((b)*(b) 
-+ (a + g)*(a + g)) + (-(((a)*(a) + (b)*(b))*((a)*(a) + (b)*(b))*c) + 
-4*b*((a)*(a) + (b)*(b))*d*g + 2*((a)*(a)*c + 3*(b)*(b)*c + 
-4*a*b*d)*(g)*(g) + 4*a*c*(g)*(g)*(g) + 3*c*(g)*(g)*(g)*(g))*(w)*(w) - 
-2*((a)*(a)*c + b*(-(b*c) + 2*d*g))*(w)*(w)*(w)*(w) - 
-c*(w)*(w)*(w)*(w)*(w)*(w))/(2.*g*((a + g)*(a + g) + (b - w)*(b - 
-w))*((g)*(g) + (w)*(w))*((a + g)*(a + g) + (b + w)*(b + w)))<<std::endl;
-    b=b/w;
-    std::cerr<<"RARARA "<<(-2*c*(a - g)*(g)*(g)*(a + g)*(a + g)*(a + g) + 4*b*d*(g)*(g)*(g)*(a 
-+ g)*(a + g)*w - c*(a + g)*((a)*(a)*(a) - (a)*(a)*g + a*(-1 + 
-4*(b)*(b))*(g)*(g) - 3*(g)*(g)*(g))*(w)*(w) + 4*b*d*g*((a)*(a) + 
-2*a*g + (b)*(b)*(g)*(g))*(w)*(w)*(w) - 2*c*((a)*(a)*(1 + (b)*(b)) + 
-(b)*(b)*(-3 + (b)*(b))*(g)*(g))*(w)*(w)*(w)*(w) + 4*b*(-1 + 
-(b)*(b))*d*g*(w)*(w)*(w)*(w)*(w) - (-1 + b*b)*(-1 + b*b)
-*c*(w)*(w)*(w)*(w)*(w)*(w))/(2.*g*((g)*(g) + (w)*(w))*((a 
-+ g)*(a + g) + (-1 + b)*(-1 + b)*(w)*(w))*((a + g)*(a + g) + (1 + 
-b)*(1 + b)*(w)*(w)))<<std::endl;
-}
-*/
 //integrates the peak of the velocity-velocity correlation function from w*(1-d) to w*(1+d)
 void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double& specdiff, double& median, double& interq)
 {
