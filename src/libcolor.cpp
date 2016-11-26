@@ -466,13 +466,12 @@ double harm_cdf(FMatrix<double>& xA, FMatrix<double>& xC, double L)
     mult(atAWL,xC,AWL); 
     return 2/toolbox::constant::pi*AWL(1,1)/xC(1,1); // gets pp term of the integral
 }
-
-#define BISEC_ACCURACY 1e-9
+#define BISEC_ACCURACY 1e-12
 void spectral_bisection(FMatrix<double>& xA, FMatrix<double>& xC, double target, double low, double flow, double high, double fhigh, double &ret)
 {
     double mid=0.5*(low+high), fmid=harm_cdf(xA, xC, mid);
     //std::cerr << mid <<" "<< fmid<<"bisec\n";
-    if (fabs(fmid-target)<BISEC_ACCURACY) { ret=mid;  return; }
+    if (fabs((high-low)/mid)<BISEC_ACCURACY) { ret=mid;  return; }
     if (fmid>target) spectral_bisection(xA, xC, target, low, flow, mid, fmid, ret);
     else spectral_bisection(xA, xC, target, mid, fmid, high, fhigh, ret);
 }
@@ -532,46 +531,149 @@ double adaptiveintegration(FMatrix<double>& xA, FMatrix<double>& xC, double& alo
 // L2 norm of a lorenzian with median w and interquartile distance g
 double overlap_lorlor(double g, double w)
 {
-    return (2*g*g + w*w)/(2*g*g*g*toolbox::constant::pi + 2*g*toolbox::constant::pi*w*w);
+    //return (2*g*g + w*w)/(2*g*toolbox::constant::pi*(g*g +  w*w));
+    return (2*g + w*w/g)/(2*toolbox::constant::pi*(g*g +  w*w));
 }
 
 // L2 norm of a the peak originating from an eigenvalue a+Ib with weight c+Id
 double overlap_spec(double a, double b, double c, double d)
 {
-    return (2*a*a*c*c + b*b*c*c + 2*a*b*c*d + b*b*d*d)/(2*a*a*a*toolbox::constant::pi + 2*a*b*b*toolbox::constant::pi);
+    //return (2*a*a*c*c + b*b*c*c + 2*a*b*c*d + b*b*d*d)/(2*a*toolbox::constant::pi*(a*a + b*b));
+    return (2*a*c*c + b*b*(c*c+d*d)/a + 2*b*c*d)/(2*toolbox::constant::pi*(a*a + b*b));
 }
 
 double overlap_specspec(double a1, double b1, double c1, double d1, double a2, double b2, double c2, double d2)
 {
-    return (2*a1*a1*a1*c1*c2 + 6*a1*a1*a2*c1*c2 + 6*a1*a2*a2*c1*c2 + 
-2*a2*a2*a2*c1*c2 + 2*a1*b1*b1*c1*c2 + 2*a2*b1*b1*c1*c2 + 
-2*a1*b2*b2*c1*c2 + 2*a2*b2*b2*c1*c2 + 2*a1*a1*b1*c2*d1 + 
-4*a1*a2*b1*c2*d1 + 2*a2*a2*b1*c2*d1 + 2*b1*b1*b1*c2*d1 - 
-2*b1*b2*b2*c2*d1 + 2*a1*a1*b2*c1*d2 + 4*a1*a2*b2*c1*d2 + 
-2*a2*a2*b2*c1*d2 - 2*b1*b1*b2*c1*d2 + 2*b2*b2*b2*c1*d2 + 
-4*a1*b1*b2*d1*d2 + 4*a2*b1*b2*d1*d2)/(toolbox::constant::pi*
-(a1*a1*a1*a1 + 4*a1*a1*a1*a2 + 6*a1*a1*a2*a2 + 4*a1*a2*a2*a2 + 
-a2*a2*a2*a2 + 2*a1*a1*b1*b1 + 4*a1*a2*b1*b1 + 2*a2*a2*b1*b1 + 
-b1*b1*b1*b1 + 2*a1*a1*b2*b2 + 4*a1*a2*b2*b2 + 2*a2*a2*b2*b2 - 
-2*b1*b1*b2*b2 + b2*b2*b2*b2));
+    /*return (2*((a1 + a2)*((a1 + a2)*(a1 + a2) + (b1)*(b1) + (b2)*(b2))*c1*c2 + 
+b1*((a1 + a2)*(a1 + a2) + (b1 - b2)*(b1 + b2))*c2*d1 + b2*(((a1 + 
+a2)*(a1 + a2) - (b1)*(b1) + (b2)*(b2))*c1 + 2*(a1 + 
+a2)*b1*d1)*d2))/(((a1 + a2)*(a1 + a2) + (b1)*(b1))*((a1 + a2)*(a1 + 
+a2) + (b1)*(b1)) + 2*(a1 + a2 - b1)*(a1 + a2 + b1)*(b2)*(b2) + 
+(b2)*(b2)*(b2)*(b2))/toolbox::constant::pi;*/
+    double bbar=0.5*(fabs(b1)+fabs(b2));
+    if (bbar > 1e-10)
+    {
+        b1=b1/bbar; b2=b2/bbar;
+        return ((2*c2*(((a1 + a2)*(a1 + a2) + 2*(bbar)*(bbar))*c1 + (a1 + 
+a2)*bbar*d1) + 2*bbar*((a1 + a2)*c1 + 2*bbar*d1)*d2)/((a1 + a2)*((a1 
++ a2)*(a1 + a2) + 4*(bbar)*(bbar)))+
+(-2*bbar*((a1)*(a1)*(a1)*(a1)*(a1)*(c2*(d1 - b1*d1) - (-1 + 
+b2)*c1*d2) + (a2)*(a2)*(a2)*(a2)*(a2)*(c2*(d1 - b1*d1) - (-1 + 
+b2)*c1*d2) + 2*((b1)*(b1) - (b2)*(b2))*((b1)*(b1) - 
+(b2)*(b2))*(bbar)*(bbar)*(bbar)*(bbar)*(bbar)*(c1*c2 + d1*d2) + 
+(a2)*(a2)*(b1 - b2)*(b1 - b2)*(bbar)*(bbar)*(bbar)*((b1)*(b1)*c1*c2 + 
+2*b1*b2*c1*c2 + (b2)*(b2)*c1*c2 + 4*d1*d2) + 
+(a2)*(a2)*(a2)*(a2)*bbar*((-2 + (b1)*(b1) + (b2)*(b2))*c1*c2 - 2*(-1 
++ b1*b2)*d1*d2) + a2*((b1)*(b1) - 
+(b2)*(b2))*(bbar)*(bbar)*(bbar)*(bbar)*(-4*b1*c2*d1 + 
+(b1)*(b1)*(c2*d1 + c1*d2) - b2*(b2*c2*d1 - 4*c1*d2 + b2*c1*d2)) + 
+(a1)*(a1)*(a1)*(a1)*(5*a2*(c2*(d1 - b1*d1) - (-1 + b2)*c1*d2) + 
+bbar*((-2 + (b1)*(b1) + (b2)*(b2))*c1*c2 - 2*(-1 + b1*b2)*d1*d2)) + 
+(a2)*(a2)*(a2)*(bbar)*(bbar)*(-((b1)*(b1)*(b1)*c2*d1) + b1*(-4 + 
+(b2)*(b2))*c2*d1 + (b1)*(b1)*(2*c2*d1 + (2 + b2)*c1*d2) + 
+b2*(-4*c1*d2 - (b2)*(b2)*c1*d2 + 2*b2*(c2*d1 + c1*d2))) + 
+(a1)*(a1)*(-10*(a2)*(a2)*(a2)*((-1 + b1)*c2*d1 + (-1 + b2)*c1*d2) + 
+(b1 - b2)*(b1 - b2)*(bbar)*(bbar)*(bbar)*((b1)*(b1)*c1*c2 + 
+2*b1*b2*c1*c2 + (b2)*(b2)*c1*c2 + 4*d1*d2) + 6*(a2)*(a2)*bbar*((-2 + 
+(b1)*(b1) + (b2)*(b2))*c1*c2 - 2*(-1 + b1*b2)*d1*d2) - 
+3*a2*(bbar)*(bbar)*((b1)*(b1)*(b1)*c2*d1 - b1*(-4 + (b2)*(b2))*c2*d1 
+- (b1)*(b1)*(2*c2*d1 + (2 + b2)*c1*d2) + b2*(4*c1*d2 + 
+(b2)*(b2)*c1*d2 - 2*b2*(c2*d1 + c1*d2)))) + 
+a1*(-5*(a2)*(a2)*(a2)*(a2)*((-1 + b1)*c2*d1 + (-1 + b2)*c1*d2) + 
+2*a2*(b1 - b2)*(b1 - b2)*(bbar)*(bbar)*(bbar)*((b1)*(b1)*c1*c2 + 
+2*b1*b2*c1*c2 + (b2)*(b2)*c1*c2 + 4*d1*d2) + 
+4*(a2)*(a2)*(a2)*bbar*((-2 + (b1)*(b1) + (b2)*(b2))*c1*c2 - 2*(-1 + 
+b1*b2)*d1*d2) + ((b1)*(b1) - 
+(b2)*(b2))*(bbar)*(bbar)*(bbar)*(bbar)*(-4*b1*c2*d1 + 
+(b1)*(b1)*(c2*d1 + c1*d2) - b2*(b2*c2*d1 - 4*c1*d2 + b2*c1*d2)) - 
+3*(a2)*(a2)*(bbar)*(bbar)*((b1)*(b1)*(b1)*c2*d1 - b1*(-4 + 
+(b2)*(b2))*c2*d1 - (b1)*(b1)*(2*c2*d1 + (2 + b2)*c1*d2) + b2*(4*c1*d2 
++ (b2)*(b2)*c1*d2 - 2*b2*(c2*d1 + c1*d2)))) + 
+(a1)*(a1)*(a1)*(-10*(a2)*(a2)*((-1 + b1)*c2*d1 + (-1 + b2)*c1*d2) + 
+4*a2*bbar*((-2 + (b1)*(b1) + (b2)*(b2))*c1*c2 - 2*(-1 + b1*b2)*d1*d2) 
++ (bbar)*(bbar)*(-((b1)*(b1)*(b1)*c2*d1) + b1*(-4 + (b2)*(b2))*c2*d1 
++ (b1)*(b1)*(2*c2*d1 + (2 + b2)*c1*d2) + b2*(-4*c1*d2 - 
+(b2)*(b2)*c1*d2 + 2*b2*(c2*d1 + c1*d2))))))/((a1 + a2)*((a1)*(a1) + 
+2*a1*a2 + (a2)*(a2) + 4*(bbar)*(bbar))*((a1)*(a1) + 2*a1*a2 + 
+(a2)*(a2) + (b1 - b2)*(b1 - b2)*(bbar)*(bbar))*((a1)*(a1) + 2*a1*a2 + 
+(a2)*(a2) + (b1 + b2)*(b1 + b2)*(bbar)*(bbar))))/toolbox::constant::pi;
+    }
+    else
+    {
+        return (2*((a1 + a2)*((a1 + a2)*(a1 + a2) + (b1)*(b1) + (b2)*(b2))*c1*c2 + 
+b1*((a1 + a2)*(a1 + a2) + (b1 - b2)*(b1 + b2))*c2*d1 + b2*(((a1 + 
+a2)*(a1 + a2) - (b1)*(b1) + (b2)*(b2))*c1 + 2*(a1 + 
+a2)*b1*d1)*d2))/(((a1 + a2)*(a1 + a2) + (b1)*(b1))*((a1 + a2)*(a1 + 
+a2) + (b1)*(b1)) + 2*(a1 + a2 - b1)*(a1 + a2 + b1)*(b2)*(b2) + 
+(b2)*(b2)*(b2)*(b2))/toolbox::constant::pi;
+    }
 }
 
 // overlap of a peak and a lorentzian
 double overlap_lorspec(double g, double w, double a, double b, double c, double d)
 {
-    return (2*a*a*a*c*toolbox::constant::pi + 2*a*b*b*c*toolbox::constant::pi + 
-    2*a*a*b*d*toolbox::constant::pi + 2*b*b*b*d*toolbox::constant::pi + 
-6*a*a*c*g*toolbox::constant::pi + 2*b*b*c*g*toolbox::constant::pi + 
-4*a*b*d*g*toolbox::constant::pi + 6*a*c*g*g*toolbox::constant::pi + 
-2*b*d*g*g*toolbox::constant::pi + 2*c*g*g*g*toolbox::constant::pi + 
-2*a*c*toolbox::constant::pi*w*w - 2*b*d*toolbox::constant::pi*w*w + 
-2*c*g*toolbox::constant::pi*w*w )/((a*a*a*a + 2*a*a*b*b + b*b*b*b + 4*a*a*a*g + 4*a*b*b*g + 6*a*a*g*g + 
-2*b*b*g*g + 4*a*g*g*g + g*g*g*g + 2*a*a*w*w - 2*b*b*w*w + 4*a*g*w*w + 
-2*g*g*w*w + w*w*w*w)*toolbox::constant::pi*toolbox::constant::pi);
+  /*  return (2*((b*d + c*(a + g))*((b)*(b) + (a + g)*(a + \
+g))*toolbox::constant::pi + (-(b*d) + c*(a + \
+g))*toolbox::constant::pi*(w)*(w)))/(((b)*(b) + (a + g)*(a + \
+g))*((b)*(b) + (a + g)*(a + g)) + 2*(a - b + g)*(a + b + g)*(w)*(w) + \
+(w)*(w)*(w)*(w))/(toolbox::constant::pi*toolbox::constant::pi);
+ */
+    b=b/w;
+    return (2*c*(g)*(g) + c*(w)*(w))/(2*(g)*(g)*(g) + 2*g*(w)*(w))/toolbox::constant::pi
+    + (-2*c*(a - g)*(g)*(g)*(a + g)*(a + g)*(a + g) + 4*b*d*(g)*(g)*(g)*(a 
++ g)*(a + g)*w - c*(a + g)*((a)*(a)*(a) - (a)*(a)*g + a*(-1 + 
+4*(b)*(b))*(g)*(g) - 3*(g)*(g)*(g))*(w)*(w) + 4*b*d*g*((a)*(a) + 
+2*a*g + (b)*(b)*(g)*(g))*(w)*(w)*(w) - 2*c*((a)*(a)*(1 + (b)*(b)) + 
+(b)*(b)*(-3 + (b)*(b))*(g)*(g))*(w)*(w)*(w)*(w) + 4*b*(-1 + 
+(b)*(b))*d*g*(w)*(w)*(w)*(w)*(w) - (-1 + b*b)*(-1 + b*b)
+*c*(w)*(w)*(w)*(w)*(w)*(w))/(2.*g*((g)*(g) + (w)*(w))*((a 
++ g)*(a + g) + (-1 + b)*(-1 + b)*(w)*(w))*((a + g)*(a + g) + (1 + 
+b)*(1 + b)*(w)*(w)))/toolbox::constant::pi;
+}
+/*
+// L2 norm of a lorenzian with median w and interquartile distance g
+void overlap_lorlor(double g, double w, double& ri, double& di)
+{
+    ri = g/(2.*((g)*(g) + (w)*(w)))/toolbox::constant::pi;
+    di = 1/(2*toolbox::constant::pi*g);
 }
 
+// L2 norm of a the peak originating from an eigenvalue a+Ib with weight c+Id
+void overlap_spec(double a, double b, double c, double d, double& ri, double& di)
+{
+    ri = (2*b*c*d + a*((c)*(c) - (d)*(d)))/(2.*((a)*(a) + (b)*(b)))/toolbox::constant::pi;
+    di = ((c)*(c) + (d)*(d))/(2.*a)/toolbox::constant::pi;
+}
 
-
+void overlap_lorspec(double g, double w, double a, double b, double c, double d, double& ri, double& di)
+{
+    ri = (2*(g)*(g)*(-(((a)*(a) + (b)*(b))*c) + 2*b*d*g + c*(g)*(g))*((b)*(b) 
++ (a + g)*(a + g)) + (-(((a)*(a) + (b)*(b))*((a)*(a) + (b)*(b))*c) + 
+4*b*((a)*(a) + (b)*(b))*d*g + 2*((a)*(a)*c + 3*(b)*(b)*c + 
+4*a*b*d)*(g)*(g) + 4*a*c*(g)*(g)*(g) + 3*c*(g)*(g)*(g)*(g))*(w)*(w) - 
+2*((a)*(a)*c + b*(-(b*c) + 2*d*g))*(w)*(w)*(w)*(w) - 
+c*(w)*(w)*(w)*(w)*(w)*(w))/(2.*g*((a + g)*(a + g) + (b - w)*(b - 
+w))*((g)*(g) + (w)*(w))*((a + g)*(a + g) + (b + w)*(b + w)))/toolbox::constant::pi;    
+    di = (2*c*(g)*(g) + c*(w)*(w))/(2*(g)*(g)*(g) + 2*g*(w)*(w))/toolbox::constant::pi;
+    std::cerr<<"RERERE "<<(2*(g)*(g)*(-(((a)*(a) + (b)*(b))*c) + 2*b*d*g + c*(g)*(g))*((b)*(b) 
++ (a + g)*(a + g)) + (-(((a)*(a) + (b)*(b))*((a)*(a) + (b)*(b))*c) + 
+4*b*((a)*(a) + (b)*(b))*d*g + 2*((a)*(a)*c + 3*(b)*(b)*c + 
+4*a*b*d)*(g)*(g) + 4*a*c*(g)*(g)*(g) + 3*c*(g)*(g)*(g)*(g))*(w)*(w) - 
+2*((a)*(a)*c + b*(-(b*c) + 2*d*g))*(w)*(w)*(w)*(w) - 
+c*(w)*(w)*(w)*(w)*(w)*(w))/(2.*g*((a + g)*(a + g) + (b - w)*(b - 
+w))*((g)*(g) + (w)*(w))*((a + g)*(a + g) + (b + w)*(b + w)))<<std::endl;
+    b=b/w;
+    std::cerr<<"RARARA "<<(-2*c*(a - g)*(g)*(g)*(a + g)*(a + g)*(a + g) + 4*b*d*(g)*(g)*(g)*(a 
++ g)*(a + g)*w - c*(a + g)*((a)*(a)*(a) - (a)*(a)*g + a*(-1 + 
+4*(b)*(b))*(g)*(g) - 3*(g)*(g)*(g))*(w)*(w) + 4*b*d*g*((a)*(a) + 
+2*a*g + (b)*(b)*(g)*(g))*(w)*(w)*(w) - 2*c*((a)*(a)*(1 + (b)*(b)) + 
+(b)*(b)*(-3 + (b)*(b))*(g)*(g))*(w)*(w)*(w)*(w) + 4*b*(-1 + 
+(b)*(b))*d*g*(w)*(w)*(w)*(w)*(w) - (-1 + b*b)*(-1 + b*b)
+*c*(w)*(w)*(w)*(w)*(w)*(w))/(2.*g*((g)*(g) + (w)*(w))*((a 
++ g)*(a + g) + (-1 + b)*(-1 + b)*(w)*(w))*((a + g)*(a + g) + (1 + 
+b)*(1 + b)*(w)*(w)))<<std::endl;
+}
+*/
 //integrates the peak of the velocity-velocity correlation function from w*(1-d) to w*(1+d)
 void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double& specdiff, double& median, double& interq)
 {
@@ -582,7 +684,7 @@ void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double& specdiff
     xA*=0.; xBBT=xA;
     for (int i=0; i<n;++i)for (int j=0; j<n;++j)
     { xA(i+1,j+1)=A(i,j);  xBBT(i+1,j+1)=BBT(i,j); }
-    xA(0,1)=-1; xA(1,0)=w*w;   //sets the harmonic hamiltonian part
+    xA(0,1)=-1; xA(1,0)=w*w;   //sets the harmonic hamiltonian part    
     GLEABC abc; abc.set_A(xA); abc.set_BBT(xBBT);
     
     //std::cerr<<" ---  C in tauw "<<w<<" ----\n"<<xC<<" ---------- \n";
@@ -634,29 +736,46 @@ void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double& specdiff
 
     // std::cerr<<"A and B lorentizan "<< alor <<" "<< blor <<" \n";
  
-    specdiff=adaptiveintegration(xA, xC, alor, blor, wi, wf, 0.0001, 500);
+    //specdiff=adaptiveintegration(xA, xC, alor, blor, wi, wf, 0.0001, 500);
 
     std::valarray<tblapack::complex> ra; CMatrix U, U1, U1C;
     abc.get_esA(ra, U, U1);
     mult(U1,xC,U1C);
+    U1C*=1.0/xC(1,1);  // normalize for the evaluation of the pp component
     
     double lw=LD50, lg=(LD75-LD25)*0.5; // parameters of the reference Lorentzian
     double ai, bi, ci, di, aj, bj, cj, dj;
     double i11=0; int na=ra.size();
+    double ri1, di1, ri2, di2;
+#define PEAK_SMOOTH 1e-8
+    lg+=lw*PEAK_SMOOTH;    
     std::cerr<<w<<" REFLOPR "<<lw<<" "<<lg<<std::endl;
     for (int i=0; i<na; ++i)
     {
         
-        ai = ra[i].real(); bi= ra[i].imag(); ci=(U(1,i) * U1C(i,1)).real(); di=(U(1,i) * U1C(i,1)).imag();        
-        std::cerr<<"OVERLAP "<<overlap_lorspec(lg,lw,ai,bi,ci,di)<< " SELF "<< overlap_specspec(ai,bi,ci,di,ai,bi,ci,di)<<" ref "<<overlap_lorlor(lg,lw)<<std::endl;
+        ai = ra[i].real(); bi= ra[i].imag(); ci=(U(1,i) * U1C(i,1)).real(); di=(U(1,i) * U1C(i,1)).imag();   
+        ai += lw*PEAK_SMOOTH;
+        std::cerr<<"PEAK DATA " << ai <<" "     << bi <<" "<< ci <<" "<< di <<" \n";
+        std::cerr<<"OVERLAP "<<overlap_lorspec(lg,lw,ai,bi,ci,di)/ci<< " SELF "<< overlap_spec(ai,bi,ci,di)/(ci*ci)<<" ref "<<overlap_lorlor(lg,lw)<<std::endl;
+        //overlap_lorspec(lg,lw,ai,bi,ci,di,ri1,di1);
+        //std::cerr<<"RESOLVE? "<< ri1/ci<<"  "<<di1/ci<<" = "<<(ri1+di1)/ci<<std::endl;
+        std::cerr<<"STABILITY CHECK \n";
+        //overlap_lorlor(lg, lw, ri1, di1);
+        //overlap_spec(ai,bi,ci,di, ri2, di2);
+        //std::cerr<<"LOR-SPEC: div: "<< di1/na-di2<< "  reg: " << ri1/na-ri2<<std::endl ;
+        //std::cerr<<"SEP-FULL: div: "<< (di1+ri1)-overlap_lorlor(lg,lw)<<std::endl ;
+        i11 -= 2*overlap_lorspec(lg,lw,ai,bi,ci,di);
+            
         for (int j=0; j<na; ++j)
         {
+                        
             aj = ra[j].real(); bj= ra[j].imag(); cj=(U(1,j) * U1C(j,1)).real(); dj=(U(1,j) * U1C(j,1)).imag();
+            aj += lw*PEAK_SMOOTH;
+            if (i==j)  i11 += overlap_spec(ai,bi,ci,di);
+            else  i11 += overlap_specspec(ai,bi,ci,di,aj,bj,cj,dj);
+            std::cerr<<"TEST SPECSPEC "<<i<<" " <<j<<" >> "<<overlap_specspec(ai,bi,ci,di,aj,bj,cj,dj)/(ci*cj)<<std::endl;
             
-            i11 += overlap_lorlor(lg,lw)/(na*na);
-            i11 += overlap_specspec(ai,bi,ci,di,aj,bj,cj,dj);
-            i11 -= overlap_lorspec(lg,lw,ai,bi,ci,di)/(na);
-            i11 -= overlap_lorspec(lg,lw,aj,bj,cj,dj)/(na);            
+            //i11 -= overlap_lorspec(lg,lw,aj,bj,cj,dj)/(na*xC(1,1));            
             //std::cerr<<li<<" "<<lj<<" "<<symlor_sp(li, lj)<<"  "<<symlor_sp(lj, li)<<"\n";
             //i11 += U(1,i) * U1C(i,1) * U(1,j) * U1C(j,1) * symlor_sp(li, lj);
             //i11 += symlor_sp(llor, llor)/(na*na);
@@ -664,9 +783,9 @@ void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double& specdiff
             //ei11 -= U(1,j) * U1C(j,1) * ( symlor_sp(llor, lj) / na);
         }
     }
-    i11*=1.0/(xC(1,1)*xC(1,1));
-    specdiff = i11;
+    i11 += overlap_lorlor(lg,lw);       
     std::cerr<<ra.size()<<" NUMERICAL: "<<specdiff<<"  ANALYTICAL:  "<<i11<<std::endl;
+    specdiff = sqrt(fabs(i11)/overlap_lorlor(lg,lw));
     // std::cerr<<"LDs "<< LD25<<" "<< LD50 <<" "<< LD75 << std::endl;
     // std::cerr<<"sqdiff: "<<specdiff<<std::endl;
 
