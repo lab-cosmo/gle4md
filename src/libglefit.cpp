@@ -79,16 +79,11 @@ std::istream& operator>> (std::istream& istr, GLEFPointType& value)
     else if (str=="cpp"  )    value=Cpp;
     else if (str=="rpimp")    value=RPImPole; /* 4MR */
     else if (str=="rprep")    value=RPRePole;
-    else if (str=="rpwq")     value=RPQRes;
-    else if (str=="rpwp")     value=RPPRes;
-    else if (str=="rpavgq")   value=RPQavg;
-    else if (str=="rpimvq")   value=RPQimv;
-    else if (str=="rpsprq")   value=RPQspr;
-    else if (str=="rpkurtq")  value=RPQkurt;
-    else if (str=="rpavgp")   value=RPPavg;
-    else if (str=="rpimvp")   value=RPPimv;
-    else if (str=="rpsprp")   value=RPPspr;
-    else if (str=="rpkurtp")  value=RPPkurt;
+    else if (str=="rpwq" )    value=RPQRes;
+    else if (str=="rpwp" )    value=RPPRes;
+    else if (str=="smed" )    value=SpecMed;
+    else if (str=="sinterq")  value=SpecInterq;
+    else if (str=="sdiff ")   value=SpecDiff;
     else istr.clear(std::ios::failbit);
     return istr;
 }
@@ -122,14 +117,9 @@ std::ostream& operator<< (std::ostream& ostr, const GLEFPointType& p)
         case RPRePole: ostr<<" rprep ";    break; /* 4MR */
         case RPQRes:   ostr<<" rpwq  ";    break; /* 4MR */
         case RPPRes:   ostr<<" rpwp  ";    break; /* 4MR */
-        case RPQavg:   ostr<<" rpavgq";    break; /* 4MR */
-        case RPQimv:   ostr<<" rpimvq";    break; /* 4MR */
-        case RPQspr:   ostr<<" rpsprq";    break; /* 4MR */
-        case RPQkurt:  ostr<<" rpkurtq";   break; /* 4MR */
-        case RPPavg:   ostr<<" rpavgp";    break; /* 4MR */
-        case RPPimv:   ostr<<" rpimvp";    break; /* 4MR */
-        case RPPspr:   ostr<<" rpsprp";    break; /* 4MR */
-        case RPPkurt:  ostr<<" rpkurtp";   break; /* 4MR */
+        case SpecMed:  ostr<<" smed  ";    break; /* 4MR */
+        case SpecInterq: ostr<<" sinterq ";break; /* 4MR */
+        case SpecDiff: ostr<<" sdiff  ";   break; /* 4MR */
     };
     return ostr;
 }
@@ -1219,9 +1209,9 @@ void GLEFError::compute_points(const std::vector<double>& xp, std::vector<std::m
     for (int i=0; i<xp.size(); i++)
     {
         val[i].clear();
-        harm_check(A,BBT,xp[i],val[i][TauQ2],val[i][TauP2],val[i][TauH],val[i][Cqq],val[i][Cpp],pq, val[i][LFP], val[i][RPRePole],val[i][RPImPole],val[i][RPQRes],val[i][RPPRes], val[i][RPQavg], val[i][RPQimv], val[i][RPQspr], val[i][RPQkurt], val[i][RPPavg], val[i][RPPimv], val[i][RPPspr], val[i][RPPkurt]); //val[i][DwQ],val[i][DwP],val[i][LFP]);
+        harm_check(A,BBT,xp[i],val[i][TauQ2],val[i][TauP2],val[i][TauH],val[i][Cqq],val[i][Cpp],pq, val[i][LFP], val[i][RPRePole],val[i][RPImPole],val[i][RPQRes], val[i][RPPRes], val[i][SpecMed], val[i][SpecInterq], val[i][SpecDiff]); //val[i][DwQ],val[i][DwP],val[i][LFP]);
         /* 4MR */
-        rp_check(A, BBT, xp[i], opar.rpomega,opar.rpalpha,val[i][RPRePole],val[i][RPImPole],val[i][RPQRes],val[i][RPPRes], val[i][RPQavg], val[i][RPQimv], val[i][RPQspr], val[i][RPQkurt], val[i][RPPavg], val[i][RPPimv], val[i][RPPspr], val[i][RPPkurt]);
+        rp_check(A, BBT, xp[i], opar.rpomega,opar.rpalpha,val[i][RPRePole],val[i][RPImPole],val[i][RPQRes],val[i][RPPRes]);
         //rp_check(A, BBT, xp[i], opar.rpomega, opar.rpcoupling, val[i][RPImPole] ... )
         abc.get_KH(xp[i],val[i][Kw],val[i][Hw]);
         if (opar.deltat>0.) verlet_check(A,C,xp[i],opar.deltat,val[i][CqqDT],val[i][CppDT],pq); else  { val[i][CqqDT]=val[i][Cqq]; val[i][CppDT]=val[i][Cpp]; } //if requested, compute finite-dt corrections

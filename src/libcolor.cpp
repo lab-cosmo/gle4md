@@ -392,7 +392,7 @@ void verlet_check(const DMatrix& A, const DMatrix& C, double w, double dt, doubl
     q2=R3(0,0).real()*w*w; p2=R3(1,1).real(); pq=R3(0,1).real();
 }
 
-void spectral_analysis(GLEABC& abc, double& repole, double& impole, double& qres, double& pres, double& wavgq, double& wspreadq, double& wkurtq, double &wimgq, double& wavgp, double& wspreadp, double& wkurtp, double &wimgp)
+void spectral_analysis(GLEABC& abc, double& repole, double& impole, double& qres, double& pres)
 {
     toolbox::FMatrix<double> xA, xC;
     abc.get_A(xA); abc.get_C(xC);
@@ -409,30 +409,30 @@ void spectral_analysis(GLEABC& abc, double& repole, double& impole, double& qres
     for (int k=0; k<(n);++k) {
         resq[k]=(evec(0, k)*xvecC(k, 0)/xC(0, 0));
         resp[k]=(evec(1, k)*xvecC(k, 1)/xC(1, 1));
-        std::cerr<< "SPEC " << k <<" " << std::real(poles[k])<< " "<<std::imag(poles[k])<<" "<<
-         std::real(resq[k])<<" "<< std::real(resp[k])<<"\n";
+        // std::cerr<< "SPEC " << k <<" " << std::real(poles[k])<< " "<<std::imag(poles[k])<<" "<<
+        // std::real(resq[k])<<" "<< std::real(resp[k])<<"\n";
     }
 
     // this is all obsolete now
-//    // now here we are calculating a bunch of stuff. real and imaginary averages of the poles, their spread, as well as the
-//    // pole which has the highest weight and picking it for further characterization. 
-//    double mxw=0, kw, diffq, diffp;    
-//    wavgq=wavgp=wspreadq=wspreadp=wimgq=wimgp=wkurtq=wkurtp=0;
-//    for (int k=0; k<(n);++k){
-//       wavgq += std::abs(std::real(poles[k]))*std::real(resq[k]);
-//       wavgp += std::abs(std::real(poles[k]))*std::real(resp[k]);
-//       wimgq += std::abs(std::imag(poles[k]))*std::real(resq[k]);
-//       wimgp += std::abs(std::imag(poles[k]))*std::real(resp[k]);       
-//       // the eig 
-//       kw  = std::real(resq[k]); // selects based only on q to avoid ambiguity
-//       if (kw > mxw){
-//          mxw = kw;
-//          repole = std::abs(std::real(poles[k]));
-//          impole = std::abs(std::imag(poles[k]));
-//          qres = 2.0*std::real(resq[k]);
-//          pres = 2.0*std::real(resp[k]);          
-//        }
-//    }
+    // now here we are calculating a bunch of stuff. real and imaginary averages of the poles, their spread, as well as the
+    // pole which has the highest weight and picking it for further characterization. 
+    double mxw=0, kw, diffq, diffp;    
+    // wavgq=wavgp=wspreadq=wspreadp=wimgq=wimgp=wkurtq=wkurtp=0;
+    for (int k=0; k<(n);++k){
+       //wavgq += std::abs(std::real(poles[k]))*std::real(resq[k]);
+       //wavgp += std::abs(std::real(poles[k]))*std::real(resp[k]);
+       //wimgq += std::abs(std::imag(poles[k]))*std::real(resq[k]);
+       //wimgp += std::abs(std::imag(poles[k]))*std::real(resp[k]);       
+       // the eig 
+       kw  = std::real(resq[k]); // selects based only on q to avoid ambiguity
+       if (kw > mxw){
+          mxw = kw;
+          repole = std::abs(std::real(poles[k]));
+          impole = std::abs(std::imag(poles[k]));
+          qres = 2.0*std::real(resq[k]);
+          pres = 2.0*std::real(resp[k]);          
+        }
+    }
 //
 //    for (int k=0; k<(n);++k){
 //        diffq=(std::abs(std::real(poles[k]))-wavgq);
@@ -448,7 +448,234 @@ void spectral_analysis(GLEABC& abc, double& repole, double& impole, double& qres
 //    wspreadq=std::sqrt(wspreadq);    
 }
 
-void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& lambdafp, double& repole, double& impole, double& qres, double& pres, double& wavgq, double& wimgq, double& wspreadq, double& wkurtq, double& wavgp, double &wimgp, double& wspreadp, double& wkurtp)
+tblapack::complex atan(tblapack::complex c)
+{
+    const tblapack::complex i(0.0,1.0);
+    const tblapack::complex one(1.0,0.0);
+    const tblapack::complex r=log( (one + i * c) / (one - i * c)) / tblapack::complex(0.0,2.0);
+    return log( (one + i * c) / (one - i * c)) / tblapack::complex(0.0,2.0);
+}
+
+tblapack::complex ataninv(tblapack::complex x) { return atan(1./x); }
+
+double harm_cdf(FMatrix<double>& xA, FMatrix<double>& xC, double L)
+{
+    FMatrix<double> AWL(xA), atAWL;
+    AWL*=(1./L);
+    MatrixFunction(AWL,&ataninv,atAWL);
+    mult(atAWL,xC,AWL); 
+    return 2/toolbox::constant::pi*AWL(1,1)/xC(1,1); // gets pp term of the integral
+}
+
+#define BISEC_ACCURACY 1e-9
+void spectral_bisection(FMatrix<double>& xA, FMatrix<double>& xC, double target, double low, double flow, double high, double fhigh, double &ret)
+{
+    double mid=0.5*(low+high), fmid=harm_cdf(xA, xC, mid);
+    //std::cerr << mid <<" "<< fmid<<"bisec\n";
+    if (fabs(fmid-target)<BISEC_ACCURACY) { ret=mid;  return; }
+    if (fmid>target) spectral_bisection(xA, xC, target, low, flow, mid, fmid, ret);
+    else spectral_bisection(xA, xC, target, mid, fmid, high, fhigh, ret);
+}
+
+double lormodel(double& a, double& b, double& w){
+    return 2*a*(a*a + b*b + w*w)/(toolbox::constant::pi*((a*a + b*b)*(a*a + b*b) + 2*(a - b)*(a + b)*w*w + w*w*w*w));
+}
+
+double ppspectrum(FMatrix<double>& xA, FMatrix<double>& xC, double& w){
+    toolbox::FMatrix<double> xAC(xA), xIn(xA), xAux(xA);
+    toolbox::mult(xA, xA, xAux);    
+    for( int i = 0; i < xA.rows(); ++i )
+    {    xAux(i,i)+=w*w;   }
+    toolbox::MatrixInverse(xAux, xIn);
+    toolbox::mult(xA, xC, xAC);
+    toolbox::mult(xIn, xAC, xAux);
+    return xAux(1,1)/xC(1,1)*2.0/toolbox::constant::pi; // pp part
+}
+
+
+double l2norm(double& a, double& b){
+    return (a-b)*(a-b);
+}
+
+double adaptiveintegration(FMatrix<double>& xA, FMatrix<double>& xC, double& alor, double& blor, double a, double b, double epsilon, int bottom) {                 
+    double c = (a + b)/2, h = b - a;                                                                  
+    double d = (a + c)/2, e = (c + b)/2;
+    double fa, fb, fc, fd, fe; 
+    double spec, lmodel;
+
+    spec=ppspectrum(xA, xC, a);
+    lmodel=lormodel(alor, blor, a);
+    fa=l2norm(spec, lmodel);
+    spec=ppspectrum(xA, xC, b);
+    lmodel=lormodel(alor, blor, b);
+    fb=l2norm(spec, lmodel);
+    spec=ppspectrum(xA, xC, c);
+    lmodel=lormodel(alor, blor, c);
+    fc=l2norm(spec, lmodel);
+    spec=ppspectrum(xA, xC, d);
+    lmodel=lormodel(alor, blor, d);
+    fd=l2norm(spec, lmodel);
+    spec=ppspectrum(xA, xC, e);
+    lmodel=lormodel(alor, blor, e);
+    fe=l2norm(spec, lmodel);                                                                
+ 
+    double Q1 = h/6  * (fa + 4*fc + fb);
+    double Q2 = h/12 * (fa + 4*fd + 2*fc + 4*fe + fb);
+                                                                    
+    if (bottom <= 0 || std::fabs(Q2- Q1) <= epsilon)                                         
+      return Q2 + (Q2 - Q1)/15;            
+    else                                                                    
+    return adaptiveintegration(xA, xC, alor, blor, a, c, epsilon/2, bottom-1) +                    
+           adaptiveintegration(xA, xC, alor, blor, c, b, epsilon/2, bottom-1);                     
+}
+
+// L2 norm of a lorenzian with median w and interquartile distance g
+double overlap_lorlor(double g, double w)
+{
+    return (2*g*g + w*w)/(2*g*g*g*toolbox::constant::pi + 2*g*toolbox::constant::pi*w*w);
+}
+
+// L2 norm of a the peak originating from an eigenvalue a+Ib with weight c+Id
+double overlap_spec(double a, double b, double c, double d)
+{
+    return (2*a*a*c*c + b*b*c*c + 2*a*b*c*d + b*b*d*d)/(2*a*a*a*toolbox::constant::pi + 2*a*b*b*toolbox::constant::pi);
+}
+
+double overlap_specspec(double a1, double b1, double c1, double d1, double a2, double b2, double c2, double d2)
+{
+    return (2*a1*a1*a1*c1*c2 + 6*a1*a1*a2*c1*c2 + 6*a1*a2*a2*c1*c2 + 
+2*a2*a2*a2*c1*c2 + 2*a1*b1*b1*c1*c2 + 2*a2*b1*b1*c1*c2 + 
+2*a1*b2*b2*c1*c2 + 2*a2*b2*b2*c1*c2 + 2*a1*a1*b1*c2*d1 + 
+4*a1*a2*b1*c2*d1 + 2*a2*a2*b1*c2*d1 + 2*b1*b1*b1*c2*d1 - 
+2*b1*b2*b2*c2*d1 + 2*a1*a1*b2*c1*d2 + 4*a1*a2*b2*c1*d2 + 
+2*a2*a2*b2*c1*d2 - 2*b1*b1*b2*c1*d2 + 2*b2*b2*b2*c1*d2 + 
+4*a1*b1*b2*d1*d2 + 4*a2*b1*b2*d1*d2)/(toolbox::constant::pi*
+(a1*a1*a1*a1 + 4*a1*a1*a1*a2 + 6*a1*a1*a2*a2 + 4*a1*a2*a2*a2 + 
+a2*a2*a2*a2 + 2*a1*a1*b1*b1 + 4*a1*a2*b1*b1 + 2*a2*a2*b1*b1 + 
+b1*b1*b1*b1 + 2*a1*a1*b2*b2 + 4*a1*a2*b2*b2 + 2*a2*a2*b2*b2 - 
+2*b1*b1*b2*b2 + b2*b2*b2*b2));
+}
+
+// overlap of a peak and a lorentzian
+double overlap_lorspec(double g, double w, double a, double b, double c, double d)
+{
+    return (2*a*a*a*c*toolbox::constant::pi + 2*a*b*b*c*toolbox::constant::pi + 
+    2*a*a*b*d*toolbox::constant::pi + 2*b*b*b*d*toolbox::constant::pi + 
+6*a*a*c*g*toolbox::constant::pi + 2*b*b*c*g*toolbox::constant::pi + 
+4*a*b*d*g*toolbox::constant::pi + 6*a*c*g*g*toolbox::constant::pi + 
+2*b*d*g*g*toolbox::constant::pi + 2*c*g*g*g*toolbox::constant::pi + 
+2*a*c*toolbox::constant::pi*w*w - 2*b*d*toolbox::constant::pi*w*w + 
+2*c*g*toolbox::constant::pi*w*w )/((a*a*a*a + 2*a*a*b*b + b*b*b*b + 4*a*a*a*g + 4*a*b*b*g + 6*a*a*g*g + 
+2*b*b*g*g + 4*a*g*g*g + g*g*g*g + 2*a*a*w*w - 2*b*b*w*w + 4*a*g*w*w + 
+2*g*g*w*w + w*w*w*w)*toolbox::constant::pi*toolbox::constant::pi);
+}
+
+
+
+//integrates the peak of the velocity-velocity correlation function from w*(1-d) to w*(1+d)
+void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double& specdiff, double& median, double& interq)
+{
+    unsigned long n=A.rows();
+    
+    //prepares extended matrices
+    toolbox::FMatrix<double> xA(n+1,n+1), xBBT(n+1,n+1), xC;
+    xA*=0.; xBBT=xA;
+    for (int i=0; i<n;++i)for (int j=0; j<n;++j)
+    { xA(i+1,j+1)=A(i,j);  xBBT(i+1,j+1)=BBT(i,j); }
+    xA(0,1)=-1; xA(1,0)=w*w;   //sets the harmonic hamiltonian part
+    GLEABC abc; abc.set_A(xA); abc.set_BBT(xBBT);
+    
+    //std::cerr<<" ---  C in tauw "<<w<<" ----\n"<<xC<<" ---------- \n";
+    abc.get_C(xC);
+    
+    //find 1,2,3 quartiles
+    //the total integral under the peak is Pi/2
+    
+    
+    double Lhigh = w, cdfhigh=harm_cdf(xA, xC, Lhigh);
+    double Llow=w, cdflow=cdfhigh;
+    double Lmid=w, cdfmid=cdfhigh;
+    // computes the integral of Cpp from 0 to L
+    while (cdfhigh<0.75)
+    {
+        Lhigh*=2;
+        cdfhigh= harm_cdf(xA, xC, Lhigh);
+    //    std::cerr<<"hCDF "<<Lhigh<<" "<<cdfhigh<<std::endl;
+    }
+    while (cdflow>0.25) 
+    {
+        Llow/=2;
+        cdflow=harm_cdf(xA, xC, Llow);  
+    }
+    // std::cerr<<"CDFl "<<Llow<<" "<<cdflow<<std::endl;
+    // std::cerr<<"CDFh "<<Lhigh<<" "<<cdfhigh<<std::endl;
+    double LD50, LD25, LD75;
+    spectral_bisection(xA, xC, 0.5, Llow, cdflow, Lhigh, cdfhigh, LD50);
+    spectral_bisection(xA, xC, 0.75, LD50, 0.5, Lhigh, cdfhigh, LD75);
+    spectral_bisection(xA, xC, 0.25, Llow, cdflow, LD50, 0.5, LD25);
+    
+    std::cerr<<"LDs "<< LD25<<" "<< LD50 <<" "<< LD75 << std::endl;
+
+    // integrate square distance between both from 0 to wf with an adaptive grid...
+    double wi=0, wf=LD50+100*(LD75-LD25);
+    double alor, blor; 
+
+
+    // Here define a fake Lorentzian with these parameters
+    
+    alor=(LD75-LD25)*0.5;
+    blor=LD50*LD50-alor*alor;
+    median=LD50;
+    interq=(LD75-LD25);
+    if (blor>0.0) { blor=std::sqrt(blor);}
+    else{ blor=0.0; }
+    
+    std::cerr<<"CDFMED "<<harm_cdf(xA, xC, LD50)<<std::endl;
+
+    // std::cerr<<"A and B lorentizan "<< alor <<" "<< blor <<" \n";
+ 
+    specdiff=adaptiveintegration(xA, xC, alor, blor, wi, wf, 0.0001, 500);
+
+    std::valarray<tblapack::complex> ra; CMatrix U, U1, U1C;
+    abc.get_esA(ra, U, U1);
+    mult(U1,xC,U1C);
+    
+    tblapack::complex i11=0; tblapack::complex li, lj;
+    double lw=LD50, lg=(LD75-LD25)*0.5; // parameters of the reference Lorentzian
+    double ai, bi, ci, di, aj, bj, cj, dj;
+    tblapack::complex llor(alor,blor); int na=ra.size();
+    std::cerr<<w<<" REFLOPR "<<lw<<" "<<lg<<std::endl;
+    for (int i=0; i<na; ++i)
+    {
+        
+        ai = ra[i].real(); bi= ra[i].imag(); ci=(U(1,i) * U1C(i,1)).real(); di=(U(1,i) * U1C(i,1)).imag();        
+        std::cerr<<ai<<","<<bi<<"  www "<< U(1,i) * U1C(i,1)/xC(1,1)<<" ataninv "<<ataninv(li/LD50)<<std::endl;
+        std::cerr<<"OVERLAP "<<overlap_lorspec(lg,lw,ai,bi,ci,di)<< " SELF "<< overlap_specspec(ai,bi,ci,di,ai,bi,ci,di)<<" ref "<<overlap_lorlor(lg,lw)<<std::endl;
+        for (int j=0; j<na; ++j)
+        {
+            aj = ra[j].real(); bj= ra[j].imag(); cj=(U(1,j) * U1C(j,1)).real(); dj=(U(1,j) * U1C(j,1)).imag();
+            
+            i11 += overlap_lorlor(lg,lw)/(na*na);
+            i11 += overlap_specspec(ai,bi,ci,di,aj,bj,cj,dj);
+            i11 -= overlap_lorspec(lg,lw,ai,bi,ci,di)/(na);
+            i11 -= overlap_lorspec(lg,lw,aj,bj,cj,dj)/(na);            
+            //std::cerr<<li<<" "<<lj<<" "<<symlor_sp(li, lj)<<"  "<<symlor_sp(lj, li)<<"\n";
+            //i11 += U(1,i) * U1C(i,1) * U(1,j) * U1C(j,1) * symlor_sp(li, lj);
+            //i11 += symlor_sp(llor, llor)/(na*na);
+            //i11 -= U(1,i) * U1C(i,1) * (symlor_sp(li, llor) /na) ;
+            //ei11 -= U(1,j) * U1C(j,1) * ( symlor_sp(llor, lj) / na);
+        }
+    }
+    i11*=1.0/(xC(1,1)*xC(1,1));
+    std::cerr<<ra.size()<<" NUMERICAL: "<<specdiff<<"  ANALYTICAL:  "<<i11.real()<<std::endl;
+    // std::cerr<<"LDs "<< LD25<<" "<< LD50 <<" "<< LD75 << std::endl;
+    // std::cerr<<"sqdiff: "<<specdiff<<std::endl;
+
+
+}
+
+
+void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& lambdafp, double& repole, double& impole, double& qres, double& pres, double& median, double& interq, double& specdiff)
 {
     unsigned long n=A.rows();
     double w2=w*w, w4=w2*w2; 
@@ -492,10 +719,13 @@ void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, dou
     tq2=qqqq/qqqq0;
     
     //get power spectrum peak widths
-    spectral_analysis(abc, repole, impole, qres, pres, wavgq, wspreadq, wkurtq, wimgq, wavgp, wspreadp, wkurtp, wimgp);
+    spectral_analysis(abc, repole, impole, qres, pres);
+
+    // get difference in shapes of spectra
+    harm_shape(A, BBT, w, specdiff, median, interq);
 }
 
-void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& repole, double& impole, double& qres, double& pres, double& wavgq, double &wimgq, double& wspreadq, double& wkurtq, double& wavgp, double& wimgp, double& wspreadp, double& wkurtp)
+void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& repole, double& impole, double& qres, double& pres)
 {
     unsigned long n=A.rows();
     double w2=w*w, wrp2=wrp*wrp, dw; 
@@ -511,7 +741,7 @@ void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double
     GLEABC abc; abc.set_A(xA); abc.set_BBT(xBBT);
     abc.get_C(xC);
 
-    spectral_analysis(abc, repole, impole, qres, pres, wavgq, wspreadq, wkurtq, wimgq, wavgp, wspreadp, wkurtp, wimgp);
+    spectral_analysis(abc, repole, impole, qres, pres);
     
 }
 /*
@@ -537,13 +767,6 @@ double __intme(double xa, double xb, double fa, double fb)
 }
 */
 
-tblapack::complex atan(tblapack::complex c)
-{
-    const tblapack::complex i(0.0,1.0);
-    const tblapack::complex one(1.0,0.0);
-    const tblapack::complex r=log( (one + i * c) / (one - i * c)) / tblapack::complex(0.0,2.0);
-    return log( (one + i * c) / (one - i * c)) / tblapack::complex(0.0,2.0);
-}
 
 //integrates the peak of the velocity-velocity correlation function from w*(1-d) to w*(1+d)
 void harm_peak(const DMatrix& A, const DMatrix& BBT, double w, double d, double &pi)
@@ -574,165 +797,6 @@ void harm_peak(const DMatrix& A, const DMatrix& BBT, double w, double d, double 
     
     pi=2./toolbox::constant::pi*(AW1(1,1)-AW2(1,1))/xC(1,1);
 }
-
-tblapack::complex ataninv(tblapack::complex x) { return atan(1./x); }
-
-double harm_cdf(FMatrix<double>& xA, FMatrix<double>& xC, double L)
-{
-    FMatrix<double> AWL(xA), atAWL;
-    AWL*=(1./L);
-    MatrixFunction(AWL,&ataninv,atAWL);
-    mult(atAWL,xC,AWL); 
-    return 2/toolbox::constant::pi*AWL(1,1)/xC(1,1); // gets pp term of the integral
-}
-
-#define BISEC_ACCURACY 1e-6
-void spectral_bisection(FMatrix<double>& xA, FMatrix<double>& xC, double target, double low, double flow, double high, double fhigh, double &ret)
-{
-    double mid=0.5*(low+high), fmid=harm_cdf(xA, xC, mid);
-    std::cerr << mid <<" "<< fmid<<"bisec\n";
-    if (fabs(fmid-target)<BISEC_ACCURACY) { ret=mid;  return; }
-    if (fmid>target) spectral_bisection(xA, xC, target, low, flow, mid, fmid, ret);
-    else spectral_bisection(xA, xC, target, mid, fmid, high, fhigh, ret);
-}
-
-double lormodel(double& a, double& b, double& w){
-    return (2*a*(a*a + b*b + w*w)/(toolbox::constant::pi*(a*a + b*b)*(a*a + b*b) + 2*(a - b)*(a + b)*w*w + w*w*w*w));
-}
-
-double ppspectrum(FMatrix<double>& xA, FMatrix<double>& xC, double& w){
-    toolbox::FMatrix<double> xAC(xA), xIn(xA), xAux(xA);
-    toolbox::mult(xA, xA, xAux);    
-    for( int i = 0; i < xA.rows(); ++i )
-    {    xAux(i,i)+=w*w;   }
-    toolbox::MatrixInverse(xAux, xIn);
-    toolbox::mult(xA, xC, xAC);
-    toolbox::mult(xIn, xAC, xAux);
-    return xAux(1,1)/xC(1,1)*2.0/toolbox::constant::pi; // pp part
-}
-
-
-double l2norm(double& a, double& b){
-    return a; //(a-b)*(a-b);
-}
-
-double adaptiveSimpsonsAux(FMatrix<double>& xA, FMatrix<double>& xC, double& alor, double& blor, unsigned long& n, double a, double b, double epsilon,                 
-                         double S, double fa, double fb, double fc, int bottom) {                 
-    double c = (a + b)/2, h = b - a;                                                                  
-    double d = (a + c)/2, e = (c + b)/2;
-    double fd, fe; 
-    double spec, lmodel;
-
-    spec=ppspectrum(xA, xC, d);
-    lmodel=lormodel(alor, blor, d);
-    fd=l2norm(spec, lmodel);
-    spec=ppspectrum(xA, xC, e);
-    lmodel=lormodel(alor, blor, e);
-    fe=l2norm(spec, lmodel);                                                                
-                                                                     
-    double Sleft = (h/12)*(fa + 4*fd + fc);                                                           
-    double Sright = (h/12)*(fc + 4*fe + fb);                                                          
-    double S2 = Sleft + Sright;                                                                     
-    if (bottom <= 0 || std::fabs(S2 - S) <= 15*epsilon)   // magic 15 comes from error analysis                                       
-      return S2 + (S2 - S)/15;                                                                        
-    return adaptiveSimpsonsAux(xA, xC, alor, blor, n, a, c, epsilon/2, Sleft,  fa, fc, fd, bottom-1) +                    
-           adaptiveSimpsonsAux(xA, xC, alor, blor, n, c, b, epsilon/2, Sright, fc, fb, fe, bottom-1);                     
-}
-
-
-
-double adaptiveintegration(FMatrix<double>& xA, FMatrix<double>& xC, double& alor, double& blor, unsigned long& n,   // ptr to function
-                           double wi, double wf,  // interval [a,b]
-                           double epsilon,  // error tolerance
-                           int maxRecursionDepth) {   // recursion cap        
-   double c = (wi + wf)*0.5, h = wf - wi;
-   double fa, fb, fc;                                                                  
-   double spec, lmodel;
-   spec=ppspectrum(xA, xC, wi);
-   lmodel=lormodel(alor, blor, wi);
-   fa=l2norm(spec, lmodel);
-   std::cerr<<"spec and lmodel "<< spec<<" "<< lmodel << std::endl; 
-   spec=ppspectrum(xA, xC, wf);
-   lmodel=lormodel(alor, blor, wf);
-   fb=l2norm(spec, lmodel);
-   spec=ppspectrum(xA, xC, c);
-   lmodel=lormodel(alor, blor, c);
-   fc=l2norm(spec, lmodel);                                                          
-   double S = (h/6)*(fa + 4*fc + fb);                                                                
-   return adaptiveSimpsonsAux(xA, xC, alor, blor, n, wi, wf, epsilon, S, fa, fb, fc, maxRecursionDepth);                   
-} 
-
-
-double symlor(tbdeff:complex& l, double& w){
-    return (2*a*(a*a + b*b + w*w)/(toolbox::constant::pi*(a*a + b*b)*(a*a + b*b) + 2*(a - b)*(a + b)*w*w + w*w*w*w));
-}
-
-//integrates the peak of the velocity-velocity correlation function from w*(1-d) to w*(1+d)
-void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double &pmedian, double &pinterquartile)
-{
-    unsigned long n=A.rows();
-    
-    //prepares extended matrices
-    toolbox::FMatrix<double> xA(n+1,n+1), xBBT(n+1,n+1), xC;
-    xA*=0.; xBBT=xA;
-    for (int i=0; i<n;++i)for (int j=0; j<n;++j)
-    { xA(i+1,j+1)=A(i,j);  xBBT(i+1,j+1)=BBT(i,j); }
-    xA(0,1)=-1; xA(1,0)=w*w;   //sets the harmonic hamiltonian part
-    GLEABC abc; abc.set_A(xA); abc.set_BBT(xBBT);
-    
-    //std::cerr<<" ---  C in tauw "<<w<<" ----\n"<<xC<<" ---------- \n";
-    abc.get_C(xC);
-    
-    //find 1,2,3 quartiles
-    //the total integral under the peak is Pi/2
-    
-    
-    double Lhigh = w, cdfhigh=harm_cdf(xA, xC, Lhigh);
-    double Llow=w, cdflow=cdfhigh;
-    double Lmid=w, cdfmid=cdfhigh;
-    // computes the integral of Cpp from 0 to L
-    while (cdfhigh<0.75)
-    {
-        Lhigh*=2;
-        cdfhigh= harm_cdf(xA, xC, Lhigh);
-        std::cerr<<"hCDF "<<Lhigh<<" "<<cdfhigh<<std::endl;
-    }
-    while (cdflow>0.25) 
-    {
-        Llow/=2;
-        cdflow=harm_cdf(xA, xC, Llow);  
-    }
-    std::cerr<<"CDFl "<<Llow<<" "<<cdflow<<std::endl;
-    std::cerr<<"CDFh "<<Lhigh<<" "<<cdfhigh<<std::endl;
-    double LD50, LD25, LD75;
-    spectral_bisection(xA, xC, 0.5, Llow, cdflow, Lhigh, cdfhigh, LD50);
-    spectral_bisection(xA, xC, 0.75, LD50, 0.5, Lhigh, cdfhigh, LD75);
-    spectral_bisection(xA, xC, 0.25, Llow, cdflow, LD50, 0.5, LD25);
-    
-    std::cerr<<"LDs "<< LD25<<" "<< LD50 <<" "<< LD75 << std::endl;
-
-    // integrate square distance between both from 0 to wf with an adaptive grid...
-    double wi=0, wf=LD50+6*(LD75-LD25);
-    double alor, blor, integral; 
-
-
-    // Here define a fake Lorentzian with these parameters
-    alor=(LD75-LD25)*0.5;
-    blor=LD50*LD50-alor*alor;
-    if (blor>0.0) { blor=std::sqrt(blor);}
-    else{ blor=0.0; }
-
-    std::cerr<<"A and B lorentizan "<< alor <<" "<< blor <<" \n";
- 
-    n=n+1;
-    integral=adaptiveintegration(xA, xC, alor, blor, n, wi, wf, 0.001, 200);
-
-    std::cerr<<"LDs "<< LD25<<" "<< LD50 <<" "<< LD75 << std::endl;
-    std::cerr<<"sqdiff: "<<integral<<std::endl;
-
-
-}
-
 
 void harm_spectrum(const DMatrix& A, const DMatrix& BBT, double w, const std::valarray<double>& wl, std::valarray<double>& cqq, std::valarray<double>& cpp )
 {

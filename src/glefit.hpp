@@ -10,7 +10,7 @@
 enum GLEFDir    { Equal, Greater, Smaller };
 enum GLEFMetric { Linear, Logarithmic, Exponential };
 /* 4MR */
-enum GLEFPointType { TauP2, TauQ2, TauH, KP2, KQ2, KH, Hw, Kw, HonK, DwQ, DwP, rDwQ, rDwP, LFP, PI2, PI10, PI100, RPImPole, RPRePole, RPQRes, RPPRes, RPQavg, RPQimv, RPQspr, RPQkurt, RPPavg, RPPimv, RPPspr, RPPkurt, CqqDT, CppDT, Cqq, Cpp, PTMin=TauP2, PTMax=Cpp+1 };
+enum GLEFPointType { TauP2, TauQ2, TauH, KP2, KQ2, KH, Hw, Kw, HonK, DwQ, DwP, rDwQ, rDwP, LFP, PI2, PI10, PI100, RPImPole, RPRePole, RPQRes, RPPRes, SpecMed, SpecInterq, SpecDiff, CqqDT, CppDT, Cqq, Cpp, PTMin=TauP2, PTMax=Cpp+1 };
 enum GLEFGlobType  { GZero, GInf, TZero, TInf, ARatio, ACondNum, CRatio, CCondNum, DCondNum, PQRatio, AEigvMax, AEigvSpread, AEigvCenter, AEigvWeight, AECondNum, DeltaSpread, DeltaWeight };
 enum GLEFSearchMode { Annealing, Simplex, Powell };
 enum GLEFParStyleA { ARealOnly, AComplex, AFull, APositive, APReal, APGeneral, ADelta };
