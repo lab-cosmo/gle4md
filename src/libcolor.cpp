@@ -455,26 +455,7 @@ tblapack::complex atan(tblapack::complex c)
     const tblapack::complex r=log( (one + i * c) / (one - i * c)) / tblapack::complex(0.0,2.0);
     return log( (one + i * c) / (one - i * c)) / tblapack::complex(0.0,2.0);
 }
-
 tblapack::complex ataninv(tblapack::complex x) { return atan(1./x); }
-
-double harm_cdf(FMatrix<double>& xA, FMatrix<double>& xC, double L)
-{
-    FMatrix<double> AWL(xA), atAWL;
-    AWL*=(1./L);
-    MatrixFunction(AWL,&ataninv,atAWL);
-    mult(atAWL,xC,AWL); 
-    return 2/toolbox::constant::pi*AWL(1,1)/xC(1,1); // gets pp term of the integral
-}
-#define BISEC_ACCURACY 1e-12
-void spectral_bisection(FMatrix<double>& xA, FMatrix<double>& xC, double target, double low, double flow, double high, double fhigh, double &ret)
-{
-    double mid=0.5*(low+high), fmid=harm_cdf(xA, xC, mid);
-    //std::cerr << mid <<" "<< fmid<<"bisec\n";
-    if (fabs((high-low)/mid)<BISEC_ACCURACY) { ret=mid;  return; }
-    if (fmid>target) spectral_bisection(xA, xC, target, low, flow, mid, fmid, ret);
-    else spectral_bisection(xA, xC, target, mid, fmid, high, fhigh, ret);
-}
 
 double lormodel(double& a, double& b, double& w){
     return 2*a*(a*a + b*b + w*w)/(toolbox::constant::pi*((a*a + b*b)*(a*a + b*b) + 2*(a - b)*(a + b)*w*w + w*w*w*w));
@@ -528,6 +509,39 @@ double adaptiveintegration(FMatrix<double>& xA, FMatrix<double>& xC, double& alo
            adaptiveintegration(xA, xC, alor, blor, c, b, epsilon/2, bottom-1);                     
 }
 
+// gets the normalized power spectrum for 
+// a GLE dynamics described by A and C. selects frequency w and picks the index-th component
+double corr_fun(FMatrix<double>& xA, FMatrix<double>& xC, double w, int index=1)
+{
+    FMatrix<double> A(xA), A2;
+    mult(A,A,A2);
+    for (int i=0; i<=A.rows(); ++i) A2+=w*w;
+    MatrixInverse(A2, A);
+    mult(A,xA,A2);
+    mult(A2,xC,A);
+    return 2/toolbox::constant::pi*A(index,index)/xC(index, index); 
+}
+
+// gets the cumulative distribution of the normalized power spectrum for 
+// a GLE dynamics described by A and C. Integrates up to frequency L and picks the index-th component
+double corr_cdf(FMatrix<double>& xA, FMatrix<double>& xC, double L, int index=1)
+{
+    FMatrix<double> AWL(xA), atAWL;
+    AWL*=(1./L);
+    MatrixFunction(AWL,&ataninv,atAWL);
+    mult(atAWL,xC,AWL); 
+    return 2/toolbox::constant::pi*AWL(index,index)/xC(index, index); 
+}
+#define BISEC_ACCURACY 1e-12
+void corr_cdf_bisect(FMatrix<double>& xA, FMatrix<double>& xC, double target, double low, double flow, double high, double fhigh, double &ret, int index=1)
+{
+    double mid=0.5*(low+high), fmid=corr_cdf(xA, xC, mid, index);
+    //std::cerr << mid <<" "<< fmid<<"bisec\n";
+    if (fabs((high-low)/mid)<BISEC_ACCURACY) { ret=mid;  return; }
+    if (fmid>target) corr_cdf_bisect(xA, xC, target, low, flow, mid, fmid, ret, index);
+    else corr_cdf_bisect(xA, xC, target, mid, fmid, high, fhigh, ret, index);
+}
+
 // L2 norm of a lorenzian with median w and interquartile distance g
 double overlap_lorlor(double g, double w)
 {
@@ -554,58 +568,11 @@ a2) + (b1)*(b1)) + 2*(a1 + a2 - b1)*(a1 + a2 + b1)*(b2)*(b2) +
     if (bbar > 1e-10)
     {
         b1=b1/bbar; b2=b2/bbar;
-        return ((2*c2*(((a1 + a2)*(a1 + a2) + 2*(bbar)*(bbar))*c1 + (a1 + 
-a2)*bbar*d1) + 2*bbar*((a1 + a2)*c1 + 2*bbar*d1)*d2)/((a1 + a2)*((a1 
-+ a2)*(a1 + a2) + 4*(bbar)*(bbar)))+
-(-2*bbar*((a1)*(a1)*(a1)*(a1)*(a1)*(c2*(d1 - b1*d1) - (-1 + 
-b2)*c1*d2) + (a2)*(a2)*(a2)*(a2)*(a2)*(c2*(d1 - b1*d1) - (-1 + 
-b2)*c1*d2) + 2*((b1)*(b1) - (b2)*(b2))*((b1)*(b1) - 
-(b2)*(b2))*(bbar)*(bbar)*(bbar)*(bbar)*(bbar)*(c1*c2 + d1*d2) + 
-(a2)*(a2)*(b1 - b2)*(b1 - b2)*(bbar)*(bbar)*(bbar)*((b1)*(b1)*c1*c2 + 
-2*b1*b2*c1*c2 + (b2)*(b2)*c1*c2 + 4*d1*d2) + 
-(a2)*(a2)*(a2)*(a2)*bbar*((-2 + (b1)*(b1) + (b2)*(b2))*c1*c2 - 2*(-1 
-+ b1*b2)*d1*d2) + a2*((b1)*(b1) - 
-(b2)*(b2))*(bbar)*(bbar)*(bbar)*(bbar)*(-4*b1*c2*d1 + 
-(b1)*(b1)*(c2*d1 + c1*d2) - b2*(b2*c2*d1 - 4*c1*d2 + b2*c1*d2)) + 
-(a1)*(a1)*(a1)*(a1)*(5*a2*(c2*(d1 - b1*d1) - (-1 + b2)*c1*d2) + 
-bbar*((-2 + (b1)*(b1) + (b2)*(b2))*c1*c2 - 2*(-1 + b1*b2)*d1*d2)) + 
-(a2)*(a2)*(a2)*(bbar)*(bbar)*(-((b1)*(b1)*(b1)*c2*d1) + b1*(-4 + 
-(b2)*(b2))*c2*d1 + (b1)*(b1)*(2*c2*d1 + (2 + b2)*c1*d2) + 
-b2*(-4*c1*d2 - (b2)*(b2)*c1*d2 + 2*b2*(c2*d1 + c1*d2))) + 
-(a1)*(a1)*(-10*(a2)*(a2)*(a2)*((-1 + b1)*c2*d1 + (-1 + b2)*c1*d2) + 
-(b1 - b2)*(b1 - b2)*(bbar)*(bbar)*(bbar)*((b1)*(b1)*c1*c2 + 
-2*b1*b2*c1*c2 + (b2)*(b2)*c1*c2 + 4*d1*d2) + 6*(a2)*(a2)*bbar*((-2 + 
-(b1)*(b1) + (b2)*(b2))*c1*c2 - 2*(-1 + b1*b2)*d1*d2) - 
-3*a2*(bbar)*(bbar)*((b1)*(b1)*(b1)*c2*d1 - b1*(-4 + (b2)*(b2))*c2*d1 
-- (b1)*(b1)*(2*c2*d1 + (2 + b2)*c1*d2) + b2*(4*c1*d2 + 
-(b2)*(b2)*c1*d2 - 2*b2*(c2*d1 + c1*d2)))) + 
-a1*(-5*(a2)*(a2)*(a2)*(a2)*((-1 + b1)*c2*d1 + (-1 + b2)*c1*d2) + 
-2*a2*(b1 - b2)*(b1 - b2)*(bbar)*(bbar)*(bbar)*((b1)*(b1)*c1*c2 + 
-2*b1*b2*c1*c2 + (b2)*(b2)*c1*c2 + 4*d1*d2) + 
-4*(a2)*(a2)*(a2)*bbar*((-2 + (b1)*(b1) + (b2)*(b2))*c1*c2 - 2*(-1 + 
-b1*b2)*d1*d2) + ((b1)*(b1) - 
-(b2)*(b2))*(bbar)*(bbar)*(bbar)*(bbar)*(-4*b1*c2*d1 + 
-(b1)*(b1)*(c2*d1 + c1*d2) - b2*(b2*c2*d1 - 4*c1*d2 + b2*c1*d2)) - 
-3*(a2)*(a2)*(bbar)*(bbar)*((b1)*(b1)*(b1)*c2*d1 - b1*(-4 + 
-(b2)*(b2))*c2*d1 - (b1)*(b1)*(2*c2*d1 + (2 + b2)*c1*d2) + b2*(4*c1*d2 
-+ (b2)*(b2)*c1*d2 - 2*b2*(c2*d1 + c1*d2)))) + 
-(a1)*(a1)*(a1)*(-10*(a2)*(a2)*((-1 + b1)*c2*d1 + (-1 + b2)*c1*d2) + 
-4*a2*bbar*((-2 + (b1)*(b1) + (b2)*(b2))*c1*c2 - 2*(-1 + b1*b2)*d1*d2) 
-+ (bbar)*(bbar)*(-((b1)*(b1)*(b1)*c2*d1) + b1*(-4 + (b2)*(b2))*c2*d1 
-+ (b1)*(b1)*(2*c2*d1 + (2 + b2)*c1*d2) + b2*(-4*c1*d2 - 
-(b2)*(b2)*c1*d2 + 2*b2*(c2*d1 + c1*d2))))))/((a1 + a2)*((a1)*(a1) + 
-2*a1*a2 + (a2)*(a2) + 4*(bbar)*(bbar))*((a1)*(a1) + 2*a1*a2 + 
-(a2)*(a2) + (b1 - b2)*(b1 - b2)*(bbar)*(bbar))*((a1)*(a1) + 2*a1*a2 + 
-(a2)*(a2) + (b1 + b2)*(b1 + b2)*(bbar)*(bbar))))/toolbox::constant::pi;
+        return ((2*c2*(((a1 + a2)*(a1 + a2) + 2*(bbar)*(bbar))*c1 + (a1 + a2)*bbar*d1) + 2*bbar*((a1 + a2)*c1 + 2*bbar*d1)*d2)/((a1 + a2)*((a1 + a2)*(a1 + a2) + 4*(bbar)*(bbar)))+ (-2*bbar*((a1)*(a1)*(a1)*(a1)*(a1)*(c2*(d1 - b1*d1) - (-1 + b2)*c1*d2) + (a2)*(a2)*(a2)*(a2)*(a2)*(c2*(d1 - b1*d1) - (-1 + b2)*c1*d2) + 2*((b1)*(b1) - (b2)*(b2))*((b1)*(b1) - (b2)*(b2))*(bbar)*(bbar)*(bbar)*(bbar)*(bbar)*(c1*c2 + d1*d2) + (a2)*(a2)*(b1 - b2)*(b1 - b2)*(bbar)*(bbar)*(bbar)*((b1)*(b1)*c1*c2 + 2*b1*b2*c1*c2 + (b2)*(b2)*c1*c2 + 4*d1*d2) + (a2)*(a2)*(a2)*(a2)*bbar*((-2 + (b1)*(b1) + (b2)*(b2))*c1*c2 - 2*(-1 + b1*b2)*d1*d2) + a2*((b1)*(b1) - (b2)*(b2))*(bbar)*(bbar)*(bbar)*(bbar)*(-4*b1*c2*d1 + (b1)*(b1)*(c2*d1 + c1*d2) - b2*(b2*c2*d1 - 4*c1*d2 + b2*c1*d2)) + (a1)*(a1)*(a1)*(a1)*(5*a2*(c2*(d1 - b1*d1) - (-1 + b2)*c1*d2) + bbar*((-2 + (b1)*(b1) + (b2)*(b2))*c1*c2 - 2*(-1 + b1*b2)*d1*d2)) + (a2)*(a2)*(a2)*(bbar)*(bbar)*(-((b1)*(b1)*(b1)*c2*d1) + b1*(-4 + (b2)*(b2))*c2*d1 + (b1)*(b1)*(2*c2*d1 + (2 + b2)*c1*d2) + b2*(-4*c1*d2 - (b2)*(b2)*c1*d2 + 2*b2*(c2*d1 + c1*d2))) + (a1)*(a1)*(-10*(a2)*(a2)*(a2)*((-1 + b1)*c2*d1 + (-1 + b2)*c1*d2) + (b1 - b2)*(b1 - b2)*(bbar)*(bbar)*(bbar)*((b1)*(b1)*c1*c2 + 2*b1*b2*c1*c2 + (b2)*(b2)*c1*c2 + 4*d1*d2) + 6*(a2)*(a2)*bbar*((-2 + (b1)*(b1) + (b2)*(b2))*c1*c2 - 2*(-1 + b1*b2)*d1*d2) - 3*a2*(bbar)*(bbar)*((b1)*(b1)*(b1)*c2*d1 - b1*(-4 + (b2)*(b2))*c2*d1 - (b1)*(b1)*(2*c2*d1 + (2 + b2)*c1*d2) + b2*(4*c1*d2 + (b2)*(b2)*c1*d2 - 2*b2*(c2*d1 + c1*d2)))) + a1*(-5*(a2)*(a2)*(a2)*(a2)*((-1 + b1)*c2*d1 + (-1 + b2)*c1*d2) + 2*a2*(b1 - b2)*(b1 - b2)*(bbar)*(bbar)*(bbar)*((b1)*(b1)*c1*c2 + 2*b1*b2*c1*c2 + (b2)*(b2)*c1*c2 + 4*d1*d2) + 4*(a2)*(a2)*(a2)*bbar*((-2 + (b1)*(b1) + (b2)*(b2))*c1*c2 - 2*(-1 + b1*b2)*d1*d2) + ((b1)*(b1) - (b2)*(b2))*(bbar)*(bbar)*(bbar)*(bbar)*(-4*b1*c2*d1 + (b1)*(b1)*(c2*d1 + c1*d2) - b2*(b2*c2*d1 - 4*c1*d2 + b2*c1*d2)) - 3*(a2)*(a2)*(bbar)*(bbar)*((b1)*(b1)*(b1)*c2*d1 - b1*(-4 + (b2)*(b2))*c2*d1 - (b1)*(b1)*(2*c2*d1 + (2 + b2)*c1*d2) + b2*(4*c1*d2 + (b2)*(b2)*c1*d2 - 2*b2*(c2*d1 + c1*d2)))) + (a1)*(a1)*(a1)*(-10*(a2)*(a2)*((-1 + b1)*c2*d1 + (-1 + b2)*c1*d2) + 4*a2*bbar*((-2 + (b1)*(b1) + (b2)*(b2))*c1*c2 - 2*(-1 + b1*b2)*d1*d2) + (bbar)*(bbar)*(-((b1)*(b1)*(b1)*c2*d1) + b1*(-4 + (b2)*(b2))*c2*d1 + (b1)*(b1)*(2*c2*d1 + (2 + b2)*c1*d2) + b2*(-4*c1*d2 - (b2)*(b2)*c1*d2 + 2*b2*(c2*d1 + c1*d2))))))/((a1 + a2)*((a1)*(a1) + 2*a1*a2 + (a2)*(a2) + 4*(bbar)*(bbar))*((a1)*(a1) + 2*a1*a2 + (a2)*(a2) + (b1 - b2)*(b1 - b2)*(bbar)*(bbar))*((a1)*(a1) + 2*a1*a2 + (a2)*(a2) + (b1 + b2)*(b1 + b2)*(bbar)*(bbar))))/toolbox::constant::pi;
     }
     else
     {
-        return (2*((a1 + a2)*((a1 + a2)*(a1 + a2) + (b1)*(b1) + (b2)*(b2))*c1*c2 + 
-b1*((a1 + a2)*(a1 + a2) + (b1 - b2)*(b1 + b2))*c2*d1 + b2*(((a1 + 
-a2)*(a1 + a2) - (b1)*(b1) + (b2)*(b2))*c1 + 2*(a1 + 
-a2)*b1*d1)*d2))/(((a1 + a2)*(a1 + a2) + (b1)*(b1))*((a1 + a2)*(a1 + 
-a2) + (b1)*(b1)) + 2*(a1 + a2 - b1)*(a1 + a2 + b1)*(b2)*(b2) + 
-(b2)*(b2)*(b2)*(b2))/toolbox::constant::pi;
+        return (2*((a1 + a2)*((a1 + a2)*(a1 + a2) + (b1)*(b1) + (b2)*(b2))*c1*c2 + b1*((a1 + a2)*(a1 + a2) + (b1 - b2)*(b1 + b2))*c2*d1 + b2*(((a1 + a2)*(a1 + a2) - (b1)*(b1) + (b2)*(b2))*c1 + 2*(a1 + a2)*b1*d1)*d2))/(((a1 + a2)*(a1 + a2) + (b1)*(b1))*((a1 + a2)*(a1 + a2) + (b1)*(b1)) + 2*(a1 + a2 - b1)*(a1 + a2 + b1)*(b2)*(b2) + (b2)*(b2)*(b2)*(b2))/toolbox::constant::pi;
     }
 }
 
@@ -631,8 +598,8 @@ g))*((b)*(b) + (a + g)*(a + g)) + 2*(a - b + g)*(a + b + g)*(w)*(w) + \
 b)*(1 + b)*(w)*(w)))/toolbox::constant::pi;
 }
 
-//integrates the peak of the velocity-velocity correlation function from w*(1-d) to w*(1+d)
-void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double& specdiff, double& median, double& interq)
+//analyzes the shape of a peak in the harmonic distribution 
+void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double& specdiff, double& median, double& interq, int index=0)
 {
     unsigned long n=A.rows();
     
@@ -648,48 +615,45 @@ void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double& specdiff
     abc.get_C(xC);
     
     //find 1,2,3 quartiles
-    //the total integral under the peak is Pi/2
+    //the total integral under the peak is 1
     
-    
-    double Lhigh = w, cdfhigh=harm_cdf(xA, xC, Lhigh);
+    double Lhigh = w, cdfhigh=corr_cdf(xA, xC, Lhigh, index);
     double Llow=w, cdflow=cdfhigh;
     double Lmid=w, cdfmid=cdfhigh;
     // computes the integral of Cpp from 0 to L
-    while (cdfhigh<0.75)
+    while (cdfhigh<0.75) // upper bracket
     {
-        Lhigh*=2;
-        cdfhigh= harm_cdf(xA, xC, Lhigh);
-    //    std::cerr<<"hCDF "<<Lhigh<<" "<<cdfhigh<<std::endl;
+        Lhigh*=2; cdfhigh= corr_cdf(xA, xC, Lhigh, index);
     }
-    while (cdflow>0.25) 
+    while (cdflow>0.25) //lower bracket
     {
-        Llow/=2;
-        cdflow=harm_cdf(xA, xC, Llow);  
+        Llow/=2;  cdflow=corr_cdf(xA, xC, Llow, index);  
     }
     // std::cerr<<"CDFl "<<Llow<<" "<<cdflow<<std::endl;
     // std::cerr<<"CDFh "<<Lhigh<<" "<<cdfhigh<<std::endl;
     double LD50, LD25, LD75;
-    spectral_bisection(xA, xC, 0.5, Llow, cdflow, Lhigh, cdfhigh, LD50);
-    spectral_bisection(xA, xC, 0.75, LD50, 0.5, Lhigh, cdfhigh, LD75);
-    spectral_bisection(xA, xC, 0.25, Llow, cdflow, LD50, 0.5, LD25);
-    
-    std::cerr<<"LDs "<< LD25<<" "<< LD50 <<" "<< LD75 << std::endl;
+    corr_cdf_bisect(xA, xC, 0.5, Llow, cdflow, Lhigh, cdfhigh, LD50, index);
+    corr_cdf_bisect(xA, xC, 0.75, LD50, 0.5, Lhigh, cdfhigh, LD75, index);
+    corr_cdf_bisect(xA, xC, 0.25, Llow, cdflow, LD50, 0.5, LD25, index);
+        
+    median=LD50;
+    interq=(LD75-LD25)*0.5;
+    //std::cerr<<"LDs "<< LD25<<" "<< LD50 <<" "<< LD75 << std::endl;
 
     // integrate square distance between both from 0 to wf with an adaptive grid...
-    double wi=0, wf=LD50+100*(LD75-LD25);
-    double alor, blor; 
+//    double wi=0, wf=LD50+100*(LD75-LD25);
+ //   double alor, blor; 
 
 
     // Here define a fake Lorentzian with these parameters
     
-    alor=(LD75-LD25)*0.5;
-    blor=LD50*LD50-alor*alor;
-    median=LD50;
-    interq=(LD75-LD25)*0.5;
-    if (blor>0.0) { blor=std::sqrt(blor);}
-    else{ blor=0.0; }
+   // alor=(LD75-LD25)*0.5;
+   // blor=LD50*LD50-alor*alor;
     
-    std::cerr<<"CDFMED "<<harm_cdf(xA, xC, LD50)<<std::endl;
+   // if (blor>0.0) { blor=std::sqrt(blor);}
+   // else{ blor=0.0; }
+    
+//    std::cerr<<"CDFMED "<<corr_cdf(xA, xC, LD50)<<std::endl;
 
     // std::cerr<<"A and B lorentizan "<< alor <<" "<< blor <<" \n";
  
@@ -698,25 +662,25 @@ void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double& specdiff
     std::valarray<tblapack::complex> ra; CMatrix U, U1, U1C;
     abc.get_esA(ra, U, U1);
     mult(U1,xC,U1C);
-    U1C*=1.0/xC(1,1);  // normalize for the evaluation of the pp component
+    U1C*=1.0/xC(index,index);  // normalize for the evaluation of the desired (index,index) component
     
     double lw=LD50, lg=(LD75-LD25)*0.5; // parameters of the reference Lorentzian
     double ai, bi, ci, di, aj, bj, cj, dj;
     double i11=0; int na=ra.size();
     double ri1, di1, ri2, di2;
-#define PEAK_SMOOTH 1e-8
-    lg+=lw*PEAK_SMOOTH;    
-    std::cerr<<w<<" REFLOPR "<<lw<<" "<<lg<<std::endl;
+#define PEAK_SMOOTH 1e-8    
+    lg+=lw*PEAK_SMOOTH;    // stabilizes expressions by smoothening too-sharp peaks
+    std::cerr<<w<<" REFLOR "<<lw<<" "<<lg<<std::endl;
     for (int i=0; i<na; ++i)
     {
         
-        ai = ra[i].real(); bi= ra[i].imag(); ci=(U(1,i) * U1C(i,1)).real(); di=(U(1,i) * U1C(i,1)).imag();   
+        ai = ra[i].real(); bi= ra[i].imag(); ci=(U(index,i) * U1C(i,index)).real(); di=(U(index,i) * U1C(i,index)).imag();   
         ai += lw*PEAK_SMOOTH;
-        std::cerr<<"PEAK DATA " << ai <<" "     << bi <<" "<< ci <<" "<< di <<" \n";
-        std::cerr<<"OVERLAP "<<overlap_lorspec(lg,lw,ai,bi,ci,di)/ci<< " SELF "<< overlap_spec(ai,bi,ci,di)/(ci*ci)<<" ref "<<overlap_lorlor(lg,lw)<<std::endl;
+        //std::cerr<<"PEAK DATA " << ai <<" "     << bi <<" "<< ci <<" "<< di <<" \n";
+        //std::cerr<<"OVERLAP "<<overlap_lorspec(lg,lw,ai,bi,ci,di)/ci<< " SELF "<< overlap_spec(ai,bi,ci,di)/(ci*ci)<<" ref "<<overlap_lorlor(lg,lw)<<std::endl;
         //overlap_lorspec(lg,lw,ai,bi,ci,di,ri1,di1);
         //std::cerr<<"RESOLVE? "<< ri1/ci<<"  "<<di1/ci<<" = "<<(ri1+di1)/ci<<std::endl;
-        std::cerr<<"STABILITY CHECK \n";
+        //std::cerr<<"STABILITY CHECK \n";
         //overlap_lorlor(lg, lw, ri1, di1);
         //overlap_spec(ai,bi,ci,di, ri2, di2);
         //std::cerr<<"LOR-SPEC: div: "<< di1/na-di2<< "  reg: " << ri1/na-ri2<<std::endl ;
@@ -726,11 +690,11 @@ void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double& specdiff
         for (int j=0; j<na; ++j)
         {
                         
-            aj = ra[j].real(); bj= ra[j].imag(); cj=(U(1,j) * U1C(j,1)).real(); dj=(U(1,j) * U1C(j,1)).imag();
+            aj = ra[j].real(); bj= ra[j].imag(); cj=(U(index,j) * U1C(j,index)).real(); dj=(U(index,j) * U1C(j,index)).imag();
             aj += lw*PEAK_SMOOTH;
             if (i==j)  i11 += overlap_spec(ai,bi,ci,di);
             else  i11 += overlap_specspec(ai,bi,ci,di,aj,bj,cj,dj);
-            std::cerr<<"TEST SPECSPEC "<<i<<" " <<j<<" >> "<<overlap_specspec(ai,bi,ci,di,aj,bj,cj,dj)/(ci*cj)<<std::endl;
+            //std::cerr<<"TEST SPECSPEC "<<i<<" " <<j<<" >> "<<overlap_specspec(ai,bi,ci,di,aj,bj,cj,dj)/(ci*cj)<<std::endl;
             
             //i11 -= overlap_lorspec(lg,lw,aj,bj,cj,dj)/(na*xC(1,1));            
             //std::cerr<<li<<" "<<lj<<" "<<symlor_sp(li, lj)<<"  "<<symlor_sp(lj, li)<<"\n";
@@ -741,7 +705,7 @@ void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double& specdiff
         }
     }
     i11 += overlap_lorlor(lg,lw);       
-    std::cerr<<ra.size()<<" NUMERICAL: "<<specdiff<<"  ANALYTICAL:  "<<i11<<std::endl;
+    //std::cerr<<ra.size()<<" NUMERICAL: "<<specdiff<<"  ANALYTICAL:  "<<i11<<std::endl;
     specdiff = sqrt(fabs(i11)/overlap_lorlor(lg,lw));
     // std::cerr<<"LDs "<< LD25<<" "<< LD50 <<" "<< LD75 << std::endl;
     // std::cerr<<"sqdiff: "<<specdiff<<std::endl;
