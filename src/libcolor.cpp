@@ -626,7 +626,7 @@ void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double& specdiff
     alor=(LD75-LD25)*0.5;
     blor=LD50*LD50-alor*alor;
     median=LD50;
-    interq=(LD75-LD25);
+    interq=(LD75-LD25)*0.5;
     if (blor>0.0) { blor=std::sqrt(blor);}
     else{ blor=0.0; }
     
@@ -640,16 +640,14 @@ void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double& specdiff
     abc.get_esA(ra, U, U1);
     mult(U1,xC,U1C);
     
-    tblapack::complex i11=0; tblapack::complex li, lj;
     double lw=LD50, lg=(LD75-LD25)*0.5; // parameters of the reference Lorentzian
     double ai, bi, ci, di, aj, bj, cj, dj;
-    tblapack::complex llor(alor,blor); int na=ra.size();
+    double i11=0; int na=ra.size();
     std::cerr<<w<<" REFLOPR "<<lw<<" "<<lg<<std::endl;
     for (int i=0; i<na; ++i)
     {
         
         ai = ra[i].real(); bi= ra[i].imag(); ci=(U(1,i) * U1C(i,1)).real(); di=(U(1,i) * U1C(i,1)).imag();        
-        std::cerr<<ai<<","<<bi<<"  www "<< U(1,i) * U1C(i,1)/xC(1,1)<<" ataninv "<<ataninv(li/LD50)<<std::endl;
         std::cerr<<"OVERLAP "<<overlap_lorspec(lg,lw,ai,bi,ci,di)<< " SELF "<< overlap_specspec(ai,bi,ci,di,ai,bi,ci,di)<<" ref "<<overlap_lorlor(lg,lw)<<std::endl;
         for (int j=0; j<na; ++j)
         {
@@ -667,7 +665,8 @@ void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double& specdiff
         }
     }
     i11*=1.0/(xC(1,1)*xC(1,1));
-    std::cerr<<ra.size()<<" NUMERICAL: "<<specdiff<<"  ANALYTICAL:  "<<i11.real()<<std::endl;
+    specdiff = i11;
+    std::cerr<<ra.size()<<" NUMERICAL: "<<specdiff<<"  ANALYTICAL:  "<<i11<<std::endl;
     // std::cerr<<"LDs "<< LD25<<" "<< LD50 <<" "<< LD75 << std::endl;
     // std::cerr<<"sqdiff: "<<specdiff<<std::endl;
 
