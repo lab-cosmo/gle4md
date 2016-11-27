@@ -209,8 +209,7 @@ int main(int argc, char **argv)
         {
             abc.get_KH(w[ip], kw[ip], hw[ip]);
             double med, iquart;
-            harm_check(iA,iBBT,w[ip],tq2[ip],tp2[ip],th[ip],q2[ip],p2[ip],pq[ip],lfp[ip], rew[ip], imw[ip], qw[ip], pw[ip], specmed[ip], specinterq[ip], specdiff[ip]);//dwq[ip],dwp[ip], lfp[ip]);
-            std::cerr<<"HC "<<rew[ip] <<"  "<< imw[ip] <<"  "<< qw[ip] <<"  "<< pw[ip];
+            harm_check(iA,iBBT,w[ip],tq2[ip],tp2[ip],th[ip],q2[ip],p2[ip],pq[ip],lfp[ip], rew[ip], imw[ip], qw[ip], pw[ip], specmed[ip], specinterq[ip], specdiff[ip]);//dwq[ip],dwp[ip], lfp[ip]);            
             if (dpeak>0.) harm_peak(iA,iBBT,w[ip],dpeak,hdist[ip]);
             if (deltat>0) verlet_check(iA,iC,w[ip],deltat,q2dt[ip],p2dt[ip],pqdt[ip]);
             if (wrpmd>0) rp_check(iA, iBBT, w[ip], wrpmd, rpalpha, rp_rew[ip], rp_imw[ip], rp_qw[ip], rp_pw[ip]);

@@ -622,13 +622,9 @@ void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double& specdiff
     double Lmid=w, cdfmid=cdfhigh;
     // computes the integral of Cpp from 0 to L
     while (cdfhigh<0.75) // upper bracket
-    {
-        Lhigh*=2; cdfhigh= corr_cdf(xA, xC, Lhigh, index);
-    }
+    {   Lhigh*=2; cdfhigh= corr_cdf(xA, xC, Lhigh, index);  }
     while (cdflow>0.25) //lower bracket
-    {
-        Llow/=2;  cdflow=corr_cdf(xA, xC, Llow, index);  
-    }
+    {   Llow/=2;  cdflow=corr_cdf(xA, xC, Llow, index);     }
     // std::cerr<<"CDFl "<<Llow<<" "<<cdflow<<std::endl;
     // std::cerr<<"CDFh "<<Lhigh<<" "<<cdfhigh<<std::endl;
     double LD50, LD25, LD75;
@@ -659,6 +655,11 @@ void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double& specdiff
  
     //specdiff=adaptiveintegration(xA, xC, alor, blor, wi, wf, 0.0001, 500);
 
+
+    // now we set off to compute something tricky. we want a measure of how
+    // much the spectrum deviates from a lorentzian. we estimate the Lorentzian
+    // parameters from the median and interquartile distance, then compute the 2-norm
+    // of the difference between such lorentzian and the actual power spectrum
     std::valarray<tblapack::complex> ra; CMatrix U, U1, U1C;
     abc.get_esA(ra, U, U1);
     mult(U1,xC,U1C);
@@ -670,7 +671,7 @@ void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double& specdiff
     double ri1, di1, ri2, di2;
 #define PEAK_SMOOTH 1e-8    
     lg+=lw*PEAK_SMOOTH;    // stabilizes expressions by smoothening too-sharp peaks
-    std::cerr<<w<<" REFLOR "<<lw<<" "<<lg<<std::endl;
+    //std::cerr<<w<<" REFLOR "<<lw<<" "<<lg<<std::endl;
     for (int i=0; i<na; ++i)
     {
         
