@@ -1199,7 +1199,7 @@ void GLEFError::compute_globs(std::map<GLEFGlobType, double>& lims)
 
 }
 
-void GLEFError::compute_points(const std::vector<double>& xp, std::vector<std::map<GLEFPointType, double> >& val)
+void GLEFError::compute_points(const std::vector<double>& xp, std::vector<std::map<GLEFPointType, double> >& val, bool selective)
 {
     FMatrix<double> BBT;
     abc.get_BBT(BBT);
@@ -1208,12 +1208,14 @@ void GLEFError::compute_points(const std::vector<double>& xp, std::vector<std::m
     double pq, dummy;
     for (int i=0; i<xp.size(); i++)
     {
-        val[i].clear();
-        harm_check(A,BBT,xp[i],val[i][TauQ2],val[i][TauP2],val[i][TauH],val[i][Cqq],val[i][Cpp],pq, val[i][LFP], val[i][RPRePole],val[i][RPImPole],val[i][RPQRes], val[i][RPPRes], val[i][SpecMed], val[i][SpecInterq], val[i][SpecDiff]); //val[i][DwQ],val[i][DwP],val[i][LFP]);
-        /* 4MR */
-        rp_check(A, BBT, xp[i], opar.rpomega,opar.rpalpha,val[i][RPRePole],val[i][RPImPole],val[i][RPQRes],val[i][RPPRes]);
-        //rp_check(A, BBT, xp[i], opar.rpomega, opar.rpcoupling, val[i][RPImPole] ... )
-        abc.get_KH(xp[i],val[i][Kw],val[i][Hw]);
+        ///TODO Break down harm_check to make the evaluation more selective and fine-grained. If there are very expensive quantities, they should only be evaluated if requested
+        if (!selective) val[i].clear();
+        if (!selective || (  val[i][TauQ2]<0 || val[i][TauP2]<0 || val[i][TauH]<0 || val[i][Cqq]<0 || val[i][Cpp]<0 || pq<0 || val[i][DwQ]<0 || val[i][DwP]<0 || val[i][LFP]<0))
+            harm_check(A,BBT,xp[i],val[i][TauQ2],val[i][TauP2],val[i][TauH],val[i][Cqq],val[i][Cpp],pq, val[i][LFP], val[i][RPRePole],val[i][RPImPole],val[i][RPQRes], val[i][RPPRes], val[i][SpecMed], val[i][SpecInterq], val[i][SpecDiff]); //val[i][DwQ],val[i][DwP],val[i][LFP]); 
+        if (!selective || ( val[i][RPRePole]<0 || val[i][RPImPole]<0 || val[i][RPQRes]<0 || val[i][RPPRes]<0 ) )
+            rp_check(A, BBT, xp[i],opar.rpomega,opar.rpalpha,val[i][RPRePole],val[i][RPImPole],val[i][RPQRes],val[i][RPPRes]);
+        if (!selective || ( val[i][Kw]<0 || val[i][Hw]<0 ) )
+            abc.get_KH(xp[i],val[i][Kw],val[i][Hw]);
         if (opar.deltat>0.) verlet_check(A,C,xp[i],opar.deltat,val[i][CqqDT],val[i][CppDT],pq); else  { val[i][CqqDT]=val[i][Cqq]; val[i][CppDT]=val[i][Cpp]; } //if requested, compute finite-dt corrections
         val[i][HonK]=val[i][Hw]/val[i][Kw];
         val[i][rDwQ]=val[i][DwQ]/xp[i];
@@ -1289,7 +1291,16 @@ void GLEFError::get_value(double& rv)
     //populate an array with all the frequencies, we compute all points at once
     freqs.resize(ofit.points.size()); pvalues.resize(ofit.points.size());
     for(int i=0; i<ofit.points.size(); ++i) freqs[i]=ofit.points[i].x;
-    compute_points(freqs,pvalues);
+    for(int i=0; i<ofit.points.size(); ++i) // selects which values have to be computed
+    {
+        pvalues[i].clear();
+        for (pit=ofit.points[i].values.begin(); pit!=ofit.points[i].values.end(); pit++)
+        {
+            pvalues[i][pit->first] = -1;
+        }
+    }
+    
+    compute_points(freqs,pvalues,true);
 
     ptotals.clear(); pndata.clear(); pexp.clear();
     for(int i=0; i<ofit.points.size(); ++i)
