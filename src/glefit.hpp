@@ -118,7 +118,7 @@ class GLEFError
     public:
         GLEABC abc;
         void compute_globs(std::map<GLEFGlobType, double>& lims);
-        void compute_points(const std::vector<double>& xp, std::vector<std::map<GLEFPointType, double> >& val);
+        void compute_points(const std::vector<double>& xp, std::vector<std::map<GLEFPointType, double> >& val, bool selective=false);
 
         toolbox::nullstream *ogarbage;
         std::ostream *slog, *seva, *spars;
