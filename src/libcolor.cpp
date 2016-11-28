@@ -289,7 +289,7 @@ void GLEABC::prepare_C()
     C.resize(n,n);
     for (int i=0; i<n; ++i) for (int j=0; j<n; ++j) C(i,j)=real(G(i,j));
     fr_c=true;
-    mult(A,C,AC); mult(O1,AC,O1AC);
+    mult(A,C,AC); mult(O1,C,O1C);
     fr_spec=true;
 }
 
@@ -532,36 +532,44 @@ double GLEABC::get_pwspec(unsigned long i, unsigned long j, double w)
     }
     if (!fr_spec)
     {        
-        mult(A,C,AC); mult(O1,AC,O1AC);
+        mult(A,C,AC); mult(O1,C,O1C);
         fr_spec=true;
     }
     
     //COMPUTES [A/(A^2+w^2)C]_{i,j}
-    std::valarray<tblapack::complex> ra(a); tblapack::complex one;
-    one=1.0;  ra*=ra; ra+=w*w; ra=one/ra;
-    ra*=O.row(i); ra*=O1AC.col(j);     
+    std::valarray<tblapack::complex> ra(a);
+    ra*=ra; ra+=w*w; ra=a/ra;
+    ra*=O.row(i); ra*=O1C.col(j);     
     return 2/toolbox::constant::pi*ra.sum().real()/C(i,j);
 }
 
-// gets the cumulative distribution of the normalized power spectrum for 
-// a GLE dynamics described by A and C. Integrates up to frequency L and picks the index-th component
-double corr_cdf(FMatrix<double>& xA, FMatrix<double>& xC, double L, int index=1)
+double GLEABC::get_pwcdf(unsigned long i, unsigned long j, double w)
 {
-    FMatrix<double> AWL(xA), atAWL;
-    AWL*=(1./L);
-    MatrixFunction(AWL,&ataninv,atAWL);
-    mult(atAWL,xC,AWL); 
-    return 2/toolbox::constant::pi*AWL(index,index)/xC(index, index); 
+    if (!fr_eva)
+    {
+        EigenDecomposition(A, O, O1, a); fr_eva=true;
+    }
+    if (!fr_spec)
+    {        
+        mult(A,C,AC); mult(O1,C,O1C);
+        fr_spec=true;
+    }
+    
+    //COMPUTES [atan(w/A)C]_ij
+    std::valarray<tblapack::complex> ra(a); 
+    for (int k=0; k<n; ++k) ra[k]=ataninv(a[k]/w);
+    ra*=O.row(i); ra*=O1C.col(j);     
+    return 2/toolbox::constant::pi*ra.sum().real()/C(i,j);
 }
 
 #define BISEC_ACCURACY 1e-8
-void corr_cdf_bisect(FMatrix<double>& xA, FMatrix<double>& xC, double target, double low, double flow, double high, double fhigh, double &ret, int index=1)
+void corr_cdf_bisect(GLEABC& abc, double target, double low, double flow, double high, double fhigh, double &ret, int index=1)
 {
-    double mid=0.5*(low+high), fmid=corr_cdf(xA, xC, mid, index);
+    double mid=0.5*(low+high), fmid=abc.get_pwcdf(index,index, mid);
     //std::cerr << mid <<" "<< fmid<<"bisec\n";
     if (fabs((high-low)/mid)<BISEC_ACCURACY) { ret=mid;  return; }
-    if (fmid>target) corr_cdf_bisect(xA, xC, target, low, flow, mid, fmid, ret, index);
-    else corr_cdf_bisect(xA, xC, target, mid, fmid, high, fhigh, ret, index);
+    if (fmid>target) corr_cdf_bisect(abc, target, low, flow, mid, fmid, ret, index);
+    else corr_cdf_bisect(abc, target, mid, fmid, high, fhigh, ret, index);
 }
 
 // L2 norm of a lorenzian with median w and interquartile distance g
@@ -631,20 +639,20 @@ void harm_shape(GLEABC& abc, double w, double& specdiff, double& median, double&
     //find 1,2,3 quartiles
     //the total integral under the peak is 1
     
-    double Lhigh = w, cdfhigh=corr_cdf(xA, xC, Lhigh, index);
+    double Lhigh = w, cdfhigh=abc.get_pwcdf(index, index, Lhigh);
     double Llow=w, cdflow=cdfhigh;
     double Lmid=w, cdfmid=cdfhigh;
     // computes the integral of Cpp from 0 to L
     while (cdfhigh<0.75) // upper bracket
-    {   Lhigh*=2; cdfhigh= corr_cdf(xA, xC, Lhigh, index);  }
+    {   Lhigh*=2; cdfhigh= abc.get_pwcdf(index, index, Lhigh);  }
     while (cdflow>0.25) //lower bracket
-    {   Llow/=2;  cdflow=corr_cdf(xA, xC, Llow, index);     }
+    {   Llow/=2;  cdflow=abc.get_pwcdf(index, index, Llow);    }
     // std::cerr<<"CDFl "<<Llow<<" "<<cdflow<<std::endl;
     // std::cerr<<"CDFh "<<Lhigh<<" "<<cdfhigh<<std::endl;
     double LD50, LD25, LD75;
-    corr_cdf_bisect(xA, xC, 0.5, Llow, cdflow, Lhigh, cdfhigh, LD50, index);
-    corr_cdf_bisect(xA, xC, 0.75, LD50, 0.5, Lhigh, cdfhigh, LD75, index);
-    corr_cdf_bisect(xA, xC, 0.25, Llow, cdflow, LD50, 0.5, LD25, index);
+    corr_cdf_bisect(abc, 0.5, Llow, cdflow, Lhigh, cdfhigh, LD50, index);
+    corr_cdf_bisect(abc, 0.75, LD50, 0.5, Lhigh, cdfhigh, LD75, index);
+    corr_cdf_bisect(abc, 0.25, Llow, cdflow, LD50, 0.5, LD25, index);
         
     median=LD50;
     interq=(LD75-LD25)*0.5;

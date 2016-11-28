@@ -13,8 +13,6 @@
 typedef toolbox::FMatrix<double> DMatrix;
 typedef toolbox::FMatrix<tblapack::complex> CMatrix;
 
-double corr_fun(DMatrix& xA, DMatrix& xC, double w, int index=1);
-
 class GLEABC {
 private:
     unsigned long n;
@@ -22,7 +20,7 @@ private:
     bool fr_eva, fr_c, fr_init, fr_hk, fr_spec;
     CMatrix O, O1; std::valarray<tblapack::complex> a;
     DMatrix lA, lA1, Asqd; std::valarray<double> lZap; CMatrix lAO, lAO1; std::valarray<tblapack::complex> la;
-    CMatrix O1CT, O1AC;
+    CMatrix O1CT, O1C;
 
     void prepare_C();
     void prepare_hk();
@@ -51,6 +49,7 @@ public:
     void get_acf(unsigned long i, unsigned long j, double t, double& acf);
     void get_msd(unsigned long i, double t, double& msd, double& dmsd);
     double get_pwspec(unsigned long i, unsigned long j, double w);
+    double get_pwcdf(unsigned long i, unsigned long j, double w);
 };
 
 void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& lambdafp, double& repole, double& impole, double& qres, double& pres, double& median, double&interq, double& specdiff);

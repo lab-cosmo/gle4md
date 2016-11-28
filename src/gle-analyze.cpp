@@ -140,8 +140,6 @@ int main(int argc, char **argv)
     
     FMatrix<double> iBBT; abc.get_BBT(iBBT); abc.get_C(iC);
     
-    std::cerr<<abc.get_pwspec(1,1,0.55)<< " CF "<<corr_fun(iA, iC, 0.55,1)<<std::endl;
-    
     std::cout.precision(10);
     std::cout.setf(std::ios::left);
     std::cout.setf(std::ios::scientific);
