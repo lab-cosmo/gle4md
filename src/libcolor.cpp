@@ -599,20 +599,12 @@ b)*(1 + b)*(w)*(w)))/toolbox::constant::pi;
 }
 
 //analyzes the shape of a peak in the harmonic distribution 
-void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double& specdiff, double& median, double& interq, int index=0)
+void harm_shape(GLEABC& abc, double w, double& specdiff, double& median, double& interq, int index=0)
 {
-    unsigned long n=A.rows();
     
-    //prepares extended matrices
-    toolbox::FMatrix<double> xA(n+1,n+1), xBBT(n+1,n+1), xC;
-    xA*=0.; xBBT=xA;
-    for (int i=0; i<n;++i)for (int j=0; j<n;++j)
-    { xA(i+1,j+1)=A(i,j);  xBBT(i+1,j+1)=BBT(i,j); }
-    xA(0,1)=-1; xA(1,0)=w*w;   //sets the harmonic hamiltonian part    
-    GLEABC abc; abc.set_A(xA); abc.set_BBT(xBBT);
-    
-    //std::cerr<<" ---  C in tauw "<<w<<" ----\n"<<xC<<" ---------- \n";
-    abc.get_C(xC);
+    toolbox::FMatrix<double> xA, xC;
+    abc.get_A(xA); abc.get_C(xC);
+    unsigned int n=xA.rows();
     
     //find 1,2,3 quartiles
     //the total integral under the peak is 1
@@ -665,7 +657,7 @@ void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double& specdiff
     mult(U1,xC,U1C);
     U1C*=1.0/xC(index,index);  // normalize for the evaluation of the desired (index,index) component
     
-    double lw=LD50, lg=(LD75-LD25)*0.5; // parameters of the reference Lorentzian
+    double lw=LD50, lg=(LD75-LD25)*0.5; // parameters of the reference Lorentzian 
     double ai, bi, ci, di, aj, bj, cj, dj;
     double i11=0; int na=ra.size();
     double ri1, di1, ri2, di2;
@@ -762,10 +754,10 @@ void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, dou
     spectral_analysis(abc, repole, impole, qres, pres);
 
     // get difference in shapes of spectra
-    harm_shape(A, BBT, w, specdiff, median, interq);
+    harm_shape(abc, w, specdiff, median, interq);
 }
 
-void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& repole, double& impole, double& qres, double& pres)
+void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& repole, double& impole, double& qres, double& pres, double& median, double& interq, double& specdiff)
 {
     unsigned long n=A.rows();
     double w2=w*w, wrp2=wrp*wrp, dw; 
@@ -782,6 +774,8 @@ void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double
     abc.get_C(xC);
 
     spectral_analysis(abc, repole, impole, qres, pres);
+
+    harm_shape(abc, w, specdiff, median, interq);
     
 }
 /*
