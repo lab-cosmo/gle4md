@@ -14,11 +14,11 @@ void GLEABC::set_A(const DMatrix& nA)
     if (BBT.rows()>0) fr_init=true;
     if (n!=nA.rows()) ERROR("Use set_size if you want to change matrix size.");
     if (n!=nA.cols()) ERROR("Square matrix expected.");
-    A=nA; fr_eva=fr_hk=false;
+    A=nA; fr_eva=fr_hk=fr_spec=false;
     if (fr_init && fr_c)
     {
         //update BBT, it's so cheap we can do it routinely;
-        DMatrix T; mult(A, C, BBT); transpose(BBT, T);  incr(BBT,T);
+        DMatrix T; mult(A, C, AC); transpose(AC, T);  BBT=AC+T; 
     }
 }
 
@@ -28,7 +28,7 @@ void GLEABC::set_BBT(const DMatrix& nBBT)
     if (A.rows()>0) fr_init=true;
     if (n!=nBBT.rows()) ERROR("Use set_size if you want to change matrix size.");
     if (n!=nBBT.cols()) ERROR("Square matrix expected.");
-    BBT=nBBT; fr_c=false;
+    BBT=nBBT; fr_c=fr_spec=false;
 }
 
 void GLEABC::set_C(const DMatrix& nC)
@@ -37,11 +37,11 @@ void GLEABC::set_C(const DMatrix& nC)
     if (A.rows()>0) fr_init=true;
     if (n!=nC.rows()) ERROR("Use set_size if you want to change matrix size.");
     if (n!=nC.cols()) ERROR("Square matrix expected.");
-    C=nC; fr_c=true;
+    C=nC; fr_c=true; fr_spec=false;
     if (fr_init && fr_c)
     {
         //update BBT, it's so cheap we can do it routinely;
-        DMatrix T; mult(A, C, BBT); transpose(BBT, T);  incr(BBT,T);
+        DMatrix T; mult(A, C, AC); transpose(AC, T);  BBT=AC+T; 
     }
 }
 
@@ -289,6 +289,8 @@ void GLEABC::prepare_C()
     C.resize(n,n);
     for (int i=0; i<n; ++i) for (int j=0; j<n; ++j) C(i,j)=real(G(i,j));
     fr_c=true;
+    mult(A,C,AC); mult(O1,AC,O1AC);
+    fr_spec=true;
 }
 
 void rfsum(const std::valarray<tblapack::complex>& p1, const std::valarray<tblapack::complex>& q1,
@@ -511,15 +513,34 @@ double adaptiveintegration(FMatrix<double>& xA, FMatrix<double>& xC, double& alo
 
 // gets the normalized power spectrum for 
 // a GLE dynamics described by A and C. selects frequency w and picks the index-th component
-double corr_fun(FMatrix<double>& xA, FMatrix<double>& xC, double w, int index=1)
+double corr_fun(FMatrix<double>& xA, FMatrix<double>& xC, double w, int index)
 {
     FMatrix<double> A(xA), A2;
     mult(A,A,A2);
-    for (int i=0; i<=A.rows(); ++i) A2+=w*w;
+    for (int i=0; i<=A.rows(); ++i) A2(i,i)+=w*w;
     MatrixInverse(A2, A);
     mult(A,xA,A2);
     mult(A2,xC,A);
     return 2/toolbox::constant::pi*A(index,index)/xC(index, index); 
+}
+
+double GLEABC::get_pwspec(unsigned long i, unsigned long j, double w)
+{
+    if (!fr_eva)
+    {
+        EigenDecomposition(A, O, O1, a); fr_eva=true;
+    }
+    if (!fr_spec)
+    {        
+        mult(A,C,AC); mult(O1,AC,O1AC);
+        fr_spec=true;
+    }
+    
+    //COMPUTES [A/(A^2+w^2)C]_{i,j}
+    std::valarray<tblapack::complex> ra(a); tblapack::complex one;
+    one=1.0;  ra*=ra; ra+=w*w; ra=one/ra;
+    ra*=O.row(i); ra*=O1AC.col(j);     
+    return 2/toolbox::constant::pi*ra.sum().real()/C(i,j);
 }
 
 // gets the cumulative distribution of the normalized power spectrum for 
@@ -532,6 +553,7 @@ double corr_cdf(FMatrix<double>& xA, FMatrix<double>& xC, double L, int index=1)
     mult(atAWL,xC,AWL); 
     return 2/toolbox::constant::pi*AWL(index,index)/xC(index, index); 
 }
+
 #define BISEC_ACCURACY 1e-8
 void corr_cdf_bisect(FMatrix<double>& xA, FMatrix<double>& xC, double target, double low, double flow, double high, double fhigh, double &ret, int index=1)
 {

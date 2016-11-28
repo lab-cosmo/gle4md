@@ -1216,8 +1216,12 @@ void GLEFError::compute_points(const std::vector<double>& xp, std::vector<std::m
             rp_check(A, BBT, xp[i],opar.rpomega,opar.rpalpha,val[i][RPRePole],val[i][RPImPole],val[i][RPQRes],val[i][RPPRes], val[i][SpecMed], val[i][SpecInterq], val[i][SpecDiff]);
         if (!selective || ( val[i][Kw]<0 || val[i][Hw]<0 ) )
             abc.get_KH(xp[i],val[i][Kw],val[i][Hw]);
-        if (opar.deltat>0. && (!selective || (val[i][CqqDT]<0 || val[i][CppDT]<0 ) ))
-            verlet_check(A,C,xp[i],opar.deltat,val[i][CqqDT],val[i][CppDT],pq); else  { val[i][CqqDT]=val[i][Cqq]; val[i][CppDT]=val[i][Cpp]; } //if requested, compute finite-dt corrections
+        if (!selective || (val[i][CqqDT]<0 || val[i][CppDT]<0 ) ) 
+        {
+            if (opar.deltat>0.)
+                verlet_check(A,C,xp[i],opar.deltat,val[i][CqqDT],val[i][CppDT],pq); 
+            else  { val[i][CqqDT]=val[i][Cqq]; val[i][CppDT]=val[i][Cpp]; } //if requested, compute finite-dt corrections
+        }
         val[i][HonK]=val[i][Hw]/val[i][Kw];
         val[i][rDwQ]=val[i][DwQ]/xp[i];
         val[i][rDwP]=val[i][DwP]/xp[i];
@@ -1225,9 +1229,9 @@ void GLEFError::compute_points(const std::vector<double>& xp, std::vector<std::m
         val[i][KQ2]=1./(xp[i]*val[i][TauQ2]);
         val[i][KH]=1./(xp[i]*val[i][TauH]);
 #ifndef __NOPEAK
-        harm_peak(A,BBT,xp[i],0.5,val[i][PI2]);
-        harm_peak(A,BBT,xp[i],0.1,val[i][PI10]);
-        harm_peak(A,BBT,xp[i],0.01,val[i][PI100]);
+        if (!selective || val[i][PI2]<0)   harm_peak(A,BBT,xp[i],0.5,val[i][PI2]);
+        if (!selective || val[i][PI10]<0)  harm_peak(A,BBT,xp[i],0.1,val[i][PI10]);
+        if (!selective || val[i][PI100]<0) harm_peak(A,BBT,xp[i],0.01,val[i][PI100]);
 #endif
     }
 }

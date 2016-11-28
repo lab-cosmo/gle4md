@@ -13,21 +13,23 @@
 typedef toolbox::FMatrix<double> DMatrix;
 typedef toolbox::FMatrix<tblapack::complex> CMatrix;
 
+double corr_fun(DMatrix& xA, DMatrix& xC, double w, int index=1);
+
 class GLEABC {
 private:
     unsigned long n;
-    DMatrix A, BBT, C;
-    bool fr_eva, fr_c, fr_init, fr_hk;
+    DMatrix A, BBT, C, AC;
+    bool fr_eva, fr_c, fr_init, fr_hk, fr_spec;
     CMatrix O, O1; std::valarray<tblapack::complex> a;
     DMatrix lA, lA1, Asqd; std::valarray<double> lZap; CMatrix lAO, lAO1; std::valarray<tblapack::complex> la;
-    CMatrix O1CT;
+    CMatrix O1CT, O1AC;
 
     void prepare_C();
     void prepare_hk();
     double x(unsigned long i, unsigned long j, unsigned long k, unsigned long l);
 
 public:
-    GLEABC(): n(0), A(0,0), BBT(0,0), C(0,0), fr_eva(false), fr_c(false), fr_init(false), fr_hk(false) {}
+    GLEABC(): n(0), A(0,0), BBT(0,0), C(0,0), fr_eva(false), fr_c(false), fr_init(false), fr_hk(false), fr_spec(false) {}
     void set_size(unsigned long nn) { fr_init=false; n=nn; }
     void set_A(const DMatrix& rA);
     void set_C(const DMatrix& rC);
@@ -48,6 +50,7 @@ public:
     void get_KHt(double& t, double& kt, double& ht);
     void get_acf(unsigned long i, unsigned long j, double t, double& acf);
     void get_msd(unsigned long i, double t, double& msd, double& dmsd);
+    double get_pwspec(unsigned long i, unsigned long j, double w);
 };
 
 void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& lambdafp, double& repole, double& impole, double& qres, double& pres, double& median, double&interq, double& specdiff);
