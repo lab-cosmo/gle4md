@@ -1213,7 +1213,7 @@ void GLEFError::compute_points(const std::vector<double>& xp, std::vector<std::m
         if (!selective || (  val[i][TauQ2]<0 || val[i][TauP2]<0 || val[i][TauH]<0 || val[i][Cqq]<0 || val[i][Cpp]<0 || pq<0 || val[i][DwQ]<0 || val[i][DwP]<0 || val[i][LFP]<0))
             harm_check(A,BBT,xp[i],val[i][TauQ2],val[i][TauP2],val[i][TauH],val[i][Cqq],val[i][Cpp],pq, val[i][LFP], val[i][RPRePole],val[i][RPImPole],val[i][RPQRes], val[i][RPPRes], val[i][SpecMed], val[i][SpecInterq], val[i][SpecDiff]); //val[i][DwQ],val[i][DwP],val[i][LFP]); 
         if (!selective || ( val[i][RPRePole]<0 || val[i][RPImPole]<0 || val[i][RPQRes]<0 || val[i][RPPRes]<0 ) )
-            rp_check(A, BBT, xp[i],opar.rpomega,opar.rpalpha,val[i][RPRePole],val[i][RPImPole],val[i][RPQRes],val[i][RPPRes]);
+            rp_check(A, BBT, xp[i],opar.rpomega,opar.rpalpha,val[i][RPRePole],val[i][RPImPole],val[i][RPQRes],val[i][RPPRes], val[i][SpecMed], val[i][SpecInterq], val[i][SpecDiff]);
         if (!selective || ( val[i][Kw]<0 || val[i][Hw]<0 ) )
             abc.get_KH(xp[i],val[i][Kw],val[i][Hw]);
         if (opar.deltat>0. && (!selective || (val[i][CqqDT]<0 || val[i][CppDT]<0 ) ))
