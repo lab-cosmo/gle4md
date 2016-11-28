@@ -750,8 +750,8 @@ void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, dou
     tp2=pppp/pppp0;
     tq2=qqqq/qqqq0;
     
-    //get power spectrum peak widths
-    spectral_analysis(abc, repole, impole, qres, pres);
+    //get spectral decomposition -- obsolete
+    //spectral_analysis(abc, repole, impole, qres, pres);
 
     // get difference in shapes of spectra
     harm_shape(abc, w, specdiff, median, interq);
@@ -772,8 +772,8 @@ void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double
     xA(0,1)=-1; xA(1,0)=w2; xA(1,2)=dw; xA(2,3)=-1; xA(3,0)=dw; xA(3,2)=wrp2;   //sets the two coupled harmonic oscilators hamiltonian part
     GLEABC abc; abc.set_A(xA); abc.set_BBT(xBBT);
     abc.get_C(xC);
-
-    spectral_analysis(abc, repole, impole, qres, pres);
+    // get spectral decomposition -- obsolete
+    // spectral_analysis(abc, repole, impole, qres, pres);
 
     harm_shape(abc, w, specdiff, median, interq);
     
