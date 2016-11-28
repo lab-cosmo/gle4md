@@ -532,7 +532,7 @@ double corr_cdf(FMatrix<double>& xA, FMatrix<double>& xC, double L, int index=1)
     mult(atAWL,xC,AWL); 
     return 2/toolbox::constant::pi*AWL(index,index)/xC(index, index); 
 }
-#define BISEC_ACCURACY 1e-12
+#define BISEC_ACCURACY 1e-8
 void corr_cdf_bisect(FMatrix<double>& xA, FMatrix<double>& xC, double target, double low, double flow, double high, double fhigh, double &ret, int index=1)
 {
     double mid=0.5*(low+high), fmid=corr_cdf(xA, xC, mid, index);

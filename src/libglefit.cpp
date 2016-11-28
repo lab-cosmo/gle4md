@@ -1216,7 +1216,8 @@ void GLEFError::compute_points(const std::vector<double>& xp, std::vector<std::m
             rp_check(A, BBT, xp[i],opar.rpomega,opar.rpalpha,val[i][RPRePole],val[i][RPImPole],val[i][RPQRes],val[i][RPPRes]);
         if (!selective || ( val[i][Kw]<0 || val[i][Hw]<0 ) )
             abc.get_KH(xp[i],val[i][Kw],val[i][Hw]);
-        if (opar.deltat>0.) verlet_check(A,C,xp[i],opar.deltat,val[i][CqqDT],val[i][CppDT],pq); else  { val[i][CqqDT]=val[i][Cqq]; val[i][CppDT]=val[i][Cpp]; } //if requested, compute finite-dt corrections
+        if (opar.deltat>0. && (!selective || (val[i][CqqDT]<0 || val[i][CppDT]<0 ) ))
+            verlet_check(A,C,xp[i],opar.deltat,val[i][CqqDT],val[i][CppDT],pq); else  { val[i][CqqDT]=val[i][Cqq]; val[i][CppDT]=val[i][Cpp]; } //if requested, compute finite-dt corrections
         val[i][HonK]=val[i][Hw]/val[i][Kw];
         val[i][rDwQ]=val[i][DwQ]/xp[i];
         val[i][rDwP]=val[i][DwP]/xp[i];
@@ -1295,9 +1296,7 @@ void GLEFError::get_value(double& rv)
     {
         pvalues[i].clear();
         for (pit=ofit.points[i].values.begin(); pit!=ofit.points[i].values.end(); pit++)
-        {
-            pvalues[i][pit->first] = -1;
-        }
+            pvalues[i][pit->first] = -1;        
     }
     
     compute_points(freqs,pvalues,true);
