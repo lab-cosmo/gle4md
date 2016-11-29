@@ -77,13 +77,18 @@ std::istream& operator>> (std::istream& istr, GLEFPointType& value)
     else if (str=="cppdt")    value=CppDT;
     else if (str=="cqq"  )    value=Cqq;
     else if (str=="cpp"  )    value=Cpp;
-    else if (str=="rpimp")    value=RPImPole; /* 4MR */
-    else if (str=="rprep")    value=RPRePole;
-    else if (str=="rpwq" )    value=RPQRes;
-    else if (str=="rpwp" )    value=RPPRes;
-    else if (str=="smed" )    value=SpecMed;
-    else if (str=="sinterq")  value=SpecInterq;
-    else if (str=="sdiff ")   value=SpecDiff;
+    else if (str=="pww0q" )   value=PWw0q;
+    else if (str=="pwgq")     value=PWgq;
+    else if (str=="pwshapeq ")value=PWshapeq;
+    else if (str=="pww0p" )   value=PWw0p;
+    else if (str=="pwgp")     value=PWgp;
+    else if (str=="pwshapep ")value=PWshapep;
+    else if (str=="rpw0q" )   value=RPw0q;
+    else if (str=="rpgq")     value=RPgq;
+    else if (str=="rpshapeq ")value=RPshapeq;
+    else if (str=="rpw0p" )   value=RPw0p;
+    else if (str=="rpgp")     value=RPgp;
+    else if (str=="rpshapep ")value=RPshapep;    
     else istr.clear(std::ios::failbit);
     return istr;
 }
@@ -113,13 +118,18 @@ std::ostream& operator<< (std::ostream& ostr, const GLEFPointType& p)
         case CqqDT:    ostr<<" cqqdt ";    break;
         case Cpp:      ostr<<"  cpp  ";    break;
         case Cqq:      ostr<<"  cqq  ";    break;
-        case RPImPole: ostr<<" rpimp ";    break; /* 4MR */
-        case RPRePole: ostr<<" rprep ";    break; /* 4MR */
-        case RPQRes:   ostr<<" rpwq  ";    break; /* 4MR */
-        case RPPRes:   ostr<<" rpwp  ";    break; /* 4MR */
-        case SpecMed:  ostr<<" smed  ";    break; /* 4MR */
-        case SpecInterq: ostr<<" sinterq ";break; /* 4MR */
-        case SpecDiff: ostr<<" sdiff  ";   break; /* 4MR */
+        case PWw0q:    ostr<<" pww0q ";    break; 
+        case PWgq:     ostr<<" pwgq  ";    break; 
+        case PWshapeq: ostr<<" pwshapeq "; break; 
+        case PWw0p:    ostr<<" pww0p ";    break; 
+        case PWgp:     ostr<<" pwgp  ";    break; 
+        case PWshapep: ostr<<" pwshapep "; break; 
+        case RPw0q:    ostr<<" rpw0q ";    break; 
+        case RPgq:     ostr<<" rpgq  ";    break; 
+        case RPshapeq: ostr<<" rpshapeq "; break; 
+        case RPw0p:    ostr<<" rpw0p ";    break; 
+        case RPgp:     ostr<<" rpgp  ";    break; 
+        case RPshapep: ostr<<" rpshapep "; break;         
     };
     return ostr;
 }
@@ -1203,17 +1213,27 @@ void GLEFError::compute_points(const std::vector<double>& xp, std::vector<std::m
 {
     FMatrix<double> BBT;
     abc.get_BBT(BBT);
-
+    GLEABC abcharm, abcrp;
+    
     val.resize(xp.size());
-    double pq, dummy;
+    double pq, dummy; 
     for (int i=0; i<xp.size(); i++)
     {
+        bool fharmbase = (  val[i][TauQ2]<0 || val[i][TauP2]<0 || val[i][TauH]<0 || val[i][Cqq]<0 || val[i][Cpp]<0 || pq<0 || val[i][DwQ]<0 || val[i][DwP]<0 || val[i][LFP]<0);
+        bool fharmq = (val[i][PWw0q]<0 || val[i][PWgq]<0 || val[i][PWshapeq]<0);
+        bool fharmp = (val[i][PWw0p]<0 || val[i][PWgp]<0 || val[i][PWshapep]<0);
+    
         ///TODO Break down harm_check to make the evaluation more selective and fine-grained. If there are very expensive quantities, they should only be evaluated if requested
         if (!selective) val[i].clear();
-        if (!selective || (  val[i][TauQ2]<0 || val[i][TauP2]<0 || val[i][TauH]<0 || val[i][Cqq]<0 || val[i][Cpp]<0 || pq<0 || val[i][DwQ]<0 || val[i][DwP]<0 || val[i][LFP]<0))
-            harm_check(A,BBT,xp[i],val[i][TauQ2],val[i][TauP2],val[i][TauH],val[i][Cqq],val[i][Cpp],pq, val[i][LFP], val[i][RPRePole],val[i][RPImPole],val[i][RPQRes], val[i][RPPRes], val[i][SpecMed], val[i][SpecInterq], val[i][SpecDiff]); //val[i][DwQ],val[i][DwP],val[i][LFP]); 
-        if (!selective || ( val[i][RPRePole]<0 || val[i][RPImPole]<0 || val[i][RPQRes]<0 || val[i][RPPRes]<0 ) )
-            rp_check(A, BBT, xp[i],opar.rpomega,opar.rpalpha,val[i][RPRePole],val[i][RPImPole],val[i][RPQRes],val[i][RPPRes], val[i][SpecMed], val[i][SpecInterq], val[i][SpecDiff]);
+        if (!selective || (fharmbase || fharmq || fharmp))
+            make_harm_abc(A, BBT, xp[i], abcharm);        
+        if (!selective || fharmbase)
+            harm_check(abcharm,val[i][TauQ2],val[i][TauP2],val[i][TauH],val[i][Cqq],val[i][Cpp],pq, val[i][LFP]); 
+        if (!selective || fharmq)
+            harm_shape(abcharm, val[i][PWw0q], val[i][PWgq], val[i][PWshapeq], 0);
+             //val[i][PWw0q], val[i][PWgq], val[i][PWshapeq])
+        //if (!selective || ( val[i][RPRePole]<0 || val[i][RPImPole]<0 || val[i][RPQRes]<0 || val[i][RPPRes]<0 ) )
+        //    rp_check(A, BBT, xp[i],opar.rpomega,opar.rpalpha,val[i][RPw0q], val[i][RPgq], val[i][RPshapeq]);
         if (!selective || ( val[i][Kw]<0 || val[i][Hw]<0 ) )
             abc.get_KH(xp[i],val[i][Kw],val[i][Hw]);
         if (!selective || (val[i][CqqDT]<0 || val[i][CppDT]<0 ) ) 

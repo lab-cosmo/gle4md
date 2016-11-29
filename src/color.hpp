@@ -52,14 +52,17 @@ public:
     double get_pwcdf(unsigned long i, unsigned long j, double w);
 };
 
-void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& lambdafp, double& repole, double& impole, double& qres, double& pres, double& median, double&interq, double& specdiff);
+void make_harm_abc(const DMatrix& A, const DMatrix& BBT, double w, GLEABC& abc);
+void harm_check(GLEABC& abc, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& lambdafp);
+void harm_shape(GLEABC& abc, double& pmedian, double &pinterquartile, double& pshape, int index=0); 
+void harm_peak(const DMatrix& A, const DMatrix& BBT, double w,  double d, double &pi);
+
 /* 4MR Add here rp_check after it is finished*/ 
-void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& repole, double& impole, double& qres, double& pres, double& median, double&interq, double& specdiff);
+void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& repole, double& impole, double& qres, double& pres, double& median, double&interq, double& PWshapeq);
 void verlet_check(const DMatrix& A, const DMatrix& C, double w, double dt, double& q2, double& p2, double& pq);
 
-void harm_spectrum(const DMatrix& A, const DMatrix& BBT, double w, const std::valarray<double>& wl, std::valarray<double>& cqq, std::valarray<double>& cpp );
-void harm_peak(const DMatrix& A, const DMatrix& BBT, double w, double d, double &pi);
-void harm_shape(const DMatrix& A, const DMatrix& BBT, double w, double& pmedian, double &pinterquartile);
+//void harm_spectrum(const DMatrix& A, const DMatrix& BBT, double w, const std::valarray<double>& wl, std::valarray<double>& cqq, std::valarray<double>& cpp );
+
 
 //options for a colored complex thermostat.
 class ThermoOptions {

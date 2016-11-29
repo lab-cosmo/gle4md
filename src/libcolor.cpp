@@ -432,7 +432,7 @@ void verlet_check(const DMatrix& A, const DMatrix& C, double w, double dt, doubl
     mult(WO,R3,R1); transpose(WO,R2); mult(R1,R2,R3);
     q2=R3(0,0).real()*w*w; p2=R3(1,1).real(); pq=R3(0,1).real();
 }
-
+/* TO BE REMOVED
 void spectral_analysis(GLEABC& abc, double& repole, double& impole, double& qres, double& pres)
 {
     toolbox::FMatrix<double> xA, xC;
@@ -488,6 +488,7 @@ void spectral_analysis(GLEABC& abc, double& repole, double& impole, double& qres
 //    wspreadq=std::sqrt(wspreadq);
 //    wspreadq=std::sqrt(wspreadq);    
 }
+*/
 
 tblapack::complex atan(tblapack::complex c)
 {
@@ -498,6 +499,7 @@ tblapack::complex atan(tblapack::complex c)
 }
 tblapack::complex ataninv(tblapack::complex x) { return atan(1./x); }
 
+/* TO BE REMOVED
 double lormodel(double& a, double& b, double& w){
     return 2*a*(a*a + b*b + w*w)/(toolbox::constant::pi*((a*a + b*b)*(a*a + b*b) + 2*(a - b)*(a + b)*w*w + w*w*w*w));
 }
@@ -562,7 +564,7 @@ double corr_fun(FMatrix<double>& xA, FMatrix<double>& xC, double w, int index)
     mult(A2,xC,A);
     return 2/toolbox::constant::pi*A(index,index)/xC(index, index); 
 }
-
+*/
 double GLEABC::get_pwspec(unsigned long i, unsigned long j, double w)
 {
     if (!fr_eva)
@@ -668,11 +670,12 @@ b)*(1 + b)*(w)*(w)))/toolbox::constant::pi;
 }
 
 //analyzes the shape of a peak in the harmonic distribution 
-void harm_shape(GLEABC& abc, double w, double& specdiff, double& median, double& interq, int index=0)
+void harm_shape(GLEABC& abc, double& PWshapeq, double& median, double& interq, int index)
 {
     
     toolbox::FMatrix<double> xA, xC;
     abc.get_A(xA); abc.get_C(xC);
+    double w=sqrt(xA(1,0));
     unsigned int n=xA.rows();
     
     //find 1,2,3 quartiles
@@ -731,30 +734,33 @@ void harm_shape(GLEABC& abc, double w, double& specdiff, double& median, double&
         }
     }
     i11 += overlap_lorlor(lg,lw);       
-    specdiff = sqrt(fabs(i11)/overlap_lorlor(lg,lw));
+    PWshapeq = sqrt(fabs(i11)/overlap_lorlor(lg,lw));
 }
 
 
-void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& lambdafp, double& repole, double& impole, double& qres, double& pres, double& median, double& interq, double& specdiff)
+void make_harm_abc(const DMatrix& A, const DMatrix& BBT, double w, GLEABC& abc)
 {
+    //prepares extended matrices for a harmonic oscillator
     unsigned long n=A.rows();
-    double w2=w*w, w4=w2*w2; 
-    
-    //prepares extended matrices
     toolbox::FMatrix<double> xA(n+1,n+1), xBBT(n+1,n+1), xC;
     xA*=0.; xBBT=xA;
     for (int i=0; i<n;++i)for (int j=0; j<n;++j)
     { xA(i+1,j+1)=A(i,j);  xBBT(i+1,j+1)=BBT(i,j); }
-    xA(0,1)=-1; xA(1,0)=w2;   //sets the harmonic hamiltonian part
-    GLEABC abc; abc.set_A(xA); abc.set_BBT(xBBT);
-    
+    xA(0,1)=-1; xA(1,0)=w*w;   //sets the harmonic hamiltonian part
+    abc.set_A(xA); abc.set_BBT(xBBT);
+}
+
+void harm_check(GLEABC& abc, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& lambdafp) //, double& repole, double& impole, double& qres, double& pres, double& median, double& interq, double& PWshapeq)
+{    
+        
+    toolbox::FMatrix<double> xA, xC;
+//    std::cerr<<" ---  C in tauw "<<w<<" ----\n"<<xC<<" ---------- \n";
+    abc.get_A(xA); abc.get_C(xC);
+    double c00=xC(0,0), c01=xC(0,1), c11=xC(1,1);     
+    double w2=xA(1,0), w4=w2*w2, w=sqrt(w2);     
     std::valarray<std::complex<double> >eva; abc.get_evA(eva);
     lambdafp=eva[0].real(); 
-    for (int i=0; i<n+1; i++) lambdafp=(eva[i].real()<lambdafp?eva[i].real():lambdafp);
-    
-//    std::cerr<<" ---  C in tauw "<<w<<" ----\n"<<xC<<" ---------- \n";
-    abc.get_C(xC);
-    double c00=xC(0,0), c01=xC(0,1), c11=xC(1,1); 
+    for (int i=0; i<eva.size(); i++) lambdafp=(eva[i].real()<lambdafp?eva[i].real():lambdafp);
     
     q2=c00*w2;
     p2=c11;
@@ -777,15 +783,9 @@ void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, dou
     th=(pppp+qqqq+ppqq+qqpp)/(pppp0+qqqq0+ppqq0+qqpp0);
     tp2=pppp/pppp0;
     tq2=qqqq/qqqq0;
-    
-    //get spectral decomposition -- obsolete
-    //spectral_analysis(abc, repole, impole, qres, pres);
-
-    // get difference in shapes of spectra
-    harm_shape(abc, w, specdiff, median, interq);
 }
 
-void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& repole, double& impole, double& qres, double& pres, double& median, double& interq, double& specdiff)
+void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& repole, double& impole, double& qres, double& pres, double& median, double& interq, double& PWshapeq)
 {
     unsigned long n=A.rows();
     double w2=w*w, wrp2=wrp*wrp, dw; 
@@ -803,7 +803,7 @@ void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double
     // get spectral decomposition -- obsolete
     // spectral_analysis(abc, repole, impole, qres, pres);
 
-    harm_shape(abc, w, specdiff, median, interq);
+    harm_shape(abc, w, PWshapeq, median, interq);
     
 }
 /*
@@ -861,6 +861,7 @@ void harm_peak(const DMatrix& A, const DMatrix& BBT, double w, double d, double 
     pi=2./toolbox::constant::pi*(AW1(1,1)-AW2(1,1))/xC(1,1);
 }
 
+/*TO BE REMOVED
 void harm_spectrum(const DMatrix& A, const DMatrix& BBT, double w, const std::valarray<double>& wl, std::valarray<double>& cqq, std::valarray<double>& cpp )
 {
     unsigned long n=A.rows();
@@ -891,4 +892,4 @@ void harm_spectrum(const DMatrix& A, const DMatrix& BBT, double w, const std::va
         cqq[i]=Cww(0,0)/xC(0,0);
         cpp[i]=Cww(1,1)/xC(1,1);
     }    
-}
+}*/
