@@ -12,7 +12,7 @@ void banner()
 {
     std::cerr
             << " USAGE: gle-analyze -a a-file [(-b b-file | -c c-file | -d d-file)] [-sa scale] \n" 
-            << "     [-sc scale] [-wi w_i] [-wf w_f] [-np np] [-ww wacf] [-tex]                 \n"
+            << "     [-sc scale] [-wi w_i] [-wf w_f] [-np np] [-ww wacf] [-w0 wharm] [-tex]     \n"
             << "     [-pk delta] [-dt dt] [-tfree maxt] [-wrp wrpmd] [-dwrp rpalpha]            \n"
             << " performs in-depth analytical study of the generalized Langevin equation        \n"
             << "                            dx=-A x dt + B dW                                   \n"
@@ -204,9 +204,12 @@ int main(int argc, char **argv)
         for (unsigned long ip=0; ip<np; ip++) w[ip]=pow(wi,(np-ip-1.)/(np-1.))*pow(wf,(1.*ip)/(np-1.));        
         //harm_spectrum(iA, iBBT, w0,w, sqq, spp);
         double dummy;
-        GLEABC abcip;
+        GLEABC abcip, abcw0;
+        make_harm_abc(iA, iBBT, w0, abcw0);
         for (unsigned long ip=0; ip<np; ip++)
         {
+            sqq[ip]=abcw0.get_pwspec(0,0,w[ip]);
+            spp[ip]=abcw0.get_pwspec(1,1,w[ip]);
             abc.get_KH(w[ip], kw[ip], hw[ip]);
             make_harm_abc(iA, iBBT, w[ip], abcip);
         
@@ -220,7 +223,7 @@ int main(int argc, char **argv)
         if (!ftex)
         {
             std::cout<<"# D kT/m = "<<diff<<"\n";
-            std::cout<<"# omega  1/tau_h  1/tau_q2  1/tau_p2  K(omega)  H(omega)  <q2>(omega) <p2>(omega) <pq>(omega) lFP(omega)  Cqq["<<w0<<"](w) Cpp["<<w0<<"](w)"<<" repeak  impeak  qpeakw  ppeakw  PWw0q PWgq PWshapeq" <<
+            std::cout<<"# omega  1/tau_h  1/tau_q2  1/tau_p2  K(omega)  H(omega)  <q2>(omega) <p2>(omega) <pq>(omega) lFP(omega)  Cqq["<<w0<<"](w) Cpp["<<w0<<"](w)"<<" pww0q pwgq pwshapeq pww0p pwgp pwshapep" <<
                     (deltat>0.?" <q2>,<p2>,<pq>(dt=":"")<<(deltat>0.?float2str(deltat):std::string(""))<<(deltat>0.?")   ":"")<<
                     (dpeak>0.?" peak_dist(":"")<<(dpeak>0.?float2str(dpeak):std::string(""))<<(dpeak>0.?")":"")<<
                     (wrpmd>0.?" rpmd(":"")<<(wrpmd>0.?float2str(wrpmd):std::string(""))<<(wrpmd>0.?"): repeak  impeak  qpeakw  ppeakw PWw0q PWgq PWshapeq":"")
@@ -237,11 +240,7 @@ int main(int argc, char **argv)
                         <<"  "<<pq[ip]
                         <<"  "<<lfp[ip]
                         <<"  "<<sqq[ip]
-                        <<"  "<<spp[ip]                        
-                        <<"  "<<rew[ip]
-                        <<"  "<<imw[ip]
-                        <<"  "<<qw[ip]
-                        <<"  "<<pw[ip]
+                        <<"  "<<spp[ip]
                         <<"  "<<PWw0q[ip]
                         <<"  "<<PWgq[ip]
                         <<"  "<<PWshapeq[ip]
