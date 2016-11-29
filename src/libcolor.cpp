@@ -571,6 +571,7 @@ double GLEABC::get_pwspec(unsigned long i, unsigned long j, double w)
     {
         EigenDecomposition(A, O, O1, a); fr_eva=true;
     }
+    if (!fr_c) prepare_C();
     if (!fr_spec)
     {        
         mult(A,C,AC); mult(O1,C,O1C);
@@ -590,6 +591,7 @@ double GLEABC::get_pwcdf(unsigned long i, unsigned long j, double w)
     {
         EigenDecomposition(A, O, O1, a); fr_eva=true;
     }
+    if (!fr_c) prepare_C();
     if (!fr_spec)
     {        
         mult(A,C,AC); mult(O1,C,O1C);
@@ -670,7 +672,7 @@ b)*(1 + b)*(w)*(w)))/toolbox::constant::pi;
 }
 
 //analyzes the shape of a peak in the harmonic distribution 
-void harm_shape(GLEABC& abc, double& PWshapeq, double& median, double& interq, int index)
+void harm_shape(GLEABC& abc, double& median, double& interq, double& shape, int index)
 {
     
     toolbox::FMatrix<double> xA, xC;
@@ -734,7 +736,7 @@ void harm_shape(GLEABC& abc, double& PWshapeq, double& median, double& interq, i
         }
     }
     i11 += overlap_lorlor(lg,lw);       
-    PWshapeq = sqrt(fabs(i11)/overlap_lorlor(lg,lw));
+    shape = sqrt(fabs(i11)/overlap_lorlor(lg,lw));
 }
 
 
