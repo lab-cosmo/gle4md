@@ -102,6 +102,45 @@ void GLEABC::get_esA(std::valarray<tblapack::complex>& ra, FMatrix<tblapack::com
     u=O; u1=O1;
 }
 
+void get_TS(const toolbox::FMatrix<double>& A, const toolbox::FMatrix<double>& C, const double& t, 
+            toolbox::FMatrix<double>& T, toolbox::FMatrix<double>& S)
+{
+    FMatrix<double> tmp, lC=C;
+    toolbox::exp(A*(-t),T,1e-20);
+    toolbox::transpose(T,S);
+    toolbox::mult(lC,S,tmp);
+    toolbox::mult(T,tmp,S);
+    lC-=S;
+    //now C holds in fact C-TCT^T, so we must cholesky-factor C in order to get S
+    StabCholesky(lC,S);
+}
+
+void A2Kt(const toolbox::FMatrix<double>& A, double dt, std::valarray<double>& K)
+{
+    int n=A.rows();
+    toolbox::FMatrix<double> la(n-1,n-1), le, len(n-1,n-1);
+    len*=0.;
+    for(int i=1; i<n;++i)
+    {
+        len(i-1,i-1)=1.;
+        for(int j=1; j<n;++j)
+            la(i-1,j-1)=A(i,j);
+    }
+    la*=(-dt);
+    toolbox::exp(la,le,1e-20);
+    K=0; K[0]=A(0,0)/dt; 
+    for (int s=0;s<K.size();++s)
+    {
+        for(int i=1; i<n;++i)
+            for(int j=1; j<n;++j)
+        {
+            K[s]-=A(0,i)*A(j,0)*len(i-1,j-1);
+        }
+        mult(len,le,la); len=la;
+    }
+    K[0]*=2.;
+}
+
 void GLEABC::get_KH(double w, double& kw, double& hw)
 {
     if (!fr_c) prepare_C();
@@ -645,6 +684,8 @@ void harm_shape(GLEABC& abc, double w, double& specdiff, double& median, double&
     // computes the integral of Cpp from 0 to L
     while (cdfhigh<0.75) // upper bracket
     {   Lhigh*=2; cdfhigh= abc.get_pwcdf(index, index, Lhigh);  }
+    Llow = 2 * Lmid - Lhigh ;
+    cdflow=abc.get_pwcdf(index, index, Llow); 
     while (cdflow>0.25) //lower bracket
     {   Llow/=2;  cdflow=abc.get_pwcdf(index, index, Llow);    }
     // std::cerr<<"CDFl "<<Llow<<" "<<cdflow<<std::endl;
@@ -656,27 +697,6 @@ void harm_shape(GLEABC& abc, double w, double& specdiff, double& median, double&
         
     median=LD50;
     interq=(LD75-LD25)*0.5;
-    //std::cerr<<"LDs "<< LD25<<" "<< LD50 <<" "<< LD75 << std::endl;
-
-    // integrate square distance between both from 0 to wf with an adaptive grid...
-//    double wi=0, wf=LD50+100*(LD75-LD25);
- //   double alor, blor; 
-
-
-    // Here define a fake Lorentzian with these parameters
-    
-   // alor=(LD75-LD25)*0.5;
-   // blor=LD50*LD50-alor*alor;
-    
-   // if (blor>0.0) { blor=std::sqrt(blor);}
-   // else{ blor=0.0; }
-    
-//    std::cerr<<"CDFMED "<<corr_cdf(xA, xC, LD50)<<std::endl;
-
-    // std::cerr<<"A and B lorentizan "<< alor <<" "<< blor <<" \n";
- 
-    //specdiff=adaptiveintegration(xA, xC, alor, blor, wi, wf, 0.0001, 500);
-
 
     // now we set off to compute something tricky. we want a measure of how
     // much the spectrum deviates from a lorentzian. we estimate the Lorentzian
@@ -699,15 +719,6 @@ void harm_shape(GLEABC& abc, double w, double& specdiff, double& median, double&
         
         ai = ra[i].real(); bi= ra[i].imag(); ci=(U(index,i) * U1C(i,index)).real(); di=(U(index,i) * U1C(i,index)).imag();   
         ai += lw*PEAK_SMOOTH;
-        //std::cerr<<"PEAK DATA " << ai <<" "     << bi <<" "<< ci <<" "<< di <<" \n";
-        //std::cerr<<"OVERLAP "<<overlap_lorspec(lg,lw,ai,bi,ci,di)/ci<< " SELF "<< overlap_spec(ai,bi,ci,di)/(ci*ci)<<" ref "<<overlap_lorlor(lg,lw)<<std::endl;
-        //overlap_lorspec(lg,lw,ai,bi,ci,di,ri1,di1);
-        //std::cerr<<"RESOLVE? "<< ri1/ci<<"  "<<di1/ci<<" = "<<(ri1+di1)/ci<<std::endl;
-        //std::cerr<<"STABILITY CHECK \n";
-        //overlap_lorlor(lg, lw, ri1, di1);
-        //overlap_spec(ai,bi,ci,di, ri2, di2);
-        //std::cerr<<"LOR-SPEC: div: "<< di1/na-di2<< "  reg: " << ri1/na-ri2<<std::endl ;
-        //std::cerr<<"SEP-FULL: div: "<< (di1+ri1)-overlap_lorlor(lg,lw)<<std::endl ;
         i11 -= 2*overlap_lorspec(lg,lw,ai,bi,ci,di);
             
         for (int j=0; j<na; ++j)
@@ -717,23 +728,10 @@ void harm_shape(GLEABC& abc, double w, double& specdiff, double& median, double&
             aj += lw*PEAK_SMOOTH;
             if (i==j)  i11 += overlap_spec(ai,bi,ci,di);
             else  i11 += overlap_specspec(ai,bi,ci,di,aj,bj,cj,dj);
-            //std::cerr<<"TEST SPECSPEC "<<i<<" " <<j<<" >> "<<overlap_specspec(ai,bi,ci,di,aj,bj,cj,dj)/(ci*cj)<<std::endl;
-            
-            //i11 -= overlap_lorspec(lg,lw,aj,bj,cj,dj)/(na*xC(1,1));            
-            //std::cerr<<li<<" "<<lj<<" "<<symlor_sp(li, lj)<<"  "<<symlor_sp(lj, li)<<"\n";
-            //i11 += U(1,i) * U1C(i,1) * U(1,j) * U1C(j,1) * symlor_sp(li, lj);
-            //i11 += symlor_sp(llor, llor)/(na*na);
-            //i11 -= U(1,i) * U1C(i,1) * (symlor_sp(li, llor) /na) ;
-            //ei11 -= U(1,j) * U1C(j,1) * ( symlor_sp(llor, lj) / na);
         }
     }
     i11 += overlap_lorlor(lg,lw);       
-    //std::cerr<<ra.size()<<" NUMERICAL: "<<specdiff<<"  ANALYTICAL:  "<<i11<<std::endl;
     specdiff = sqrt(fabs(i11)/overlap_lorlor(lg,lw));
-    // std::cerr<<"LDs "<< LD25<<" "<< LD50 <<" "<< LD75 << std::endl;
-    // std::cerr<<"sqdiff: "<<specdiff<<std::endl;
-
-
 }
 
 
@@ -833,6 +831,7 @@ double __intme(double xa, double xb, double fa, double fb)
 
 
 //integrates the peak of the velocity-velocity correlation function from w*(1-d) to w*(1+d)
+//!NB!NB!NB! This expression is from my PhD thesis and is in all likelihood wrong - I leave it like this just for bacwards compatibility and because we now have better measures ! MC
 void harm_peak(const DMatrix& A, const DMatrix& BBT, double w, double d, double &pi)
 {
     unsigned long n=A.rows();
@@ -892,45 +891,4 @@ void harm_spectrum(const DMatrix& A, const DMatrix& BBT, double w, const std::va
         cqq[i]=Cww(0,0)/xC(0,0);
         cpp[i]=Cww(1,1)/xC(1,1);
     }    
-}
-
-
-void get_TS(const toolbox::FMatrix<double>& A, const toolbox::FMatrix<double>& C, const double& t, 
-            toolbox::FMatrix<double>& T, toolbox::FMatrix<double>& S)
-{
-    FMatrix<double> tmp, lC=C;
-    toolbox::exp(A*(-t),T,1e-20);
-    toolbox::transpose(T,S);
-    toolbox::mult(lC,S,tmp);
-    toolbox::mult(T,tmp,S);
-    lC-=S;
-    //std::cerr<<"CHOLESKY \n"<<lC<<"\n\n";
-    //now C holds in fact C-TCT^T, so we must cholesky-factor C in order to get S
-    StabCholesky(lC,S);
-}
-
-void A2Kt(const toolbox::FMatrix<double>& A, double dt, std::valarray<double>& K)
-{
-    int n=A.rows();
-    toolbox::FMatrix<double> la(n-1,n-1), le, len(n-1,n-1);
-    len*=0.;
-    for(int i=1; i<n;++i)
-    {
-        len(i-1,i-1)=1.;
-        for(int j=1; j<n;++j)
-            la(i-1,j-1)=A(i,j);
-    }
-    la*=(-dt);
-    toolbox::exp(la,le,1e-20);
-    K=0; K[0]=A(0,0)/dt; 
-    for (int s=0;s<K.size();++s)
-    {
-        for(int i=1; i<n;++i)
-            for(int j=1; j<n;++j)
-        {
-            K[s]-=A(0,i)*A(j,0)*len(i-1,j-1);
-        }
-        mult(len,le,la); len=la;
-    }
-    K[0]*=2.;
 }
