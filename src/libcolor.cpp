@@ -785,7 +785,7 @@ void harm_check(GLEABC& abc, double &tq2, double &tp2, double& th, double& q2, d
     tq2=qqqq/qqqq0;
 }
 
-void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& repole, double& impole, double& qres, double& pres, double& median, double& interq, double& PWshapeq)
+void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& median, double& interq, double& PWshapeq)
 {
     unsigned long n=A.rows();
     double w2=w*w, wrp2=wrp*wrp, dw; 

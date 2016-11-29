@@ -199,7 +199,7 @@ int main(int argc, char **argv)
         std::valarray<double> w(np), kw(np), hw(np), tq2(np), tp2(np), th(np), q2(np), p2(np), pq(np), hdist(np), lfp(np),
                  rew(np), imw(np), qw(np), pw(np), 
                  q2dt(np), p2dt(np), pqdt(np), PWw0q(np), PWgq(np), PWshapeq(np), PWw0p(np), PWgp(np), PWshapep(np), 
-                 sqq(np), spp(np), rp_rew(np), rp_imw(np), rp_qw(np), rp_pw(np), rp_PWw0q(np), rp_PWgq(np), rp_PWshapeq(np) ;
+                 sqq(np), spp(np), rp_PWw0q(np), rp_PWgq(np), rp_PWshapeq(np) ;
                 
         for (unsigned long ip=0; ip<np; ip++) w[ip]=pow(wi,(np-ip-1.)/(np-1.))*pow(wf,(1.*ip)/(np-1.));        
         //harm_spectrum(iA, iBBT, w0,w, sqq, spp);
@@ -215,7 +215,7 @@ int main(int argc, char **argv)
             harm_shape(abcip, PWw0p[ip], PWgp[ip], PWshapep[ip],1);
             if (dpeak>0.) harm_peak(iA,iBBT,w[ip],dpeak,hdist[ip]);
             if (deltat>0) verlet_check(iA,iC,w[ip],deltat,q2dt[ip],p2dt[ip],pqdt[ip]);
-            if (wrpmd>0) rp_check(iA, iBBT, w[ip], wrpmd, rpalpha, rp_rew[ip], rp_imw[ip], rp_qw[ip], rp_pw[ip], rp_PWw0q[ip], rp_PWgq[ip], rp_PWshapeq[ip]);
+            if (wrpmd>0) rp_check(iA, iBBT, w[ip], wrpmd, rpalpha, rp_PWw0q[ip], rp_PWgq[ip], rp_PWshapeq[ip]);
         }
         if (!ftex)
         {
@@ -223,7 +223,7 @@ int main(int argc, char **argv)
             std::cout<<"# omega  1/tau_h  1/tau_q2  1/tau_p2  K(omega)  H(omega)  <q2>(omega) <p2>(omega) <pq>(omega) lFP(omega)  Cqq["<<w0<<"](w) Cpp["<<w0<<"](w)"<<" repeak  impeak  qpeakw  ppeakw  PWw0q PWgq PWshapeq" <<
                     (deltat>0.?" <q2>,<p2>,<pq>(dt=":"")<<(deltat>0.?float2str(deltat):std::string(""))<<(deltat>0.?")   ":"")<<
                     (dpeak>0.?" peak_dist(":"")<<(dpeak>0.?float2str(dpeak):std::string(""))<<(dpeak>0.?")":"")<<
-                    (wrpmd>0.?" rpmd(":"")<<(wrpmd>0.?float2str(wrpmd):std::string(""))<<(wrpmd>0.?"): repeak  impeak  qpeakw  ppeakw PWw0q PWgq PWshapeq":"")
+                    (wrpmd>0.?" rpmd(":"")<<(wrpmd>0.?float2str(wrpmd):std::string(""))<<(wrpmd>0.?"): PWw0q PWgq PWshapeq":"")
                     <<"\n";
             for (unsigned long ip=0; ip<np; ip++)
             {
@@ -252,10 +252,6 @@ int main(int argc, char **argv)
                         <<"  "<<(deltat>0.?float2str(p2dt[ip]):"")
                         <<"  "<<(deltat>0.?float2str(pqdt[ip]):"")
                         <<"  "<<(dpeak>0.?float2str(hdist[ip]):"")
-                        <<"  "<<(wrpmd>0.?float2str(rp_rew[ip]):"")
-                        <<"  "<<(wrpmd>0.?float2str(rp_imw[ip]):"")
-                        <<"  "<<(wrpmd>0.?float2str(rp_qw[ip]):"")
-                        <<"  "<<(wrpmd>0.?float2str(rp_pw[ip]):"")
                         <<"  "<<(wrpmd>0.?float2str(rp_PWw0q[ip]):"")
                         <<"  "<<(wrpmd>0.?float2str(rp_PWgq[ip]):"")
                         <<"  "<<(wrpmd>0.?float2str(rp_PWshapeq[ip]):"")
