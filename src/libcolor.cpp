@@ -605,7 +605,7 @@ double GLEABC::get_pwcdf(unsigned long i, unsigned long j, double w)
     return 2/toolbox::constant::pi*ra.sum().real()/C(i,j);
 }
 
-#define BISEC_ACCURACY 1e-8
+#define BISEC_ACCURACY 1e-10
 void corr_cdf_bisect(GLEABC& abc, double target, double low, double flow, double high, double fhigh, double &ret, int index=1)
 {
     double mid=0.5*(low+high), fmid=abc.get_pwcdf(index,index, mid);
