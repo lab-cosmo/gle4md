@@ -53,12 +53,14 @@ public:
 };
 
 void make_harm_abc(const DMatrix& A, const DMatrix& BBT, double w, GLEABC& abc);
+void make_rpmodel_abc(const DMatrix& A, const DMatrix& BBT, double w,  double wrp, double alpha, GLEABC& abc);
 void harm_check(GLEABC& abc, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& lambdafp);
 void harm_shape(GLEABC& abc, double& pmedian, double &pinterquartile, double& pshape, int index=0); 
 void harm_peak(const DMatrix& A, const DMatrix& BBT, double w,  double d, double &pi);
 
 /* 4MR Add here rp_check after it is finished*/ 
-void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& repole, double& impole, double& qres, double& pres, double& median, double&interq, double& PWshapeq);
+//void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& median, double&interq, double& PWshapeq);
+
 void verlet_check(const DMatrix& A, const DMatrix& C, double w, double dt, double& q2, double& p2, double& pq);
 
 //void harm_spectrum(const DMatrix& A, const DMatrix& BBT, double w, const std::valarray<double>& wl, std::valarray<double>& cqq, std::valarray<double>& cpp );

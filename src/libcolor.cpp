@@ -605,7 +605,8 @@ double GLEABC::get_pwcdf(unsigned long i, unsigned long j, double w)
     return 2/toolbox::constant::pi*ra.sum().real()/C(i,j);
 }
 
-#define BISEC_ACCURACY 1e-12
+
+#define BISEC_ACCURACY 1e-10
 void corr_cdf_bisect(GLEABC& abc, double target, double low, double flow, double high, double fhigh, double &ret, int index=1)
 {
     double mid=0.5*(low+high), fmid=abc.get_pwcdf(index,index, mid);
@@ -752,6 +753,24 @@ void make_harm_abc(const DMatrix& A, const DMatrix& BBT, double w, GLEABC& abc)
     abc.set_A(xA); abc.set_BBT(xBBT);
 }
 
+void make_rpmodel_abc(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, GLEABC& abc)
+{
+    unsigned long n=A.rows();
+    double w2=w*w, wrp2=wrp*wrp, dw; 
+
+    // build a model of two coupled oscillators of frequencies w and wrp, coupled by a constant dw
+    dw=alpha*w*wrp/(1+(std::abs(w-wrp)/w));
+    
+    toolbox::FMatrix<double> xA(n+3,n+3), xBBT(n+3,n+3), xC;
+    xA*=0.; xBBT=xA;
+    for (int i=0; i<n;++i)for (int j=0; j<n;++j)
+    { xA(i+3,j+3)=A(i,j);  xBBT(i+3,j+3)=BBT(i,j); }
+    xA(0,1)=-1; xA(1,0)=w2; xA(1,2)=dw; xA(2,3)=-1; xA(3,0)=dw; xA(3,2)=wrp2;   //sets the two coupled harmonic oscilators hamiltonian part
+    abc.set_A(xA); abc.set_BBT(xBBT);
+    abc.get_C(xC);
+    
+}
+
 void harm_check(GLEABC& abc, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& lambdafp) //, double& repole, double& impole, double& qres, double& pres, double& median, double& interq, double& PWshapeq)
 {    
         
@@ -787,27 +806,7 @@ void harm_check(GLEABC& abc, double &tq2, double &tp2, double& th, double& q2, d
     tq2=qqqq/qqqq0;
 }
 
-void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& repole, double& impole, double& qres, double& pres, double& median, double& interq, double& PWshapeq)
-{
-    unsigned long n=A.rows();
-    double w2=w*w, wrp2=wrp*wrp, dw; 
 
-    // build a model of two coupled oscillators of frequencies w and wrp, coupled by a constant dw
-    dw=alpha*w*wrp/(1+(std::abs(w-wrp)/w));
-    
-    toolbox::FMatrix<double> xA(n+3,n+3), xBBT(n+3,n+3), xC;
-    xA*=0.; xBBT=xA;
-    for (int i=0; i<n;++i)for (int j=0; j<n;++j)
-    { xA(i+3,j+3)=A(i,j);  xBBT(i+3,j+3)=BBT(i,j); }
-    xA(0,1)=-1; xA(1,0)=w2; xA(1,2)=dw; xA(2,3)=-1; xA(3,0)=dw; xA(3,2)=wrp2;   //sets the two coupled harmonic oscilators hamiltonian part
-    GLEABC abc; abc.set_A(xA); abc.set_BBT(xBBT);
-    abc.get_C(xC);
-    // get spectral decomposition -- obsolete
-    // spectral_analysis(abc, repole, impole, qres, pres);
-
-    harm_shape(abc, w, PWshapeq, median, interq);
-    
-}
 /*
 //dirty, dirty way of making a recursive integration function...
 toolbox::FMatrix<double> __xA, __xC;

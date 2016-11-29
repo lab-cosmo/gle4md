@@ -1213,7 +1213,7 @@ void GLEFError::compute_points(const std::vector<double>& xp, std::vector<std::m
 {
     FMatrix<double> BBT;
     abc.get_BBT(BBT);
-    GLEABC abcharm, abcrp;
+    GLEABC abcharm, abcrpmod;
     
     val.resize(xp.size());
     double pq, dummy; 
@@ -1222,6 +1222,8 @@ void GLEFError::compute_points(const std::vector<double>& xp, std::vector<std::m
         bool fharmbase = (  val[i][TauQ2]<0 || val[i][TauP2]<0 || val[i][TauH]<0 || val[i][Cqq]<0 || val[i][Cpp]<0 || pq<0 || val[i][DwQ]<0 || val[i][DwP]<0 || val[i][LFP]<0);
         bool fharmq = (val[i][PWw0q]<0 || val[i][PWgq]<0 || val[i][PWshapeq]<0);
         bool fharmp = (val[i][PWw0p]<0 || val[i][PWgp]<0 || val[i][PWshapep]<0);
+        bool frpmodq = (val[i][RPw0q]<0 || val[i][RPgq]<0 || val[i][RPshapeq]<0);
+        bool frpmodp = (val[i][RPw0p]<0 || val[i][RPgp]<0 || val[i][RPshapep]<0);
     
         ///TODO Break down harm_check to make the evaluation more selective and fine-grained. If there are very expensive quantities, they should only be evaluated if requested
         if (!selective) val[i].clear();
@@ -1231,7 +1233,15 @@ void GLEFError::compute_points(const std::vector<double>& xp, std::vector<std::m
             harm_check(abcharm,val[i][TauQ2],val[i][TauP2],val[i][TauH],val[i][Cqq],val[i][Cpp],pq, val[i][LFP]); 
         if (!selective || fharmq)
             harm_shape(abcharm, val[i][PWw0q], val[i][PWgq], val[i][PWshapeq], 0);
-             //val[i][PWw0q], val[i][PWgq], val[i][PWshapeq])
+        if (!selective || fharmp)
+            harm_shape(abcharm, val[i][PWw0p], val[i][PWgp], val[i][PWshapep], 1);
+        if (!selective || (frpmodq || frpmodp))
+            make_rpmodel_abc(A, BBT, xp[i], opar.rpomega, opar.rpalpha, abcrpmod);
+        if (!selective || frpmodq)
+            harm_shape(abcrpmod, val[i][RPw0q], val[i][RPgq], val[i][RPshapeq], 0);
+         if (!selective || frpmodp)
+            harm_shape(abcrpmod, val[i][RPw0p], val[i][RPgp], val[i][RPshapep], 1);       
+        //val[i][PWw0q], val[i][PWgq], val[i][PWshapeq])
         //if (!selective || ( val[i][RPRePole]<0 || val[i][RPImPole]<0 || val[i][RPQRes]<0 || val[i][RPPRes]<0 ) )
         //    rp_check(A, BBT, xp[i],opar.rpomega,opar.rpalpha,val[i][RPw0q], val[i][RPgq], val[i][RPshapeq]);
         if (!selective || ( val[i][Kw]<0 || val[i][Hw]<0 ) )
