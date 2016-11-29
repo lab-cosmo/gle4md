@@ -79,16 +79,16 @@ std::istream& operator>> (std::istream& istr, GLEFPointType& value)
     else if (str=="cpp"  )    value=Cpp;
     else if (str=="pww0q" )   value=PWw0q;
     else if (str=="pwgq")     value=PWgq;
-    else if (str=="pwshapeq ")value=PWshapeq;
+    else if (str=="pwshapeq" )value=PWshapeq;
     else if (str=="pww0p" )   value=PWw0p;
     else if (str=="pwgp")     value=PWgp;
-    else if (str=="pwshapep ")value=PWshapep;
+    else if (str=="pwshapep" )value=PWshapep;
     else if (str=="rpw0q" )   value=RPw0q;
     else if (str=="rpgq")     value=RPgq;
-    else if (str=="rpshapeq ")value=RPshapeq;
+    else if (str=="rpshapeq" )value=RPshapeq;
     else if (str=="rpw0p" )   value=RPw0p;
     else if (str=="rpgp")     value=RPgp;
-    else if (str=="rpshapep ")value=RPshapep;    
+    else if (str=="rpshapep" )value=RPshapep;    
     else istr.clear(std::ios::failbit);
     return istr;
 }
