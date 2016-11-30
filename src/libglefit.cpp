@@ -232,7 +232,7 @@ std::ostream& operator<< (std::ostream& ostr, const GLEFParStyleA& p)
         case AComplex:       ostr<<" complex  ";    break;
         case APositive:      ostr<<" positive ";    break;
         case APReal:         ostr<<"   preal  ";    break;
-        case ADelta:         ostr<<"   pdelta ";    break;
+        case ADelta:         ostr<<"   delta ";    break;
         case APGeneral:      ostr<<" pgeneral ";    break;
     };
     return ostr;
@@ -1219,7 +1219,7 @@ void GLEFError::compute_points(const std::vector<double>& xp, std::vector<std::m
     double pq, dummy; 
     for (int i=0; i<xp.size(); i++)
     {
-        bool fharmbase = (  val[i][TauQ2]<0 || val[i][TauP2]<0 || val[i][TauH]<0 || val[i][Cqq]<0 || val[i][Cpp]<0 || pq<0 || val[i][DwQ]<0 || val[i][DwP]<0 || val[i][LFP]<0);
+        bool fharmbase = ( val[i][KP2]<0 || val[i][KQ2] <0 || val[i][KH] < 0 || val[i][TauQ2]<0 || val[i][TauP2]<0 || val[i][TauH]<0 || val[i][Cqq]<0 || val[i][Cpp]<0 || pq<0 || val[i][DwQ]<0 || val[i][DwP]<0 || val[i][LFP]<0);
         bool fharmq = (val[i][PWw0q]<0 || val[i][PWgq]<0 || val[i][PWshapeq]<0);
         bool fharmp = (val[i][PWw0p]<0 || val[i][PWgp]<0 || val[i][PWshapep]<0);
         bool frpmodq = (val[i][RPw0q]<0 || val[i][RPgq]<0 || val[i][RPshapeq]<0);
