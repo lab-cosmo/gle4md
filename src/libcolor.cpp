@@ -759,6 +759,8 @@ void make_rpmodel_abc(const DMatrix& A, const DMatrix& BBT, double w, double wrp
     double w2=w*w, wrp2=wrp*wrp, dw; 
 
     // build a model of two coupled oscillators of frequencies w and wrp, coupled by a constant dw
+    // alpha interpolates between no coupling (frequencies are unchanged) to total coupling (one frequency)
+    // is sent to zero. 
     dw=alpha*w*wrp; ///(1+(std::abs(w-wrp)/w));
     
     toolbox::FMatrix<double> xA(n+3,n+3), xBBT(n+3,n+3), xC;
