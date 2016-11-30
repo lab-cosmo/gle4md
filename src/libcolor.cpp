@@ -767,7 +767,7 @@ void make_rpmodel_abc(const DMatrix& A, const DMatrix& BBT, double w, double wrp
     { xA(i+3,j+3)=A(i,j);  xBBT(i+3,j+3)=BBT(i,j); }
     xA(0,1)=-1; xA(1,0)=w2; xA(1,2)=dw; xA(2,3)=-1; xA(3,0)=dw; xA(3,2)=wrp2;   //sets the two coupled harmonic oscilators hamiltonian part
     abc.set_A(xA); abc.set_BBT(xBBT);
-    abc.get_C(xC);
+ //   abc.get_C(xC);
     
 }
 
