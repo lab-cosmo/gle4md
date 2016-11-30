@@ -209,7 +209,7 @@ int main(int argc, char **argv)
         for (unsigned long ip=0; ip<np; ip++)
         {
             sqq[ip]=abcw0.get_pwspec(0,0,w[ip]);
-            spp[ip]=abcw0.get_pwcdf(0,0,w[ip]);
+            spp[ip]=abcw0.get_pwspec(1,1,w[ip]);
             //spp[ip]=abcw0.get_pwspec(1,1,w[ip]);
             abc.get_KH(w[ip], kw[ip], hw[ip]);
             make_harm_abc(iA, iBBT, w[ip], abcip);
@@ -229,7 +229,7 @@ int main(int argc, char **argv)
             std::cout<<"# omega  1/tau_h  1/tau_q2  1/tau_p2  K(omega)  H(omega)  <q2>(omega) <p2>(omega) <pq>(omega) lFP(omega)  Cqq["<<w0<<"](w) Cpp["<<w0<<"](w)"<<" pww0q pwgq pwshapeq pww0p pwgp pwshapep" <<
                     (deltat>0.?" <q2>,<p2>,<pq>(dt=":"")<<(deltat>0.?float2str(deltat):std::string(""))<<(deltat>0.?")   ":"")<<
                     (dpeak>0.?" peak_dist(":"")<<(dpeak>0.?float2str(dpeak):std::string(""))<<(dpeak>0.?")":"")<<
-                    (wrpmd>0.?" rpmd(":"")<<(wrpmd>0.?float2str(wrpmd):std::string(""))<<(wrpmd>0.?"):PWw0q PWgq PWshapeq PWw0p PWgp PWshapep":"")
+                    (wrpmd>0.?" rpmd(":"")<<(wrpmd>0.?float2str(wrpmd):std::string(""))<<(wrpmd>0.?"):rpw0q rpgq rpshapeq rpw0p rpgp rpshapep":"")
                     <<"\n";
             for (unsigned long ip=0; ip<np; ip++)
             {
