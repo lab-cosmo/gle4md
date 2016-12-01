@@ -606,14 +606,18 @@ double GLEABC::get_pwcdf(unsigned long i, unsigned long j, double w)
 }
 
 
-#define BISEC_ACCURACY 1e-10
-void corr_cdf_bisect(GLEABC& abc, double target, double low, double flow, double high, double fhigh, double &ret, int index=1)
+#define BISEC_XACCURACY 1e-9
+#define BISEC_YACCURACY 1e-5
+void corr_cdf_bisect(GLEABC& abc, double target, double low, double flow, double high, double fhigh, double &ret, int index=1, double omid=0)
 {
-    double mid=0.5*(low+high), fmid=abc.get_pwcdf(index,index, mid);
-    //std::cerr << mid <<" "<< fmid<<"bisec\n";
-    if (fabs((high-low)/mid)<BISEC_ACCURACY) { ret=mid;  return; }
-    if (fmid>target) corr_cdf_bisect(abc, target, low, flow, mid, fmid, ret, index);
-    else corr_cdf_bisect(abc, target, mid, fmid, high, fhigh, ret, index);
+    if (omid==0) std::cerr<< "STARTING\n";
+    std::cerr << (mid-omid)/mid <<" "<< fmid-target<<"bisec\n";
+    double mid=low+(target-flow)*(high-low)/(fhigh-flow), fmid=abc.get_pwcdf(index,index, mid);
+    
+    if ((omid==0.0 || fabs((mid-omid)/mid)<BISEC_XACCURACY) && 
+    (fabs((mid-omid)/mid)<1e-20 || fabs(fhigh-flow)<BISEC_YACCURACY || fabs(fmid-target)<BISEC_YACCURACY) ) { ret=mid;  return; }
+    if (fmid>target) corr_cdf_bisect(abc, target, low, flow, mid, fmid, ret, index, mid);
+    else corr_cdf_bisect(abc, target, mid, fmid, high, fhigh, ret, index, mid);
 }
 
 // L2 norm of a lorenzian with median w and interquartile distance g
