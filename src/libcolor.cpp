@@ -325,7 +325,7 @@ void GLEABC::prepare_C()
     mult(G,T2,T1);
     /*!*/ transpose(T1,O1CT); //BIG BIG SAVER!
     mult(O,T1,G);
-    C.resize(n,n);
+    C.resize(n,n);    
     for (int i=0; i<n; ++i) for (int j=0; j<n; ++j) C(i,j)=real(G(i,j));
     fr_c=true;
     mult(A,C,AC); mult(O1,C,O1C);
@@ -582,7 +582,7 @@ double GLEABC::get_pwspec(unsigned long i, unsigned long j, double w)
     std::valarray<tblapack::complex> ra(a);
     ra*=ra; ra+=w*w; ra=a/ra;
     ra*=O.row(i); ra*=O1C.col(j);     
-    return 2/toolbox::constant::pi*ra.sum().real()/C(i,j);
+    return 2/toolbox::constant::pi*ra.sum().real()/abs(C(i,j));
 }
 
 double GLEABC::get_pwcdf(unsigned long i, unsigned long j, double w)
@@ -598,22 +598,28 @@ double GLEABC::get_pwcdf(unsigned long i, unsigned long j, double w)
         fr_spec=true;
     }
     
+    //std::cerr<<"CDF\n";
     //COMPUTES [atan(w/A)C]_ij
     std::valarray<tblapack::complex> ra(a); 
     for (int k=0; k<n; ++k) ra[k]=ataninv(a[k]/w);
     ra*=O.row(i); ra*=O1C.col(j);     
-    return 2/toolbox::constant::pi*ra.sum().real()/C(i,j);
+    return 2/toolbox::constant::pi*ra.sum().real()/abs(C(i,j));
 }
 
 
-#define BISEC_ACCURACY 1e-10
-void corr_cdf_bisect(GLEABC& abc, double target, double low, double flow, double high, double fhigh, double &ret, int index=1)
+#define BISEC_XACCURACY 1e-9
+#define BISEC_YACCURACY 1e-6
+void corr_cdf_bisect(GLEABC& abc, double target, double low, double flow, double high, double fhigh, double &ret, int index=1, double omid=0)
 {
-    double mid=0.5*(low+high), fmid=abc.get_pwcdf(index,index, mid);
-    //std::cerr << mid <<" "<< fmid<<"bisec\n";
-    if (fabs((high-low)/mid)<BISEC_ACCURACY) { ret=mid;  return; }
-    if (fmid>target) corr_cdf_bisect(abc, target, low, flow, mid, fmid, ret, index);
-    else corr_cdf_bisect(abc, target, mid, fmid, high, fhigh, ret, index);
+    double //mid=(high+low)*0.5,
+           mid=low+(target-flow)*(high-low)/(fhigh-flow),
+           fmid=abc.get_pwcdf(index,index, mid);
+    //std::cerr<<mid<<"  " << (mid-omid)/mid <<" "<< fmid-target<<" bisec\n";
+    
+    if ((omid==0.0 || fabs((mid-omid)/mid)<BISEC_XACCURACY) && 
+    (fabs((mid-omid)/mid)<1e-20 || fabs(fhigh-flow)<BISEC_YACCURACY || fabs(fmid-target)<BISEC_YACCURACY) ) { ret=mid;  return; }
+    if (fmid>target) corr_cdf_bisect(abc, target, low, flow, mid, fmid, ret, index, mid);
+    else corr_cdf_bisect(abc, target, mid, fmid, high, fhigh, ret, index, mid);
 }
 
 // L2 norm of a lorenzian with median w and interquartile distance g
@@ -688,12 +694,13 @@ void harm_shape(GLEABC& abc, double& median, double& interq, double& shape, int 
     double Llow=w, cdflow=cdfhigh;
     double Lmid=w, cdfmid=cdfhigh;
     // computes the integral of Cpp from 0 to L
+#define BRACKET_FACTOR 1.2
     while (cdfhigh<0.75) // upper bracket
-    {   Lhigh*=2; cdfhigh= abc.get_pwcdf(index, index, Lhigh);  }
+    {   Lhigh*=BRACKET_FACTOR; cdfhigh= abc.get_pwcdf(index, index, Lhigh);  }
     Llow = 2 * Lmid - Lhigh ;
     cdflow=abc.get_pwcdf(index, index, Llow); 
     while (cdflow>0.25) //lower bracket
-    {   Llow/=2;  cdflow=abc.get_pwcdf(index, index, Llow);    }
+    {   Llow/=BRACKET_FACTOR;  cdflow=abc.get_pwcdf(index, index, Llow);    }
     // std::cerr<<"CDFl "<<Llow<<" "<<cdflow<<std::endl;
     // std::cerr<<"CDFh "<<Lhigh<<" "<<cdfhigh<<std::endl;
     double LD50, LD25, LD75;
@@ -759,6 +766,8 @@ void make_rpmodel_abc(const DMatrix& A, const DMatrix& BBT, double w, double wrp
     double w2=w*w, wrp2=wrp*wrp, dw; 
 
     // build a model of two coupled oscillators of frequencies w and wrp, coupled by a constant dw
+    // alpha interpolates between no coupling (frequencies are unchanged) to total coupling (one frequency)
+    // is sent to zero. 
     dw=alpha*w*wrp; ///(1+(std::abs(w-wrp)/w));
     
     toolbox::FMatrix<double> xA(n+3,n+3), xBBT(n+3,n+3), xC;
@@ -767,8 +776,7 @@ void make_rpmodel_abc(const DMatrix& A, const DMatrix& BBT, double w, double wrp
     { xA(i+3,j+3)=A(i,j);  xBBT(i+3,j+3)=BBT(i,j); }
     xA(0,1)=-1; xA(1,0)=w2; xA(1,2)=dw; xA(2,3)=-1; xA(3,0)=dw; xA(3,2)=wrp2;   //sets the two coupled harmonic oscilators hamiltonian part
     abc.set_A(xA); abc.set_BBT(xBBT);
- //   abc.get_C(xC);
-    
+    abc.get_C(xC);
 }
 
 void harm_check(GLEABC& abc, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& lambdafp) //, double& repole, double& impole, double& qres, double& pres, double& median, double& interq, double& PWshapeq)
