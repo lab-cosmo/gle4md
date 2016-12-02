@@ -1238,9 +1238,22 @@ void GLEFError::compute_points(const std::vector<double>& xp, std::vector<std::m
         if (!selective || (frpmodq || frpmodp))
             make_rpmodel_abc(A, BBT, xp[i], opar.rpomega, opar.rpalpha, abcrpmod);
         if (!selective || frpmodq)
+        {
             harm_shape(abcrpmod, val[i][RPw0q], val[i][RPgq], val[i][RPshapeq], 0);
-         if (!selective || frpmodp)
-            harm_shape(abcrpmod, val[i][RPw0p], val[i][RPgp], val[i][RPshapep], 1);       
+            // ring polymer indicators should degrade in a way that is proportional to the coupling squared
+            // so we normalize them to make them as weakly dependent as possible on this parameter that actually 
+            // does not make much sense. 
+            val[i][RPw0q] = abs(1-val[i][RPw0q])/(opar.rpalpha*opar.rpalpha); 
+            val[i][RPgq] /= (opar.rpalpha*opar.rpalpha); 
+            val[i][RPshapeq] /= (opar.rpalpha*opar.rpalpha); 
+        }
+        if (!selective || frpmodp)
+        {
+            harm_shape(abcrpmod, val[i][RPw0p], val[i][RPgp], val[i][RPshapep], 1); 
+            val[i][RPw0p] = (1-val[i][RPw0p]) / (opar.rpalpha*opar.rpalpha); 
+            val[i][RPgp] /= (opar.rpalpha*opar.rpalpha); 
+            val[i][RPshapep] /= (opar.rpalpha*opar.rpalpha);       
+        }    
         //val[i][PWw0q], val[i][PWgq], val[i][PWshapeq])
         //if (!selective || ( val[i][RPRePole]<0 || val[i][RPImPole]<0 || val[i][RPQRes]<0 || val[i][RPPRes]<0 ) )
         //    rp_check(A, BBT, xp[i],opar.rpomega,opar.rpalpha,val[i][RPw0q], val[i][RPgq], val[i][RPshapeq]);
