@@ -581,7 +581,6 @@ double GLEABC::get_pwspec(unsigned long i, unsigned long j, double w)
     //COMPUTES [A/(A^2+w^2)C]_{i,j}
     std::valarray<tblapack::complex> ra(a);
     ra*=ra; ra+=w*w; ra=a/ra;
-    std::cerr<<"cCC "<<C(i,j)<<std::endl;
     ra*=O.row(i); ra*=O1C.col(j);     
     return 2/toolbox::constant::pi*ra.sum().real()/abs(C(i,j));
 }
@@ -777,10 +776,7 @@ void make_rpmodel_abc(const DMatrix& A, const DMatrix& BBT, double w, double wrp
     { xA(i+3,j+3)=A(i,j);  xBBT(i+3,j+3)=BBT(i,j); }
     xA(0,1)=-1; xA(1,0)=w2; xA(1,2)=dw; xA(2,3)=-1; xA(3,0)=dw; xA(3,2)=wrp2;   //sets the two coupled harmonic oscilators hamiltonian part
     abc.set_A(xA); abc.set_BBT(xBBT);
-    std::cerr<<"BBT "<<xBBT<<std::endl;
     abc.get_C(xC);
-    std::cerr<<"xC "<<xC<<std::endl;
-    
 }
 
 void harm_check(GLEABC& abc, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& lambdafp) //, double& repole, double& impole, double& qres, double& pres, double& median, double& interq, double& PWshapeq)
