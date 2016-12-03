@@ -678,7 +678,14 @@ g))*((b)*(b) + (a + g)*(a + g)) + 2*(a - b + g)*(a + b + g)*(w)*(w) + \
 b)*(1 + b)*(w)*(w)))/toolbox::constant::pi;
 }
 
-//analyzes the shape of a peak in the harmonic distribution 
+//analyzes the shape of a peak in the harmonic distribution. 
+//assumes that abc is a libcolor object initialized so that elements 0 and 1 correspond
+//to p and q of a harmonic oscillator
+//returns the median of the distribution (relative to the harmonic frequency of the mode being considered
+//for the desired correlation function (in practice only 0=qq and 1=pp make sense but feel free to abuse this!)
+//and the width of the peak (also normalized re the harmonic w. shape contains an indication
+//of how non-lorentzian the peak is. A perfect, unperturbed harmonic peak should return
+//1, 0, 0
 void harm_shape(GLEABC& abc, double& median, double& interq, double& shape, int index)
 {
     
@@ -745,6 +752,8 @@ void harm_shape(GLEABC& abc, double& median, double& interq, double& shape, int 
     }
     i11 += overlap_lorlor(lg,lw);       
     shape = sqrt(fabs(i11)/overlap_lorlor(lg,lw));
+    median /= w;  //normalize median and interquartile distances to the harmonic mode.
+    interq /= w; 
 }
 
 
@@ -775,8 +784,7 @@ void make_rpmodel_abc(const DMatrix& A, const DMatrix& BBT, double w, double wrp
     for (int i=0; i<n;++i)for (int j=0; j<n;++j)
     { xA(i+3,j+3)=A(i,j);  xBBT(i+3,j+3)=BBT(i,j); }
     xA(0,1)=-1; xA(1,0)=w2; xA(1,2)=dw; xA(2,3)=-1; xA(3,0)=dw; xA(3,2)=wrp2;   //sets the two coupled harmonic oscilators hamiltonian part
-    abc.set_A(xA); abc.set_BBT(xBBT);
-    abc.get_C(xC);
+    abc.set_A(xA); abc.set_BBT(xBBT);    
 }
 
 void harm_check(GLEABC& abc, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& lambdafp) //, double& repole, double& impole, double& qres, double& pres, double& median, double& interq, double& PWshapeq)

@@ -205,8 +205,10 @@ int main(int argc, char **argv)
         for (unsigned long ip=0; ip<np; ip++) w[ip]=pow(wi,(np-ip-1.)/(np-1.))*pow(wf,(1.*ip)/(np-1.));        
         //harm_spectrum(iA, iBBT, w0,w, sqq, spp);
         double dummy;
-        GLEABC abcip, abcw0, abcrp;
+        GLEABC abcip, abcw0, abcrp, abcrpw0;
         make_harm_abc(iA, iBBT, w0, abcw0);
+        if (wrpmd>0) make_rpmodel_abc(iA, iBBT, w0,  wrpmd, rpalpha, abcrpw0);
+        DMatrix test;
         for (unsigned long ip=0; ip<np; ip++)
         {
             sqq[ip]=abcw0.get_pwspec(0,0,w[ip]);
@@ -222,11 +224,17 @@ int main(int argc, char **argv)
             if (deltat>0) verlet_check(iA,iC,w[ip],deltat,q2dt[ip],p2dt[ip],pqdt[ip]);
             if (wrpmd>0)  
             {
-                make_rpmodel_abc(iA, iBBT, w[ip],  wrpmd, rpalpha, abcrp);
-                rp_sqq[ip]=abcrp.get_pwspec(0,0,w[ip]);
-                rp_spp[ip]=abcrp.get_pwspec(1,1,w[ip]);
+                rp_sqq[ip]=abcrpw0.get_pwspec(0,0,w[ip]);
+                rp_spp[ip]=abcrpw0.get_pwspec(1,1,w[ip]);
+                make_rpmodel_abc(iA, iBBT, w[ip],  wrpmd, rpalpha, abcrp);                
                 harm_shape(abcrp, rp_PWw0q[ip], rp_PWgq[ip], rp_PWshapeq[ip], 0);
-                harm_shape(abcrp, rp_PWw0p[ip], rp_PWgp[ip], rp_PWshapep[ip], 1);                
+                harm_shape(abcrp, rp_PWw0p[ip], rp_PWgp[ip], rp_PWshapep[ip], 1);         
+                rp_PWw0q[ip] = fabs(1-rp_PWw0q[ip])/(rpalpha *rpalpha);
+                rp_PWgq[ip] /= (rpalpha *rpalpha);
+                rp_PWshapeq[ip] /= (rpalpha *rpalpha);
+                rp_PWw0p[ip] = fabs(1-rp_PWw0p[ip])/(rpalpha *rpalpha);
+                rp_PWgp[ip] /= (rpalpha *rpalpha);
+                rp_PWshapep[ip] /= (rpalpha *rpalpha);
             }
         }
         if (!ftex)
