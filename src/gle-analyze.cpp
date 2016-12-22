@@ -213,7 +213,6 @@ int main(int argc, char **argv)
         {
             sqq[ip]=abcw0.get_pwspec(0,0,w[ip]);
             spp[ip]=abcw0.get_pwspec(1,1,w[ip]);
-            //spp[ip]=abcw0.get_pwspec(1,1,w[ip]);
             abc.get_KH(w[ip], kw[ip], hw[ip]);
             make_harm_abc(iA, iBBT, w[ip], abcip);
            
