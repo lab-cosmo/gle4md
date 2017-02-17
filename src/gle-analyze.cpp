@@ -222,7 +222,6 @@ int main(int argc, char **argv)
         {
             sqq[ip]=abcw0.get_pwspec(0,0,w[ip]);
             spp[ip]=abcw0.get_pwspec(1,1,w[ip]);
-            //spp[ip]=abcw0.get_pwspec(1,1,w[ip]);
             abc.get_KH(w[ip], kw[ip], hw[ip]);
             make_harm_abc(iA, iBBT, w[ip], abcip);
            
@@ -235,7 +234,10 @@ int main(int argc, char **argv)
             {
                 rp_sqq[ip]=abcrpw0.get_pwspec(0,0,w[ip]);
                 rp_spp[ip]=abcrpw0.get_pwspec(1,1,w[ip]);
-                make_rpmodel_abc(iA, iBBT, w[ip],  wrpmd, rpalpha, abcrp);                
+                make_rpmodel_abc(iA, iBBT, w[ip],  wrpmd, rpalpha, abcrp);          
+                // ring polymer indicators should degrade in a way that is proportional to the coupling squared
+                // so we normalize them to make them as weakly dependent as possible on this parameter that actually 
+                // does not make much sense.       
                 harm_shape(abcrp, rp_PWw0q[ip], rp_PWgq[ip], rp_PWshapeq[ip], 0);
                 harm_shape(abcrp, rp_PWw0p[ip], rp_PWgp[ip], rp_PWshapep[ip], 1);         
                 rp_PWw0q[ip] = fabs(1-rp_PWw0q[ip])/(rpalpha *rpalpha);
