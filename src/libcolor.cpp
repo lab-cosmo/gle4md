@@ -731,7 +731,7 @@ void harm_shape(GLEABC& abc, double& median, double& interq, double& shape, int 
     double ai, bi, ci, di, aj, bj, cj, dj;
     double i11=0; int na=ra.size();
     double ri1, di1, ri2, di2;
-#define PEAK_SMOOTH 1e-8    
+#define PEAK_SMOOTH 1e-8   
     lg+=lw*PEAK_SMOOTH;    // stabilizes expressions by smoothening too-sharp peaks
     //std::cerr<<w<<" REFLOR "<<lw<<" "<<lg<<std::endl;
     for (int i=0; i<na; ++i)

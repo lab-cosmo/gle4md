@@ -31,7 +31,8 @@ void banner()
             << " are plotted as a function of the frequency. np is the number of data points to \n"
             << " be plotted, in both cases, on a log scale.                                     \n"
             << " -w0 specifies the frequency of a harmonic mode for which to compute the GLE    \n"
-            << " modified vibrational spectrum.                                                 \n"
+            << " modified vibrational spectrum. When -wrp is set, -w0 also corresponds to the   \n"
+            << " physical frequency used to compute vibrational spectra (Cpp and Cqq fields)    \n"
             << " If -tfree is provided, MSD and related properties are produced for a free      \n"
             << " particle, from time zero up to the specified time maxt.                        \n"
             << " -tex outputs data in a form which can be post-processed with latex to give     \n"
@@ -39,7 +40,15 @@ void banner()
             << " -pk also performs a 'disturbance analysis' with relative window delta.         \n"
             << " -dt computes also fluctuations which would result from finite-timestep verlet. \n"
             << " -wrp also computes the disturbance introduced on the dynamics from a rp mode.  \n"
-            << " -dwrp indicates the strength of coupling with the rpmd mode.                   \n";
+            << " -dwrp indicates the strength of coupling with the rpmd mode.                   \n"
+            << "                                                                                \n"
+            << " OUTPUS:                                                                        \n"
+            << " omega   : Physical frequencies.                                                \n"
+            << " 1/tau_h : Inverse correlation time of the total energy                         \n"
+            << " 1/tau_q2: Inverse correlation time of q^2                                      \n"
+            << " 1/tau_p2: Inverse correlation time of p^2                                      \n"
+            << " K(omega): Fourier transform of the memory kernel                               \n"
+            << " H(omega): Fourier transform of the noise autocorrelation                       \n";
 }
 
 int main(int argc, char **argv)
