@@ -18,6 +18,7 @@ mkOption(gle_kind,"optimal",  "Optimal sampling"      );
 mkOption(gle_kind,"quantum",  "Quantum thermostat"    );
 mkOption(gle_kind,"piglet",   "PIGLET"  );
 mkOption(gle_kind,"pimd",     "PI+GLE"                );
+mkOption(gle_kind,"trpmd",    "TRPMD"                 );
 mkOption(gle_kind,"respa",    "GLE-RESPA"  );
 mkOption(gle_kind,"delta",    "Delta thermostat"      );
 mkOption(gle_kind,"exp2",     "Exponential 2x2"       );
@@ -35,6 +36,9 @@ case "exp2":
   break;
 case "piglet":
   httpInclude("ingen/gle_piglet.html");
+  break;
+case "trpmd":
+  httpInclude("ingen/gle_trpmd.html");
   break;
 case "kdelta":
   httpInclude("ingen/gle_kdelta.html");

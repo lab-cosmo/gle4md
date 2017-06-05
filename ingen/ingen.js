@@ -66,6 +66,12 @@ function mkField(curval,value,label,uval,units)
   document.write("<br/>\n");
 }
 
+function mkFieldNoUnit(curval,value,label)
+{
+  document.write("<div class='label'>"+label+"</div>&nbsp;<input class='number' type='text' name='"+value+"' value='"+curval+"' onchange='this.form.submit()'></input>");
+  document.write("<br/>\n");
+}
+
 function getOption(varname)
 {
    var obox=document.getElementById(varname);
