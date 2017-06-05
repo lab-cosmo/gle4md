@@ -11,9 +11,8 @@ gle_ns=xset[0]; extra=xset[2];
 gle_temp    = typeof pageQuery.temp     !== "undefined" ? pageQuery.temp     : 300;
 gle_utemp   = typeof pageQuery.utemp    !== "undefined" ? pageQuery.utemp    : "k";
 
-gle_ns = xrange[0]; 
 
-DESC="\
+DESC=" \
 # Generated at http://cosmo-epfl.github.io/gle4md\n\
 # Please cite:\n\
 # M. Rossi, V. Kapil, M. Ceriotti, J. Chem. Phys. (2017) \n\
@@ -28,8 +27,6 @@ DESC="\
 
 HELP="TRPMD-GLE: minimize dynamical disturbance in RPMD-like simulations \n\
      of quantum dynamics <br/>"
-
-
 </script>
 
 <div class='label'>Parameter set</div>&nbsp;<select name="parset" onchange='this.form.submit()'>
