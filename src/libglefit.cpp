@@ -77,6 +77,18 @@ std::istream& operator>> (std::istream& istr, GLEFPointType& value)
     else if (str=="cppdt")    value=CppDT;
     else if (str=="cqq"  )    value=Cqq;
     else if (str=="cpp"  )    value=Cpp;
+    else if (str=="pww0q" )   value=PWw0q;
+    else if (str=="pwgq")     value=PWgq;
+    else if (str=="pwshapeq" )value=PWshapeq;
+    else if (str=="pww0p" )   value=PWw0p;
+    else if (str=="pwgp")     value=PWgp;
+    else if (str=="pwshapep" )value=PWshapep;
+    else if (str=="rpw0q" )   value=RPw0q;
+    else if (str=="rpgq")     value=RPgq;
+    else if (str=="rpshapeq" )value=RPshapeq;
+    else if (str=="rpw0p" )   value=RPw0p;
+    else if (str=="rpgp")     value=RPgp;
+    else if (str=="rpshapep" )value=RPshapep;    
     else istr.clear(std::ios::failbit);
     return istr;
 }
@@ -106,6 +118,18 @@ std::ostream& operator<< (std::ostream& ostr, const GLEFPointType& p)
         case CqqDT:    ostr<<" cqqdt ";    break;
         case Cpp:      ostr<<"  cpp  ";    break;
         case Cqq:      ostr<<"  cqq  ";    break;
+        case PWw0q:    ostr<<" pww0q ";    break; 
+        case PWgq:     ostr<<" pwgq  ";    break; 
+        case PWshapeq: ostr<<" pwshapeq "; break; 
+        case PWw0p:    ostr<<" pww0p ";    break; 
+        case PWgp:     ostr<<" pwgp  ";    break; 
+        case PWshapep: ostr<<" pwshapep "; break; 
+        case RPw0q:    ostr<<" rpw0q ";    break; 
+        case RPgq:     ostr<<" rpgq  ";    break; 
+        case RPshapeq: ostr<<" rpshapeq "; break; 
+        case RPw0p:    ostr<<" rpw0p ";    break; 
+        case RPgp:     ostr<<" rpgp  ";    break; 
+        case RPshapep: ostr<<" rpshapep "; break;         
     };
     return ostr;
 }
@@ -208,7 +232,7 @@ std::ostream& operator<< (std::ostream& ostr, const GLEFParStyleA& p)
         case AComplex:       ostr<<" complex  ";    break;
         case APositive:      ostr<<" positive ";    break;
         case APReal:         ostr<<"   preal  ";    break;
-        case ADelta:         ostr<<"   pdelta ";    break;
+        case ADelta:         ostr<<"   delta ";    break;
         case APGeneral:      ostr<<" pgeneral ";    break;
     };
     return ostr;
@@ -299,6 +323,8 @@ std::istream& operator>> (std::istream& istr, GLEFParOptions& op)
     IOMap iom;
     iom.insert(op.ns, "ns",(unsigned long) 1);
     iom.insert(op.deltat, "finite-dt",0.0);
+    iom.insert(op.rpomega, "rp-omega",0.0);
+    iom.insert(op.rpalpha, "rp-alpha",0.0);
     iom.insert(op.pstyleC, "cstyle", CIndirect);
     iom.insert(op.pstyleA, "astyle", APReal);
     istr>>iom;
@@ -309,6 +335,8 @@ std::ostream& operator<< (std::ostream& ostr, const GLEFParOptions& op)
 {
     ostr<<" ns        "<<op.ns         <<"\n";
     ostr<<" finite-dt "<<op.deltat     <<"\n";
+    ostr<<" rp-omega  "<<op.rpomega    <<"\n";
+    ostr<<" rp-alpha  "<<op.rpalpha <<"\n";
     ostr<<" astyle    "<<op.pstyleA    <<"\n";
     ostr<<" cstyle    "<<op.pstyleC    <<"\n";
     return ostr;
@@ -1185,17 +1213,58 @@ void GLEFError::compute_points(const std::vector<double>& xp, std::vector<std::m
 {
     FMatrix<double> BBT;
     abc.get_BBT(BBT);
-
+    GLEABC abcharm, abcrpmod;
+    
     val.resize(xp.size());
-    double pq;
+    double pq, dummy; 
     for (int i=0; i<xp.size(); i++)
     {
+        bool fharmbase = ( val[i][KP2]<0 || val[i][KQ2] <0 || val[i][KH] < 0 || val[i][TauQ2]<0 || val[i][TauP2]<0 || val[i][TauH]<0 || val[i][Cqq]<0 || val[i][Cpp]<0 || pq<0 || val[i][DwQ]<0 || val[i][DwP]<0 || val[i][LFP]<0);
+        bool fharmq = (val[i][PWw0q]<0 || val[i][PWgq]<0 || val[i][PWshapeq]<0);
+        bool fharmp = (val[i][PWw0p]<0 || val[i][PWgp]<0 || val[i][PWshapep]<0);
+        bool frpmodq = (val[i][RPw0q]<0 || val[i][RPgq]<0 || val[i][RPshapeq]<0);
+        bool frpmodp = (val[i][RPw0p]<0 || val[i][RPgp]<0 || val[i][RPshapep]<0);
+    
+        ///TODO Break down harm_check to make the evaluation more selective and fine-grained. If there are very expensive quantities, they should only be evaluated if requested
         if (!selective) val[i].clear();
-        if (!selective || (  val[i][TauQ2]<0 || val[i][TauP2]<0 || val[i][TauH]<0 || val[i][Cqq]<0 || val[i][Cpp]<0 || pq<0 || val[i][DwQ]<0 || val[i][DwP]<0 || val[i][LFP]<0))
-            harm_check(A,BBT,xp[i],val[i][TauQ2],val[i][TauP2],val[i][TauH],val[i][Cqq],val[i][Cpp],pq,val[i][DwQ],val[i][DwP],val[i][LFP]);
+        if (!selective || (fharmbase || fharmq || fharmp))
+            make_harm_abc(A, BBT, xp[i], abcharm);        
+        if (!selective || fharmbase)
+            harm_check(abcharm,val[i][TauQ2],val[i][TauP2],val[i][TauH],val[i][Cqq],val[i][Cpp],pq, val[i][LFP]); 
+        if (!selective || fharmq)
+            harm_shape(abcharm, val[i][PWw0q], val[i][PWgq], val[i][PWshapeq], 0);
+        if (!selective || fharmp)
+            harm_shape(abcharm, val[i][PWw0p], val[i][PWgp], val[i][PWshapep], 1);
+        if (!selective || (frpmodq || frpmodp))
+            make_rpmodel_abc(A, BBT, xp[i], opar.rpomega, opar.rpalpha, abcrpmod);
+        if (!selective || frpmodq)
+        {
+            harm_shape(abcrpmod, val[i][RPw0q], val[i][RPgq], val[i][RPshapeq], 0);
+            // ring polymer indicators should degrade in a way that is proportional to the coupling squared
+            // so we normalize them to make them as weakly dependent as possible on this parameter that actually 
+            // does not make much sense. 
+            val[i][RPw0q] = abs(1-val[i][RPw0q])/(opar.rpalpha*opar.rpalpha); 
+            val[i][RPgq] /= (opar.rpalpha*opar.rpalpha); 
+            val[i][RPshapeq] /= (opar.rpalpha*opar.rpalpha); 
+        }
+        if (!selective || frpmodp)
+        {
+            harm_shape(abcrpmod, val[i][RPw0p], val[i][RPgp], val[i][RPshapep], 1); 
+            val[i][RPw0p] = (1-val[i][RPw0p]) / (opar.rpalpha*opar.rpalpha); 
+            val[i][RPgp] /= (opar.rpalpha*opar.rpalpha); 
+            val[i][RPshapep] /= (opar.rpalpha*opar.rpalpha);       
+        }    
+        //val[i][PWw0q], val[i][PWgq], val[i][PWshapeq])
+        //if (!selective || ( val[i][RPRePole]<0 || val[i][RPImPole]<0 || val[i][RPQRes]<0 || val[i][RPPRes]<0 ) )
+        //    rp_check(A, BBT, xp[i],opar.rpomega,opar.rpalpha,val[i][RPw0q], val[i][RPgq], val[i][RPshapeq]);
         if (!selective || ( val[i][Kw]<0 || val[i][Hw]<0 ) )
             abc.get_KH(xp[i],val[i][Kw],val[i][Hw]);
-        if (opar.deltat>0.) verlet_check(A,C,xp[i],opar.deltat,val[i][CqqDT],val[i][CppDT],pq); else  { val[i][CqqDT]=val[i][Cqq]; val[i][CppDT]=val[i][Cpp]; } //if requested, compute finite-dt corrections
+        if (!selective || (val[i][CqqDT]<0 || val[i][CppDT]<0 ) ) 
+        {
+            if (opar.deltat>0.)
+                verlet_check(A,C,xp[i],opar.deltat,val[i][CqqDT],val[i][CppDT],pq); 
+            else  { val[i][CqqDT]=val[i][Cqq]; val[i][CppDT]=val[i][Cpp]; } //if requested, compute finite-dt corrections
+        }
         val[i][HonK]=val[i][Hw]/val[i][Kw];
         val[i][rDwQ]=val[i][DwQ]/xp[i];
         val[i][rDwP]=val[i][DwP]/xp[i];
@@ -1203,9 +1272,9 @@ void GLEFError::compute_points(const std::vector<double>& xp, std::vector<std::m
         val[i][KQ2]=1./(xp[i]*val[i][TauQ2]);
         val[i][KH]=1./(xp[i]*val[i][TauH]);
 #ifndef __NOPEAK
-        harm_peak(A,BBT,xp[i],0.5,val[i][PI2]);
-        harm_peak(A,BBT,xp[i],0.1,val[i][PI10]);
-        harm_peak(A,BBT,xp[i],0.01,val[i][PI100]);
+        if (!selective || val[i][PI2]<0)   harm_peak(A,BBT,xp[i],0.5,val[i][PI2]);
+        if (!selective || val[i][PI10]<0)  harm_peak(A,BBT,xp[i],0.1,val[i][PI10]);
+        if (!selective || val[i][PI100]<0) harm_peak(A,BBT,xp[i],0.01,val[i][PI100]);
 #endif
     }
 }
@@ -1274,9 +1343,7 @@ void GLEFError::get_value(double& rv)
     {
         pvalues[i].clear();
         for (pit=ofit.points[i].values.begin(); pit!=ofit.points[i].values.end(); pit++)
-        {
-            pvalues[i][pit->first] = -1;
-        }
+            pvalues[i][pit->first] = -1;        
     }
     
     compute_points(freqs,pvalues,true);

@@ -14,11 +14,11 @@ void GLEABC::set_A(const DMatrix& nA)
     if (BBT.rows()>0) fr_init=true;
     if (n!=nA.rows()) ERROR("Use set_size if you want to change matrix size.");
     if (n!=nA.cols()) ERROR("Square matrix expected.");
-    A=nA; fr_eva=fr_hk=false;
+    A=nA; fr_eva=fr_hk=fr_spec=false;
     if (fr_init && fr_c)
     {
         //update BBT, it's so cheap we can do it routinely;
-        DMatrix T; mult(A, C, BBT); transpose(BBT, T);  incr(BBT,T);
+        DMatrix T; mult(A, C, AC); transpose(AC, T);  BBT=AC+T; 
     }
 }
 
@@ -28,7 +28,7 @@ void GLEABC::set_BBT(const DMatrix& nBBT)
     if (A.rows()>0) fr_init=true;
     if (n!=nBBT.rows()) ERROR("Use set_size if you want to change matrix size.");
     if (n!=nBBT.cols()) ERROR("Square matrix expected.");
-    BBT=nBBT; fr_c=false;
+    BBT=nBBT; fr_c=fr_spec=false;
 }
 
 void GLEABC::set_C(const DMatrix& nC)
@@ -37,11 +37,11 @@ void GLEABC::set_C(const DMatrix& nC)
     if (A.rows()>0) fr_init=true;
     if (n!=nC.rows()) ERROR("Use set_size if you want to change matrix size.");
     if (n!=nC.cols()) ERROR("Square matrix expected.");
-    C=nC; fr_c=true;
+    C=nC; fr_c=true; fr_spec=false;
     if (fr_init && fr_c)
     {
         //update BBT, it's so cheap we can do it routinely;
-        DMatrix T; mult(A, C, BBT); transpose(BBT, T);  incr(BBT,T);
+        DMatrix T; mult(A, C, AC); transpose(AC, T);  BBT=AC+T; 
     }
 }
 
@@ -88,6 +88,57 @@ void GLEABC::get_evA(std::valarray<tblapack::complex>& ra)
     }
     
     ra.resize(a.size()); ra=a;
+}
+
+void GLEABC::get_esA(std::valarray<tblapack::complex>& ra, FMatrix<tblapack::complex>& u, FMatrix<tblapack::complex>& u1)
+{
+    if (!fr_eva)
+    {
+        EigenDecomposition(A, O, O1, a); fr_eva=true;
+    }
+    
+    ra.resize(a.size()); ra=a;
+    // MR: do I need to resize below in any way?
+    u=O; u1=O1;
+}
+
+void get_TS(const toolbox::FMatrix<double>& A, const toolbox::FMatrix<double>& C, const double& t, 
+            toolbox::FMatrix<double>& T, toolbox::FMatrix<double>& S)
+{
+    FMatrix<double> tmp, lC=C;
+    toolbox::exp(A*(-t),T,1e-20);
+    toolbox::transpose(T,S);
+    toolbox::mult(lC,S,tmp);
+    toolbox::mult(T,tmp,S);
+    lC-=S;
+    //now C holds in fact C-TCT^T, so we must cholesky-factor C in order to get S
+    StabCholesky(lC,S);
+}
+
+void A2Kt(const toolbox::FMatrix<double>& A, double dt, std::valarray<double>& K)
+{
+    int n=A.rows();
+    toolbox::FMatrix<double> la(n-1,n-1), le, len(n-1,n-1);
+    len*=0.;
+    for(int i=1; i<n;++i)
+    {
+        len(i-1,i-1)=1.;
+        for(int j=1; j<n;++j)
+            la(i-1,j-1)=A(i,j);
+    }
+    la*=(-dt);
+    toolbox::exp(la,le,1e-20);
+    K=0; K[0]=A(0,0)/dt; 
+    for (int s=0;s<K.size();++s)
+    {
+        for(int i=1; i<n;++i)
+            for(int j=1; j<n;++j)
+        {
+            K[s]-=A(0,i)*A(j,0)*len(i-1,j-1);
+        }
+        mult(len,le,la); len=la;
+    }
+    K[0]*=2.;
 }
 
 void GLEABC::get_KH(double w, double& kw, double& hw)
@@ -274,9 +325,11 @@ void GLEABC::prepare_C()
     mult(G,T2,T1);
     /*!*/ transpose(T1,O1CT); //BIG BIG SAVER!
     mult(O,T1,G);
-    C.resize(n,n);
+    C.resize(n,n);    
     for (int i=0; i<n; ++i) for (int j=0; j<n; ++j) C(i,j)=real(G(i,j));
     fr_c=true;
+    mult(A,C,AC); mult(O1,C,O1C);
+    fr_spec=true;
 }
 
 void rfsum(const std::valarray<tblapack::complex>& p1, const std::valarray<tblapack::complex>& q1,
@@ -379,27 +432,372 @@ void verlet_check(const DMatrix& A, const DMatrix& C, double w, double dt, doubl
     mult(WO,R3,R1); transpose(WO,R2); mult(R1,R2,R3);
     q2=R3(0,0).real()*w*w; p2=R3(1,1).real(); pq=R3(0,1).real();
 }
-
-void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& dwq, double& dwp, double& lambdafp)
+/* TO BE REMOVED
+void spectral_analysis(GLEABC& abc, double& repole, double& impole, double& qres, double& pres)
 {
-    unsigned long n=A.rows();
-    double w2=w*w, w4=w2*w2; 
+    toolbox::FMatrix<double> xA, xC;
+    abc.get_A(xA); abc.get_C(xC);
+    unsigned int n=xA.rows();
+    std::valarray<std::complex<double> >eva, resq(n), resp(n); 
+    CMatrix evec, evec1, xvecC;
+    abc.get_esA(eva, evec, evec1); 
+
+    //get poles
+    std::valarray<std::complex<double> > poles(n); poles=eva*std::complex<double>(0,1);
+
+    // get residues or weights
+    mult(evec1,xC,xvecC); // U-1 . C ... hoping evec1 is the inverse of evec        
+    for (int k=0; k<(n);++k) {
+        resq[k]=(evec(0, k)*xvecC(k, 0)/xC(0, 0));
+        resp[k]=(evec(1, k)*xvecC(k, 1)/xC(1, 1));
+        // std::cerr<< "SPEC " << k <<" " << std::real(poles[k])<< " "<<std::imag(poles[k])<<" "<<
+        // std::real(resq[k])<<" "<< std::real(resp[k])<<"\n";
+    }
+
+    // this is all obsolete now
+    // now here we are calculating a bunch of stuff. real and imaginary averages of the poles, their spread, as well as the
+    // pole which has the highest weight and picking it for further characterization. 
+    double mxw=0, kw, diffq, diffp;    
+    // wavgq=wavgp=wspreadq=wspreadp=wimgq=wimgp=wkurtq=wkurtp=0;
+    for (int k=0; k<(n);++k){
+       //wavgq += std::abs(std::real(poles[k]))*std::real(resq[k]);
+       //wavgp += std::abs(std::real(poles[k]))*std::real(resp[k]);
+       //wimgq += std::abs(std::imag(poles[k]))*std::real(resq[k]);
+       //wimgp += std::abs(std::imag(poles[k]))*std::real(resp[k]);       
+       // the eig 
+       kw  = std::real(resq[k]); // selects based only on q to avoid ambiguity
+       if (kw > mxw){
+          mxw = kw;
+          repole = std::abs(std::real(poles[k]));
+          impole = std::abs(std::imag(poles[k]));
+          qres = 2.0*std::real(resq[k]);
+          pres = 2.0*std::real(resp[k]);          
+        }
+    }
+//
+//    for (int k=0; k<(n);++k){
+//        diffq=(std::abs(std::real(poles[k]))-wavgq);
+//        diffp=(std::abs(std::real(poles[k]))-wavgp);
+//        wspreadq += diffq*diffq*std::real(resq[k]);
+//        wspreadp += diffp*diffp*std::real(resp[k]);
+//        wkurtq += pow(diffq,4)*std::real(resq[k]);
+//        wkurtp += pow(diffp,4)*std::real(resp[k]);
+//    }
+//    wkurtq=wkurtq/pow(wspreadq, 2);
+//    wkurtp=wkurtp/pow(wspreadp, 2);
+//    wspreadq=std::sqrt(wspreadq);
+//    wspreadq=std::sqrt(wspreadq);    
+}
+*/
+
+tblapack::complex atan(tblapack::complex c)
+{
+    const tblapack::complex i(0.0,1.0);
+    const tblapack::complex one(1.0,0.0);
+    const tblapack::complex r=log( (one + i * c) / (one - i * c)) / tblapack::complex(0.0,2.0);
+    return log( (one + i * c) / (one - i * c)) / tblapack::complex(0.0,2.0);
+}
+tblapack::complex ataninv(tblapack::complex x) { return atan(1./x); }
+
+/* TO BE REMOVED
+double lormodel(double& a, double& b, double& w){
+    return 2*a*(a*a + b*b + w*w)/(toolbox::constant::pi*((a*a + b*b)*(a*a + b*b) + 2*(a - b)*(a + b)*w*w + w*w*w*w));
+}
+
+double ppspectrum(FMatrix<double>& xA, FMatrix<double>& xC, double& w){
+    toolbox::FMatrix<double> xAC(xA), xIn(xA), xAux(xA);
+    toolbox::mult(xA, xA, xAux);    
+    for( int i = 0; i < xA.rows(); ++i )
+    {    xAux(i,i)+=w*w;   }
+    toolbox::MatrixInverse(xAux, xIn);
+    toolbox::mult(xA, xC, xAC);
+    toolbox::mult(xIn, xAC, xAux);
+    return xAux(1,1)/xC(1,1)*2.0/toolbox::constant::pi; // pp part
+}
+
+
+double l2norm(double& a, double& b){
+    return (a-b)*(a-b);
+}
+
+double adaptiveintegration(FMatrix<double>& xA, FMatrix<double>& xC, double& alor, double& blor, double a, double b, double epsilon, int bottom) {                 
+    double c = (a + b)/2, h = b - a;                                                                  
+    double d = (a + c)/2, e = (c + b)/2;
+    double fa, fb, fc, fd, fe; 
+    double spec, lmodel;
+
+    spec=ppspectrum(xA, xC, a);
+    lmodel=lormodel(alor, blor, a);
+    fa=l2norm(spec, lmodel);
+    spec=ppspectrum(xA, xC, b);
+    lmodel=lormodel(alor, blor, b);
+    fb=l2norm(spec, lmodel);
+    spec=ppspectrum(xA, xC, c);
+    lmodel=lormodel(alor, blor, c);
+    fc=l2norm(spec, lmodel);
+    spec=ppspectrum(xA, xC, d);
+    lmodel=lormodel(alor, blor, d);
+    fd=l2norm(spec, lmodel);
+    spec=ppspectrum(xA, xC, e);
+    lmodel=lormodel(alor, blor, e);
+    fe=l2norm(spec, lmodel);                                                                
+ 
+    double Q1 = h/6  * (fa + 4*fc + fb);
+    double Q2 = h/12 * (fa + 4*fd + 2*fc + 4*fe + fb);
+                                                                    
+    if (bottom <= 0 || std::fabs(Q2- Q1) <= epsilon)                                         
+      return Q2 + (Q2 - Q1)/15;            
+    else                                                                    
+    return adaptiveintegration(xA, xC, alor, blor, a, c, epsilon/2, bottom-1) +                    
+           adaptiveintegration(xA, xC, alor, blor, c, b, epsilon/2, bottom-1);                     
+}
+
+// gets the normalized power spectrum for 
+// a GLE dynamics described by A and C. selects frequency w and picks the index-th component
+double corr_fun(FMatrix<double>& xA, FMatrix<double>& xC, double w, int index)
+{
+    FMatrix<double> A(xA), A2;
+    mult(A,A,A2);
+    for (int i=0; i<=A.rows(); ++i) A2(i,i)+=w*w;
+    MatrixInverse(A2, A);
+    mult(A,xA,A2);
+    mult(A2,xC,A);
+    return 2/toolbox::constant::pi*A(index,index)/xC(index, index); 
+}
+*/
+double GLEABC::get_pwspec(unsigned long i, unsigned long j, double w)
+{
+    if (!fr_eva)
+    {
+        EigenDecomposition(A, O, O1, a); fr_eva=true;
+    }
+    if (!fr_c) prepare_C();
+    if (!fr_spec)
+    {        
+        mult(A,C,AC); mult(O1,C,O1C);
+        fr_spec=true;
+    }
     
-    //prepares extended matrices
+    //COMPUTES [A/(A^2+w^2)C]_{i,j}
+    std::valarray<tblapack::complex> ra(a);
+    ra*=ra; ra+=w*w; ra=a/ra;
+    ra*=O.row(i); ra*=O1C.col(j);     
+    return 2/toolbox::constant::pi*ra.sum().real()/abs(C(i,j));
+}
+
+double GLEABC::get_pwcdf(unsigned long i, unsigned long j, double w)
+{
+    if (!fr_eva)
+    {
+        EigenDecomposition(A, O, O1, a); fr_eva=true;
+    }
+    if (!fr_c) prepare_C();
+    if (!fr_spec)
+    {        
+        mult(A,C,AC); mult(O1,C,O1C);
+        fr_spec=true;
+    }
+    
+    //std::cerr<<"CDF\n";
+    //COMPUTES [atan(w/A)C]_ij
+    std::valarray<tblapack::complex> ra(a); 
+    for (int k=0; k<n; ++k) ra[k]=ataninv(a[k]/w);
+    ra*=O.row(i); ra*=O1C.col(j);     
+    return 2/toolbox::constant::pi*ra.sum().real()/abs(C(i,j));
+}
+
+
+#define BISEC_XACCURACY 1e-9
+#define BISEC_YACCURACY 1e-6
+void corr_cdf_bisect(GLEABC& abc, double target, double low, double flow, double high, double fhigh, double &ret, int index=1, double omid=0)
+{
+    double //mid=(high+low)*0.5,
+           mid=low+(target-flow)*(high-low)/(fhigh-flow),
+           fmid=abc.get_pwcdf(index,index, mid);
+    //std::cerr<<mid<<"  " << (mid-omid)/mid <<" "<< fmid-target<<" bisec\n";
+    
+    if ((omid==0.0 || fabs((mid-omid)/mid)<BISEC_XACCURACY) && 
+    (fabs((mid-omid)/mid)<1e-20 || fabs(fhigh-flow)<BISEC_YACCURACY || fabs(fmid-target)<BISEC_YACCURACY) ) { ret=mid;  return; }
+    if (fmid>target) corr_cdf_bisect(abc, target, low, flow, mid, fmid, ret, index, mid);
+    else corr_cdf_bisect(abc, target, mid, fmid, high, fhigh, ret, index, mid);
+}
+
+// L2 norm of a lorenzian with median w and interquartile distance g
+double overlap_lorlor(double g, double w)
+{
+    //return (2*g*g + w*w)/(2*g*toolbox::constant::pi*(g*g +  w*w));
+    return (2*g + w*w/g)/(2*toolbox::constant::pi*(g*g +  w*w));
+}
+
+// L2 norm of a the peak originating from an eigenvalue a+Ib with weight c+Id
+double overlap_spec(double a, double b, double c, double d)
+{
+    //return (2*a*a*c*c + b*b*c*c + 2*a*b*c*d + b*b*d*d)/(2*a*toolbox::constant::pi*(a*a + b*b));
+    return (2*a*c*c + b*b*(c*c+d*d)/a + 2*b*c*d)/(2*toolbox::constant::pi*(a*a + b*b));
+}
+
+double overlap_specspec(double a1, double b1, double c1, double d1, double a2, double b2, double c2, double d2)
+{
+    /*return (2*((a1 + a2)*((a1 + a2)*(a1 + a2) + (b1)*(b1) + (b2)*(b2))*c1*c2 + 
+b1*((a1 + a2)*(a1 + a2) + (b1 - b2)*(b1 + b2))*c2*d1 + b2*(((a1 + 
+a2)*(a1 + a2) - (b1)*(b1) + (b2)*(b2))*c1 + 2*(a1 + 
+a2)*b1*d1)*d2))/(((a1 + a2)*(a1 + a2) + (b1)*(b1))*((a1 + a2)*(a1 + 
+a2) + (b1)*(b1)) + 2*(a1 + a2 - b1)*(a1 + a2 + b1)*(b2)*(b2) + 
+(b2)*(b2)*(b2)*(b2))/toolbox::constant::pi;*/
+    double bbar=0.5*(fabs(b1)+fabs(b2));
+    if (bbar > 1e-10)
+    {
+        b1=b1/bbar; b2=b2/bbar;
+        return ((2*c2*(((a1 + a2)*(a1 + a2) + 2*(bbar)*(bbar))*c1 + (a1 + a2)*bbar*d1) + 2*bbar*((a1 + a2)*c1 + 2*bbar*d1)*d2)/((a1 + a2)*((a1 + a2)*(a1 + a2) + 4*(bbar)*(bbar)))+ (-2*bbar*((a1)*(a1)*(a1)*(a1)*(a1)*(c2*(d1 - b1*d1) - (-1 + b2)*c1*d2) + (a2)*(a2)*(a2)*(a2)*(a2)*(c2*(d1 - b1*d1) - (-1 + b2)*c1*d2) + 2*((b1)*(b1) - (b2)*(b2))*((b1)*(b1) - (b2)*(b2))*(bbar)*(bbar)*(bbar)*(bbar)*(bbar)*(c1*c2 + d1*d2) + (a2)*(a2)*(b1 - b2)*(b1 - b2)*(bbar)*(bbar)*(bbar)*((b1)*(b1)*c1*c2 + 2*b1*b2*c1*c2 + (b2)*(b2)*c1*c2 + 4*d1*d2) + (a2)*(a2)*(a2)*(a2)*bbar*((-2 + (b1)*(b1) + (b2)*(b2))*c1*c2 - 2*(-1 + b1*b2)*d1*d2) + a2*((b1)*(b1) - (b2)*(b2))*(bbar)*(bbar)*(bbar)*(bbar)*(-4*b1*c2*d1 + (b1)*(b1)*(c2*d1 + c1*d2) - b2*(b2*c2*d1 - 4*c1*d2 + b2*c1*d2)) + (a1)*(a1)*(a1)*(a1)*(5*a2*(c2*(d1 - b1*d1) - (-1 + b2)*c1*d2) + bbar*((-2 + (b1)*(b1) + (b2)*(b2))*c1*c2 - 2*(-1 + b1*b2)*d1*d2)) + (a2)*(a2)*(a2)*(bbar)*(bbar)*(-((b1)*(b1)*(b1)*c2*d1) + b1*(-4 + (b2)*(b2))*c2*d1 + (b1)*(b1)*(2*c2*d1 + (2 + b2)*c1*d2) + b2*(-4*c1*d2 - (b2)*(b2)*c1*d2 + 2*b2*(c2*d1 + c1*d2))) + (a1)*(a1)*(-10*(a2)*(a2)*(a2)*((-1 + b1)*c2*d1 + (-1 + b2)*c1*d2) + (b1 - b2)*(b1 - b2)*(bbar)*(bbar)*(bbar)*((b1)*(b1)*c1*c2 + 2*b1*b2*c1*c2 + (b2)*(b2)*c1*c2 + 4*d1*d2) + 6*(a2)*(a2)*bbar*((-2 + (b1)*(b1) + (b2)*(b2))*c1*c2 - 2*(-1 + b1*b2)*d1*d2) - 3*a2*(bbar)*(bbar)*((b1)*(b1)*(b1)*c2*d1 - b1*(-4 + (b2)*(b2))*c2*d1 - (b1)*(b1)*(2*c2*d1 + (2 + b2)*c1*d2) + b2*(4*c1*d2 + (b2)*(b2)*c1*d2 - 2*b2*(c2*d1 + c1*d2)))) + a1*(-5*(a2)*(a2)*(a2)*(a2)*((-1 + b1)*c2*d1 + (-1 + b2)*c1*d2) + 2*a2*(b1 - b2)*(b1 - b2)*(bbar)*(bbar)*(bbar)*((b1)*(b1)*c1*c2 + 2*b1*b2*c1*c2 + (b2)*(b2)*c1*c2 + 4*d1*d2) + 4*(a2)*(a2)*(a2)*bbar*((-2 + (b1)*(b1) + (b2)*(b2))*c1*c2 - 2*(-1 + b1*b2)*d1*d2) + ((b1)*(b1) - (b2)*(b2))*(bbar)*(bbar)*(bbar)*(bbar)*(-4*b1*c2*d1 + (b1)*(b1)*(c2*d1 + c1*d2) - b2*(b2*c2*d1 - 4*c1*d2 + b2*c1*d2)) - 3*(a2)*(a2)*(bbar)*(bbar)*((b1)*(b1)*(b1)*c2*d1 - b1*(-4 + (b2)*(b2))*c2*d1 - (b1)*(b1)*(2*c2*d1 + (2 + b2)*c1*d2) + b2*(4*c1*d2 + (b2)*(b2)*c1*d2 - 2*b2*(c2*d1 + c1*d2)))) + (a1)*(a1)*(a1)*(-10*(a2)*(a2)*((-1 + b1)*c2*d1 + (-1 + b2)*c1*d2) + 4*a2*bbar*((-2 + (b1)*(b1) + (b2)*(b2))*c1*c2 - 2*(-1 + b1*b2)*d1*d2) + (bbar)*(bbar)*(-((b1)*(b1)*(b1)*c2*d1) + b1*(-4 + (b2)*(b2))*c2*d1 + (b1)*(b1)*(2*c2*d1 + (2 + b2)*c1*d2) + b2*(-4*c1*d2 - (b2)*(b2)*c1*d2 + 2*b2*(c2*d1 + c1*d2))))))/((a1 + a2)*((a1)*(a1) + 2*a1*a2 + (a2)*(a2) + 4*(bbar)*(bbar))*((a1)*(a1) + 2*a1*a2 + (a2)*(a2) + (b1 - b2)*(b1 - b2)*(bbar)*(bbar))*((a1)*(a1) + 2*a1*a2 + (a2)*(a2) + (b1 + b2)*(b1 + b2)*(bbar)*(bbar))))/toolbox::constant::pi;
+    }
+    else
+    {
+        return (2*((a1 + a2)*((a1 + a2)*(a1 + a2) + (b1)*(b1) + (b2)*(b2))*c1*c2 + b1*((a1 + a2)*(a1 + a2) + (b1 - b2)*(b1 + b2))*c2*d1 + b2*(((a1 + a2)*(a1 + a2) - (b1)*(b1) + (b2)*(b2))*c1 + 2*(a1 + a2)*b1*d1)*d2))/(((a1 + a2)*(a1 + a2) + (b1)*(b1))*((a1 + a2)*(a1 + a2) + (b1)*(b1)) + 2*(a1 + a2 - b1)*(a1 + a2 + b1)*(b2)*(b2) + (b2)*(b2)*(b2)*(b2))/toolbox::constant::pi;
+    }
+}
+
+// overlap of a peak and a lorentzian
+double overlap_lorspec(double g, double w, double a, double b, double c, double d)
+{
+  /*  return (2*((b*d + c*(a + g))*((b)*(b) + (a + g)*(a + \
+g))*toolbox::constant::pi + (-(b*d) + c*(a + \
+g))*toolbox::constant::pi*(w)*(w)))/(((b)*(b) + (a + g)*(a + \
+g))*((b)*(b) + (a + g)*(a + g)) + 2*(a - b + g)*(a + b + g)*(w)*(w) + \
+(w)*(w)*(w)*(w))/(toolbox::constant::pi*toolbox::constant::pi);
+ */
+    b=b/w;  // more complicated but more stable expression
+    return (2*c*(g)*(g) + c*(w)*(w))/(2*(g)*(g)*(g) + 2*g*(w)*(w))/toolbox::constant::pi
+    + (-2*c*(a - g)*(g)*(g)*(a + g)*(a + g)*(a + g) + 4*b*d*(g)*(g)*(g)*(a 
++ g)*(a + g)*w - c*(a + g)*((a)*(a)*(a) - (a)*(a)*g + a*(-1 + 
+4*(b)*(b))*(g)*(g) - 3*(g)*(g)*(g))*(w)*(w) + 4*b*d*g*((a)*(a) + 
+2*a*g + (b)*(b)*(g)*(g))*(w)*(w)*(w) - 2*c*((a)*(a)*(1 + (b)*(b)) + 
+(b)*(b)*(-3 + (b)*(b))*(g)*(g))*(w)*(w)*(w)*(w) + 4*b*(-1 + 
+(b)*(b))*d*g*(w)*(w)*(w)*(w)*(w) - (-1 + b*b)*(-1 + b*b)
+*c*(w)*(w)*(w)*(w)*(w)*(w))/(2.*g*((g)*(g) + (w)*(w))*((a 
++ g)*(a + g) + (-1 + b)*(-1 + b)*(w)*(w))*((a + g)*(a + g) + (1 + 
+b)*(1 + b)*(w)*(w)))/toolbox::constant::pi;
+}
+
+//analyzes the shape of a peak in the harmonic distribution. 
+//assumes that abc is a libcolor object initialized so that elements 0 and 1 correspond
+//to p and q of a harmonic oscillator
+//returns the median of the distribution (relative to the harmonic frequency of the mode being considered
+//for the desired correlation function (in practice only 0=qq and 1=pp make sense but feel free to abuse this!)
+//and the width of the peak (also normalized re the harmonic w. shape contains an indication
+//of how non-lorentzian the peak is. A perfect, unperturbed harmonic peak should return
+//1, 0, 0
+void harm_shape(GLEABC& abc, double& median, double& interq, double& shape, int index)
+{
+    
+    toolbox::FMatrix<double> xA, xC;
+    abc.get_A(xA); abc.get_C(xC);
+    double w=sqrt(xA(1,0));
+    unsigned int n=xA.rows();
+    
+    //find 1,2,3 quartiles
+    //the total integral under the peak is 1
+    
+    double Lhigh = w, cdfhigh=abc.get_pwcdf(index, index, Lhigh);
+    double Llow=w, cdflow=cdfhigh;
+    double Lmid=w, cdfmid=cdfhigh;
+    // computes the integral of Cpp from 0 to L
+#define BRACKET_FACTOR 1.2
+    while (cdfhigh<0.75) // upper bracket
+    {   Lhigh*=BRACKET_FACTOR; cdfhigh= abc.get_pwcdf(index, index, Lhigh);  }
+    Llow = 2 * Lmid - Lhigh ;
+    cdflow=abc.get_pwcdf(index, index, Llow); 
+    while (cdflow>0.25) //lower bracket
+    {   Llow/=BRACKET_FACTOR;  cdflow=abc.get_pwcdf(index, index, Llow);    }
+    // std::cerr<<"CDFl "<<Llow<<" "<<cdflow<<std::endl;
+    // std::cerr<<"CDFh "<<Lhigh<<" "<<cdfhigh<<std::endl;
+    double LD50, LD25, LD75;
+    corr_cdf_bisect(abc, 0.5, Llow, cdflow, Lhigh, cdfhigh, LD50, index);
+    corr_cdf_bisect(abc, 0.75, LD50, 0.5, Lhigh, cdfhigh, LD75, index);
+    corr_cdf_bisect(abc, 0.25, Llow, cdflow, LD50, 0.5, LD25, index);
+        
+    median=LD50;
+    interq=(LD75-LD25)*0.5;
+
+    // now we set off to compute something tricky. we want a measure of how
+    // much the spectrum deviates from a lorentzian. we estimate the Lorentzian
+    // parameters from the median and interquartile distance, then compute the 2-norm
+    // of the difference between such lorentzian and the actual power spectrum
+    std::valarray<tblapack::complex> ra; CMatrix U, U1, U1C;
+    abc.get_esA(ra, U, U1);
+    mult(U1,xC,U1C);
+    U1C*=1.0/xC(index,index);  // normalize for the evaluation of the desired (index,index) component
+    
+    double lw=LD50, lg=(LD75-LD25)*0.5; // parameters of the reference Lorentzian 
+    double ai, bi, ci, di, aj, bj, cj, dj;
+    double i11=0; int na=ra.size();
+    double ri1, di1, ri2, di2;
+#define PEAK_SMOOTH 1e-8   
+    lg+=lw*PEAK_SMOOTH;    // stabilizes expressions by smoothening too-sharp peaks
+    //std::cerr<<w<<" REFLOR "<<lw<<" "<<lg<<std::endl;
+    for (int i=0; i<na; ++i)
+    {
+        
+        ai = ra[i].real(); bi= ra[i].imag(); ci=(U(index,i) * U1C(i,index)).real(); di=(U(index,i) * U1C(i,index)).imag();   
+        ai += lw*PEAK_SMOOTH;
+        i11 -= 2*overlap_lorspec(lg,lw,ai,bi,ci,di);
+            
+        for (int j=0; j<na; ++j)
+        {
+                        
+            aj = ra[j].real(); bj= ra[j].imag(); cj=(U(index,j) * U1C(j,index)).real(); dj=(U(index,j) * U1C(j,index)).imag();
+            aj += lw*PEAK_SMOOTH;
+            if (i==j)  i11 += overlap_spec(ai,bi,ci,di);
+            else  i11 += overlap_specspec(ai,bi,ci,di,aj,bj,cj,dj);
+        }
+    }
+    i11 += overlap_lorlor(lg,lw);       
+    shape = sqrt(fabs(i11)/overlap_lorlor(lg,lw));
+    median /= w;  //normalize median and interquartile distances to the harmonic mode.
+    interq /= w; 
+}
+
+
+void make_harm_abc(const DMatrix& A, const DMatrix& BBT, double w, GLEABC& abc)
+{
+    //prepares extended matrices for a harmonic oscillator
+    unsigned long n=A.rows();
     toolbox::FMatrix<double> xA(n+1,n+1), xBBT(n+1,n+1), xC;
     xA*=0.; xBBT=xA;
     for (int i=0; i<n;++i)for (int j=0; j<n;++j)
     { xA(i+1,j+1)=A(i,j);  xBBT(i+1,j+1)=BBT(i,j); }
-    xA(0,1)=-1; xA(1,0)=w2;   //sets the harmonic hamiltonian part
-    GLEABC abc; abc.set_A(xA); abc.set_BBT(xBBT);
+    xA(0,1)=-1; xA(1,0)=w*w;   //sets the harmonic hamiltonian part
+    abc.set_A(xA); abc.set_BBT(xBBT);
+}
+
+void make_rpmodel_abc(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, GLEABC& abc)
+{
+    unsigned long n=A.rows();
+    double w2=w*w, wrp2=wrp*wrp, dw; 
+
+    // build a model of two coupled oscillators of frequencies w and wrp, coupled by a constant dw
+    // alpha interpolates between no coupling (frequencies are unchanged) to total coupling (one frequency)
+    // is sent to zero. 
+    dw=alpha*w*wrp; ///(1+(std::abs(w-wrp)/w));
     
+    toolbox::FMatrix<double> xA(n+3,n+3), xBBT(n+3,n+3), xC;
+    xA*=0.; xBBT=xA;
+    for (int i=0; i<n;++i)for (int j=0; j<n;++j)
+    { xA(i+3,j+3)=A(i,j);  xBBT(i+3,j+3)=BBT(i,j); }
+    xA(0,1)=-1; xA(1,0)=w2; xA(1,2)=dw; xA(2,3)=-1; xA(3,0)=dw; xA(3,2)=wrp2;   //sets the two coupled harmonic oscilators hamiltonian part
+    abc.set_A(xA); abc.set_BBT(xBBT);    
+}
+
+void harm_check(GLEABC& abc, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& lambdafp) //, double& repole, double& impole, double& qres, double& pres, double& median, double& interq, double& PWshapeq)
+{    
+        
+    toolbox::FMatrix<double> xA, xC;
+//    std::cerr<<" ---  C in tauw "<<w<<" ----\n"<<xC<<" ---------- \n";
+    abc.get_A(xA); abc.get_C(xC);
+    double c00=xC(0,0), c01=xC(0,1), c11=xC(1,1);     
+    double w2=xA(1,0), w4=w2*w2, w=sqrt(w2);     
     std::valarray<std::complex<double> >eva; abc.get_evA(eva);
     lambdafp=eva[0].real(); 
-    for (int i=0; i<n+1; i++) lambdafp=(eva[i].real()<lambdafp?eva[i].real():lambdafp);
-    
-//    std::cerr<<" ---  C in tauw "<<w<<" ----\n"<<xC<<" ---------- \n";
-    abc.get_C(xC);
-    double c00=xC(0,0), c01=xC(0,1), c11=xC(1,1); 
+    for (int i=0; i<eva.size(); i++) lambdafp=(eva[i].real()<lambdafp?eva[i].real():lambdafp);
     
     q2=c00*w2;
     p2=c11;
@@ -422,18 +820,8 @@ void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, dou
     th=(pppp+qqqq+ppqq+qqpp)/(pppp0+qqqq0+ppqq0+qqpp0);
     tp2=pppp/pppp0;
     tq2=qqqq/qqqq0;
-    
-    //get power spectrum peak widths
-    toolbox::FMatrix<double> t1, t2, xDELTA;
-    mult(xA,xA,t1);                         //A^2
-    for (int i=0; i<n+1;++i) t1(i,i)+=w2;   //A^2+w^2
-    MatrixInverse(t1,t2);                   //1/(A^2+w^2)
-    mult(xA,t2,t1);                         //A/(A^2+w^2)
-    mult(t1,xC,xDELTA);                     //A/(A^2+w^2)C
-    
-    dwq=xC(0,0)/xDELTA(0,0);
-    dwp=xC(1,1)/xDELTA(1,1);
 }
+
 
 /*
 //dirty, dirty way of making a recursive integration function...
@@ -458,15 +846,9 @@ double __intme(double xa, double xb, double fa, double fb)
 }
 */
 
-tblapack::complex atan(tblapack::complex c)
-{
-    const tblapack::complex i(0.0,1.0);
-    const tblapack::complex one(1.0,0.0);
-    const tblapack::complex r=log( (one + i * c) / (one - i * c)) / tblapack::complex(0.0,2.0);
-    return log( (one + i * c) / (one - i * c)) / tblapack::complex(0.0,2.0);
-}
 
 //integrates the peak of the velocity-velocity correlation function from w*(1-d) to w*(1+d)
+//!NB!NB!NB! This expression is from my PhD thesis and is in all likelihood wrong - I leave it like this just for bacwards compatibility and because we now have better measures ! MC
 void harm_peak(const DMatrix& A, const DMatrix& BBT, double w, double d, double &pi)
 {
     unsigned long n=A.rows();
@@ -496,6 +878,7 @@ void harm_peak(const DMatrix& A, const DMatrix& BBT, double w, double d, double 
     pi=2./toolbox::constant::pi*(AW1(1,1)-AW2(1,1))/xC(1,1);
 }
 
+/*TO BE REMOVED
 void harm_spectrum(const DMatrix& A, const DMatrix& BBT, double w, const std::valarray<double>& wl, std::valarray<double>& cqq, std::valarray<double>& cpp )
 {
     unsigned long n=A.rows();
@@ -526,45 +909,4 @@ void harm_spectrum(const DMatrix& A, const DMatrix& BBT, double w, const std::va
         cqq[i]=Cww(0,0)/xC(0,0);
         cpp[i]=Cww(1,1)/xC(1,1);
     }    
-}
-
-
-void get_TS(const toolbox::FMatrix<double>& A, const toolbox::FMatrix<double>& C, const double& t, 
-            toolbox::FMatrix<double>& T, toolbox::FMatrix<double>& S)
-{
-    FMatrix<double> tmp, lC=C;
-    toolbox::exp(A*(-t),T,1e-20);
-    toolbox::transpose(T,S);
-    toolbox::mult(lC,S,tmp);
-    toolbox::mult(T,tmp,S);
-    lC-=S;
-    //std::cerr<<"CHOLESKY \n"<<lC<<"\n\n";
-    //now C holds in fact C-TCT^T, so we must cholesky-factor C in order to get S
-    StabCholesky(lC,S);
-}
-
-void A2Kt(const toolbox::FMatrix<double>& A, double dt, std::valarray<double>& K)
-{
-    int n=A.rows();
-    toolbox::FMatrix<double> la(n-1,n-1), le, len(n-1,n-1);
-    len*=0.;
-    for(int i=1; i<n;++i)
-    {
-        len(i-1,i-1)=1.;
-        for(int j=1; j<n;++j)
-            la(i-1,j-1)=A(i,j);
-    }
-    la*=(-dt);
-    toolbox::exp(la,le,1e-20);
-    K=0; K[0]=A(0,0)/dt; 
-    for (int s=0;s<K.size();++s)
-    {
-        for(int i=1; i<n;++i)
-            for(int j=1; j<n;++j)
-        {
-            K[s]-=A(0,i)*A(j,0)*len(i-1,j-1);
-        }
-        mult(len,le,la); len=la;
-    }
-    K[0]*=2.;
-}
+}*/

@@ -12,8 +12,8 @@ void banner()
 {
     std::cerr
             << " USAGE: gle-analyze -a a-file [(-b b-file | -c c-file | -d d-file)] [-sa scale] \n" 
-            << "     [-sc scale] [-wi w_i] [-wf w_f] [-np np] [-ww wacf] [-tex]                 \n"
-            << "     [-pk delta] [-dt dt] [-tfree maxt]                                         \n"
+            << "     [-sc scale] [-wi w_i] [-wf w_f] [-np np] [-ww wacf] [-w0 wharm] [-tex]     \n"
+            << "     [-pk delta] [-dt dt] [-tfree maxt] [-wrp wrpmd] [-dwrp rpalpha]            \n"
             << " performs in-depth analytical study of the generalized Langevin equation        \n"
             << "                            dx=-A x dt + B dW                                   \n"
             << " A matrix must be provided, wherease for the diffusion term one can provide     \n"
@@ -31,20 +31,31 @@ void banner()
             << " are plotted as a function of the frequency. np is the number of data points to \n"
             << " be plotted, in both cases, on a log scale.                                     \n"
             << " -w0 specifies the frequency of a harmonic mode for which to compute the GLE    \n"
-            << " modified vibrational spectrum.                                                 \n"
+            << " modified vibrational spectrum. When -wrp is set, -w0 also corresponds to the   \n"
+            << " physical frequency used to compute vibrational spectra (Cpp and Cqq fields)    \n"
             << " If -tfree is provided, MSD and related properties are produced for a free      \n"
             << " particle, from time zero up to the specified time maxt.                        \n"
             << " -tex outputs data in a form which can be post-processed with latex to give     \n"
             << " a 'facts sheet' about the matrices provided.                                   \n"
             << " -pk also performs a 'disturbance analysis' with relative window delta.         \n"
-            << " -dt computes also fluctuations which would result from finite-timestep verlet. \n";
+            << " -dt computes also fluctuations which would result from finite-timestep verlet. \n"
+            << " -wrp also computes the disturbance introduced on the dynamics from a rp mode.  \n"
+            << " -dwrp indicates the strength of coupling with the rpmd mode.                   \n"
+            << "                                                                                \n"
+            << " OUTPUS:                                                                        \n"
+            << " omega   : Physical frequencies.                                                \n"
+            << " 1/tau_h : Inverse correlation time of the total energy                         \n"
+            << " 1/tau_q2: Inverse correlation time of q^2                                      \n"
+            << " 1/tau_p2: Inverse correlation time of p^2                                      \n"
+            << " K(omega): Fourier transform of the memory kernel                               \n"
+            << " H(omega): Fourier transform of the noise autocorrelation                       \n";
 }
 
 int main(int argc, char **argv)
 {
     CLParser clp(argc, argv);
     bool fhelp, fsingle, ffree, ftex, funit=false;
-    double wi, wf, ww, w0, shifta, shiftc,tfree,dpeak,deltat;
+    double wi, wf, ww, w0, shifta, shiftc,tfree,dpeak,deltat, wrpmd, rpalpha;
     std::string amat, bmat, cmat, dmat;
     long np;
     bool fok=
@@ -61,6 +72,8 @@ int main(int argc, char **argv)
             clp.getoption(shiftc,"sc",1.) &&
             clp.getoption(dpeak,"pk",0.) &&
             clp.getoption(deltat,"dt",0.) &&
+            clp.getoption(wrpmd,"wrp",0.) &&
+            clp.getoption(rpalpha,"dwrp",0.) &&
             clp.getoption(np,"np",(long)1000) &&
             clp.getoption(ftex,"tex",false) &&
             clp.getoption(fhelp,"h",false);
@@ -135,6 +148,7 @@ int main(int argc, char **argv)
     }
     
     FMatrix<double> iBBT; abc.get_BBT(iBBT); abc.get_C(iC);
+    
     std::cout.precision(10);
     std::cout.setf(std::ios::left);
     std::cout.setf(std::ios::scientific);
@@ -160,15 +174,12 @@ int main(int argc, char **argv)
     {
         GLEABC abcww;
         toolbox::FMatrix<double> Aw(n,n), BBtw(n,n), Cw;
-        double tq2, tp2, th, q2, p2, pq, dwq, dwp,lfp;
-        harm_check(iA,iBBT,ww,tq2,tp2,th,q2,p2,pq,dwq,dwp,lfp);
+        double tq2, tp2, th, q2, p2, pq, dwq, dwp,lfp, dummy;
         
-        Aw*=0.; BBtw=Aw;
-        for (int i=0; i<n-1;++i)for (int j=0; j<n-1;++j)
-        { Aw(i+1,j+1)=iA(i,j);  BBtw(i+1,j+1)=iBBT(i,j); }
-        Aw(0,1)=-1.; Aw(1,0)=ww*ww;
-        abcww.set_A(Aw); abcww.set_BBT(BBtw);
-        abcww.get_C(Cw);
+        make_harm_abc(iA, iBBT, ww, abcww);
+        harm_check(abcww,tq2,tp2,th,q2,p2,pq,lfp);
+        
+        abcww.get_A(Aw); abcww.get_BBT(BBtw);   abcww.get_C(Cw);
     
         //writes out detailed information on a single frequency.
         std::cout<<"# GLE analysis for frequency  "<<ww << std::endl;
@@ -194,26 +205,57 @@ int main(int argc, char **argv)
     }
     else
     {           
-        std::valarray<double> w(np), kw(np), hw(np), tq2(np), tp2(np), th(np), q2(np), p2(np), pq(np), dwq(np), dwp(np), hdist(np), lfp(np)
-                , q2dt(np), p2dt(np), pqdt(np), sqq(np), spp(np);
+        std::valarray<double> w(np), kw(np), hw(np), tq2(np), tp2(np), th(np), q2(np), p2(np), pq(np), hdist(np), lfp(np),
+                 rew(np), imw(np), qw(np), pw(np), 
+                 q2dt(np), p2dt(np), pqdt(np), PWw0q(np), PWgq(np), PWshapeq(np), PWw0p(np), PWgp(np), PWshapep(np), 
+                 sqq(np), spp(np), rp_sqq(np), rp_spp(np),
+                 rp_PWw0q(np), rp_PWgq(np), rp_PWshapeq(np), rp_PWw0p(np), rp_PWgp(np), rp_PWshapep(np) ;
                 
         for (unsigned long ip=0; ip<np; ip++) w[ip]=pow(wi,(np-ip-1.)/(np-1.))*pow(wf,(1.*ip)/(np-1.));        
-        harm_spectrum(iA, iBBT, w0,w, sqq, spp);
-        
+        //harm_spectrum(iA, iBBT, w0,w, sqq, spp);
+        double dummy;
+        GLEABC abcip, abcw0, abcrp, abcrpw0;
+        make_harm_abc(iA, iBBT, w0, abcw0);
+        if (wrpmd>0) make_rpmodel_abc(iA, iBBT, w0,  wrpmd, rpalpha, abcrpw0);
+        DMatrix test;
         for (unsigned long ip=0; ip<np; ip++)
         {
+            sqq[ip]=abcw0.get_pwspec(0,0,w[ip]);
+            spp[ip]=abcw0.get_pwspec(1,1,w[ip]);
             abc.get_KH(w[ip], kw[ip], hw[ip]);
-            
-            harm_check(iA,iBBT,w[ip],tq2[ip],tp2[ip],th[ip],q2[ip],p2[ip],pq[ip],dwq[ip],dwp[ip], lfp[ip]);
+            make_harm_abc(iA, iBBT, w[ip], abcip);
+           
+            harm_check(abcip,tq2[ip],tp2[ip],th[ip],q2[ip],p2[ip],pq[ip],lfp[ip]);
+            harm_shape(abcip, PWw0q[ip], PWgq[ip], PWshapeq[ip],0);
+            harm_shape(abcip, PWw0p[ip], PWgp[ip], PWshapep[ip],1);
             if (dpeak>0.) harm_peak(iA,iBBT,w[ip],dpeak,hdist[ip]);
             if (deltat>0) verlet_check(iA,iC,w[ip],deltat,q2dt[ip],p2dt[ip],pqdt[ip]);
+            if (wrpmd>0)  
+            {
+                rp_sqq[ip]=abcrpw0.get_pwspec(0,0,w[ip]);
+                rp_spp[ip]=abcrpw0.get_pwspec(1,1,w[ip]);
+                make_rpmodel_abc(iA, iBBT, w[ip],  wrpmd, rpalpha, abcrp);          
+                // ring polymer indicators should degrade in a way that is proportional to the coupling squared
+                // so we normalize them to make them as weakly dependent as possible on this parameter that actually 
+                // does not make much sense.       
+                harm_shape(abcrp, rp_PWw0q[ip], rp_PWgq[ip], rp_PWshapeq[ip], 0);
+                harm_shape(abcrp, rp_PWw0p[ip], rp_PWgp[ip], rp_PWshapep[ip], 1);         
+                rp_PWw0q[ip] = fabs(1-rp_PWw0q[ip])/(rpalpha *rpalpha);
+                rp_PWgq[ip] /= (rpalpha *rpalpha);
+                rp_PWshapeq[ip] /= (rpalpha *rpalpha);
+                rp_PWw0p[ip] = fabs(1-rp_PWw0p[ip])/(rpalpha *rpalpha);
+                rp_PWgp[ip] /= (rpalpha *rpalpha);
+                rp_PWshapep[ip] /= (rpalpha *rpalpha);
+            }
         }
         if (!ftex)
         {
             std::cout<<"# D kT/m = "<<diff<<"\n";
-            std::cout<<"# omega  1/tau_h  1/tau_q2  1/tau_p2  K(omega)  H(omega)  <q2>(omega) <p2>(omega) <pq>(omega) DQ(omega)  DP(omega) lFP(omega) Cqq["<<w0<<"](w) Cpp["<<w0<<"](w)"<<
+            std::cout<<"# omega  1/tau_h  1/tau_q2  1/tau_p2  K(omega)  H(omega)  <q2>(omega) <p2>(omega) <pq>(omega) lFP(omega)  Cqq["<<w0<<"](w) Cpp["<<w0<<"](w)"<<" pww0q pwgq pwshapeq pww0p pwgp pwshapep" <<
                     (deltat>0.?" <q2>,<p2>,<pq>(dt=":"")<<(deltat>0.?float2str(deltat):std::string(""))<<(deltat>0.?")   ":"")<<
-                    (dpeak>0.?"peak_dist(":"")<<(dpeak>0.?float2str(dpeak):std::string(""))<<(dpeak>0.?")":"")<<"\n";
+                    (dpeak>0.?" peak_dist(":"")<<(dpeak>0.?float2str(dpeak):std::string(""))<<(dpeak>0.?")":"")<<
+                    (wrpmd>0.?" rpmd(":"")<<(wrpmd>0.?float2str(wrpmd):std::string(""))<<(wrpmd>0.?"): Cqq[rpmdw0] Cpp[rpmdw0] rpw0q rpgq rpshapeq rpw0p rpgp rpshapep":"")
+                    <<"\n";
             for (unsigned long ip=0; ip<np; ip++)
             {
                 std::cout<<w[ip]<<"  "<<1./th[ip] //1./((pppp+qqqq+ppqq+qqpp)/(pppp0+qqqq0+ppqq0+qqpp0))
@@ -224,16 +266,27 @@ int main(int argc, char **argv)
                         <<"  "<<q2[ip]
                         <<"  "<<p2[ip]
                         <<"  "<<pq[ip]
-                        <<"  "<<dwq[ip]
-                        <<"  "<<dwp[ip]
                         <<"  "<<lfp[ip]
                         <<"  "<<sqq[ip]
-                        <<"  "<<spp[ip]                        
+                        <<"  "<<spp[ip]
+                        <<"  "<<PWw0q[ip]
+                        <<"  "<<PWgq[ip]
+                        <<"  "<<PWshapeq[ip]
+                        <<"  "<<PWw0p[ip]
+                        <<"  "<<PWgp[ip]
+                        <<"  "<<PWshapep[ip]                           
                         <<"  "<<(deltat>0.?float2str(q2dt[ip]):"")
                         <<"  "<<(deltat>0.?float2str(p2dt[ip]):"")
                         <<"  "<<(deltat>0.?float2str(pqdt[ip]):"")
                         <<"  "<<(dpeak>0.?float2str(hdist[ip]):"")
-                        
+                        <<"  "<<(wrpmd>0.?float2str(rp_sqq[ip]):"")
+                        <<"  "<<(wrpmd>0.?float2str(rp_spp[ip]):"")
+                        <<"  "<<(wrpmd>0.?float2str(rp_PWw0q[ip]):"")
+                        <<"  "<<(wrpmd>0.?float2str(rp_PWgq[ip]):"")
+                        <<"  "<<(wrpmd>0.?float2str(rp_PWshapeq[ip]):"")
+                        <<"  "<<(wrpmd>0.?float2str(rp_PWw0p[ip]):"")
+                        <<"  "<<(wrpmd>0.?float2str(rp_PWgp[ip]):"")
+                        <<"  "<<(wrpmd>0.?float2str(rp_PWshapep[ip]):"")
                         <<std::endl; 
             }
         }

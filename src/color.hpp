@@ -16,18 +16,18 @@ typedef toolbox::FMatrix<tblapack::complex> CMatrix;
 class GLEABC {
 private:
     unsigned long n;
-    DMatrix A, BBT, C;
-    bool fr_eva, fr_c, fr_init, fr_hk;
+    DMatrix A, BBT, C, AC;
+    bool fr_eva, fr_c, fr_init, fr_hk, fr_spec;
     CMatrix O, O1; std::valarray<tblapack::complex> a;
-    DMatrix lA, lA1; std::valarray<double> lZap; CMatrix lAO, lAO1; std::valarray<tblapack::complex> la;
-    CMatrix O1CT;
+    DMatrix lA, lA1, Asqd; std::valarray<double> lZap; CMatrix lAO, lAO1; std::valarray<tblapack::complex> la;
+    CMatrix O1CT, O1C;
 
     void prepare_C();
     void prepare_hk();
     double x(unsigned long i, unsigned long j, unsigned long k, unsigned long l);
 
 public:
-    GLEABC(): n(0), A(0,0), BBT(0,0), C(0,0), fr_eva(false), fr_c(false), fr_init(false), fr_hk(false) {}
+    GLEABC(): n(0), A(0,0), BBT(0,0), C(0,0), fr_eva(false), fr_c(false), fr_init(false), fr_hk(false), fr_spec(false) {}
     void set_size(unsigned long nn) { fr_init=false; n=nn; }
     void set_A(const DMatrix& rA);
     void set_C(const DMatrix& rC);
@@ -37,6 +37,7 @@ public:
     void get_C(DMatrix& rC);
     void get_BBT(DMatrix& rBBT);
     void get_evA(std::valarray<tblapack::complex>& ra);
+    void get_esA(std::valarray<tblapack::complex>& ra2, CMatrix& u, CMatrix& u1);
 
     void get_KH(double w, double& kw, double& hw);
     void get_tau2(unsigned long i, unsigned long j, unsigned long k, unsigned long l, double& tau);
@@ -47,13 +48,23 @@ public:
     void get_KHt(double& t, double& kt, double& ht);
     void get_acf(unsigned long i, unsigned long j, double t, double& acf);
     void get_msd(unsigned long i, double t, double& msd, double& dmsd);
+    double get_pwspec(unsigned long i, unsigned long j, double w);
+    double get_pwcdf(unsigned long i, unsigned long j, double w);
 };
 
-void harm_check(const DMatrix& A, const DMatrix& BBT, double w, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& dwq, double& dwp, double& lambdafp);
+void make_harm_abc(const DMatrix& A, const DMatrix& BBT, double w, GLEABC& abc);
+void make_rpmodel_abc(const DMatrix& A, const DMatrix& BBT, double w,  double wrp, double alpha, GLEABC& abc);
+void harm_check(GLEABC& abc, double &tq2, double &tp2, double& th, double& q2, double& p2, double& pq, double& lambdafp);
+void harm_shape(GLEABC& abc, double& pmedian, double &pinterquartile, double& pshape, int index=0); 
+void harm_peak(const DMatrix& A, const DMatrix& BBT, double w,  double d, double &pi);
+
+/* 4MR Add here rp_check after it is finished*/ 
+//void rp_check(const DMatrix& A, const DMatrix& BBT, double w, double wrp, double alpha, double& median, double&interq, double& PWshapeq);
+
 void verlet_check(const DMatrix& A, const DMatrix& C, double w, double dt, double& q2, double& p2, double& pq);
 
-void harm_spectrum(const DMatrix& A, const DMatrix& BBT, double w, const std::valarray<double>& wl, std::valarray<double>& cqq, std::valarray<double>& cpp );
-void harm_peak(const DMatrix& A, const DMatrix& BBT, double w, double d, double &pi);
+//void harm_spectrum(const DMatrix& A, const DMatrix& BBT, double w, const std::valarray<double>& wl, std::valarray<double>& cqq, std::valarray<double>& cpp );
+
 
 //options for a colored complex thermostat.
 class ThermoOptions {
