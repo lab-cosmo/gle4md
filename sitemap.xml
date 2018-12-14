@@ -1,31 +1,31 @@
  <?xml version="1.0" encoding="UTF-8"?>
   <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>http://epfl-cosmo.github.io/gle4md/</loc>
+    <loc>http://gle4md.org/</loc>
     <lastmod>2014-05-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url> 
   <url>
-    <loc>http://epfl-cosmo.github.io/gle4md/index.html?page=refs</loc>
+    <loc>http://gle4md.org/index.html?page=refs</loc>
     <lastmod>2013-06-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>http://epfl-cosmo.github.io/gle4md/index.html?page=docs</loc>
+    <loc>http://gle4md.org/index.html?page=docs</loc>
     <lastmod>2013-06-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>http://epfl-cosmo.github.io/gle4md/index.html?page=code</loc>
+    <loc>http://gle4md.org/index.html?page=code</loc>
     <lastmod>2013-06-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>http://epfl-cosmo.github.io/gle4md/index.html?page=matrix</loc>
+    <loc>http://gle4md.org/index.html?page=matrix</loc>
     <lastmod>2013-06-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
