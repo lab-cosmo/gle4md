@@ -430,7 +430,7 @@ std::istream& operator>> (std::istream& istr, GLEFFitOptions& op)
 
 ************************************************************************************/
 double dot(const std::valarray<double>& a, const std::valarray<double>& b)
-{ double r=0.; for (int i=0; i<a.size(); ++i) r+=a[i]*b[i]; }
+{ double r=0.; for (int i=0; i<a.size(); ++i) r+=a[i]*b[i]; return r; }
 
 unsigned long npars(const GLEFParOptions& ops)
 {

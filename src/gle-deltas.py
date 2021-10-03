@@ -3,29 +3,35 @@
 
 # Load in pygtk and gtk
 
-import pygtk
-pygtk.require('2.0')
-import gtk, gobject, cairo, pango
+import gi
+gi.require_version('Gtk', '3.0')
+from gi. repository import Gtk
+import gtk, gobject, cairo #, pango
 import subprocess, math, re
 from numpy import *
 
 def logvalue(scale, value, fmt= "%4.2e"):
    return str( fmt % (10**value))
 
-# Define the main window
 
+def adjwrap(value, lower, upper, step_increment, page_increment, page_size):
+    # wrapper to Gtk.Adjustment to avoid depredation warning
+    return Gtk.Adjustment(value=value, lower=lower, upper=upper,  
+        step_increment=step_increment, page_increment=page_increment, page_size=page_size)
+
+# Define the main window
 class deltablock:
     def setw0(self,adj):
-        self.omega0=adj.value
+        self.omega0=adj.get_value()
         self.cback()
     def setdw(self,adj):
-        self.domega=adj.value
+        self.domega=adj.get_value()
         self.cback()
     def setg(self,adj):
-        self.gamma=adj.value
+        self.gamma=adj.get_value()
         self.cback()
     def sett(self,adj):
-        self.temp=adj.value
+        self.temp=adj.get_value()
         self.cback()
 
     def __init__(self, cback):
@@ -34,70 +40,96 @@ class deltablock:
         self.domega=0.0
         self.gamma=0.0
         self.temp=0.0
-        self.box = gtk.Table(rows=4, columns=3, homogeneous=False)
-        label=gtk.Label("ω_0= "); label.show(); self.box.attach(label,0,1,0,1,gtk.SHRINK,gtk.SHRINK)
-        label=gtk.Label("Δω/ω_0= "); label.show(); self.box.attach(label,0,1,1,2,gtk.SHRINK,gtk.SHRINK)
-        label=gtk.Label("γ/(Δω ω_0)= ");   label.show(); self.box.attach(label,0,1,2,3,gtk.SHRINK,gtk.SHRINK)
-        label=gtk.Label("T= "); label.show(); self.box.attach(label,0,1,3,4,gtk.SHRINK,gtk.SHRINK)
-#        label=gtk.Label("10^"); label.show(); self.box.attach(label,1,2,0,1,gtk.SHRINK,gtk.SHRINK)
-#        label=gtk.Label("10^"); label.show(); self.box.attach(label,1,2,1,2,gtk.SHRINK,gtk.SHRINK);
-#        label=gtk.Label("10^"); label.show(); self.box.attach(label,1,2,2,3,gtk.SHRINK,gtk.SHRINK);
-#        label=gtk.Label("10^"); label.show(); self.box.attach(label,1,2,3,4,gtk.SHRINK,gtk.SHRINK)
+        self.box = Gtk.Table(n_rows=4, n_columns=3, homogeneous=False)
+        label=Gtk.Label(label="ω_0= "); label.show(); self.box.attach(label,0,1,0,1,Gtk.AttachOptions.SHRINK,Gtk.AttachOptions.SHRINK)
+        label=Gtk.Label(label="Δω/ω_0= "); label.show(); self.box.attach(label,0,1,1,2,Gtk.AttachOptions.SHRINK,Gtk.AttachOptions.SHRINK)
+        label=Gtk.Label(label="γ/(Δω ω_0)= ");   label.show(); self.box.attach(label,0,1,2,3,Gtk.AttachOptions.SHRINK,Gtk.AttachOptions.SHRINK)
+        label=Gtk.Label(label="T= "); label.show(); self.box.attach(label,0,1,3,4,Gtk.AttachOptions.SHRINK,Gtk.AttachOptions.SHRINK)
+#        label=Gtk.Label(label="10^"); label.show(); self.box.attach(label,1,2,0,1,Gtk.AttachOptions.SHRINK,Gtk.AttachOptions.SHRINK)
+#        label=Gtk.Label(label="10^"); label.show(); self.box.attach(label,1,2,1,2,Gtk.AttachOptions.SHRINK,Gtk.AttachOptions.SHRINK);
+#        label=Gtk.Label(label="10^"); label.show(); self.box.attach(label,1,2,2,3,Gtk.AttachOptions.SHRINK,Gtk.AttachOptions.SHRINK);
+#        label=Gtk.Label(label="10^"); label.show(); self.box.attach(label,1,2,3,4,Gtk.AttachOptions.SHRINK,Gtk.AttachOptions.SHRINK)
 
-        self.w0a = gtk.Adjustment(self.omega0, -5.0, 6.0, 0.01, 1.0, 1.0)
+        self.w0a = adjwrap(self.omega0, -5.0, 6.0, 0.01, 1.0, 1.0)
         self.w0a.connect("value_changed", self.setw0)
-        self.w0s = gtk.HScale(self.w0a)
+        self.w0s = Gtk.HScale(adjustment=self.w0a)
         self.w0s.connect("format-value", logvalue)
-        self.w0s.set_digits(2);  self.w0s.set_value_pos(gtk.POS_LEFT);
+        self.w0s.set_digits(2);  self.w0s.set_value_pos(Gtk.PositionType.LEFT);
         self.w0s.show()
-        self.box.attach(self.w0s,2,3,0,1,gtk.FILL|gtk.EXPAND,gtk.SHRINK)
-        self.dwa = gtk.Adjustment(self.domega, -5.0, 6.0, 0.01, 1.0, 1.0)
+        self.box.attach(self.w0s,2,3,0,1,Gtk.AttachOptions.FILL|Gtk.AttachOptions.EXPAND,Gtk.AttachOptions.SHRINK)
+        self.dwa = adjwrap(self.domega, -5.0, 6.0, 0.01, 1.0, 1.0)
         self.dwa.connect("value_changed", self.setdw)
-        self.dws = gtk.HScale(self.dwa)
+        self.dws = Gtk.HScale(adjustment=self.dwa)
         self.dws.connect("format-value", logvalue)
-        self.dws.set_digits(2);  self.dws.set_value_pos(gtk.POS_LEFT)
+        self.dws.set_digits(2);  self.dws.set_value_pos(Gtk.PositionType.LEFT)
         self.dws.show()
-        self.box.attach(self.dws,2,3,1,2,gtk.FILL|gtk.EXPAND,gtk.SHRINK)
-        self.ga = gtk.Adjustment(self.gamma, -5.0, 6.0, 0.01, 1.0, 1.0)
+        self.box.attach(self.dws,2,3,1,2,Gtk.AttachOptions.FILL|Gtk.AttachOptions.EXPAND,Gtk.AttachOptions.SHRINK)
+        self.ga = adjwrap(self.gamma, -5.0, 6.0, 0.01, 1.0, 1.0)
         self.ga.connect("value_changed", self.setg)
-        self.gs = gtk.HScale(self.ga)
+        self.gs = Gtk.HScale(adjustment=self.ga)
         self.gs.connect("format-value", logvalue)
-        self.gs.set_digits(2);        self.gs.set_value_pos(gtk.POS_LEFT)
+        self.gs.set_digits(2);        self.gs.set_value_pos(Gtk.PositionType.LEFT)
         self.gs.show()
-        self.box.attach(self.gs,2,3,2,3,gtk.FILL|gtk.EXPAND,gtk.SHRINK)
-        self.ta = gtk.Adjustment(self.temp, -5.0, 6.0, 0.01, 1.0, 1.0)
+        self.box.attach(self.gs,2,3,2,3,Gtk.AttachOptions.FILL|Gtk.AttachOptions.EXPAND,Gtk.AttachOptions.SHRINK)
+        self.ta = adjwrap(self.temp, -5.0, 6.0, 0.01, 1.0, 1.0)
         self.ta.connect("value_changed", self.sett)
-        self.ts = gtk.HScale(self.ta)
+        self.ts = Gtk.HScale(adjustment=self.ta)
         self.ts.connect("format-value", logvalue)
-        self.ts.set_digits(2);        self.ts.set_value_pos(gtk.POS_LEFT)
+        self.ts.set_digits(2);        self.ts.set_value_pos(Gtk.PositionType.LEFT)
         self.ts.show()
-        self.box.attach(self.ts,2,3,3,4,gtk.FILL|gtk.EXPAND,gtk.SHRINK)
+        self.box.attach(self.ts,2,3,3,4,Gtk.AttachOptions.FILL|Gtk.AttachOptions.EXPAND,Gtk.AttachOptions.SHRINK)
         self.box.show()
 
-class plotarea(gtk.DrawingArea):
-    def __init__(self):
+class plotarea(Gtk.Frame):
+    def __init__(self, css=None, border_width = 0):
         self.data=[]; self.datax=[]
         self.bhw=1.0
         self.expression=""
-        gtk.DrawingArea.__init__(self)
-        self.connect("expose_event", self.expose)
+        super().__init__()
+        
+        self.surface = None     
+        self.vexpand = True; self.hexpand=True   
+        self.set_border_width(border_width)
 
-    def expose(self, widget, event):
-        self.context = widget.window.cairo_create()
-        self.context.rectangle(event.area.x, event.area.y,
-                               event.area.width, event.area.height)
-        self.context.clip()
-        self.draw(self.context)
+        self.area = Gtk.DrawingArea()
+        self.add(self.area)
+
+        self.connect("draw", self.on_draw)
+        self.area.connect('configure-event', self.on_configure)
+
+    def init_surface(self, area):
+        # Destroy previous buffer
+        if self.surface is not None:
+            self.surface.finish()
+            self.surface = None
+
+        # Create a new buffer
+        self.surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, area.get_allocated_width(), area.get_allocated_height())
+
+    def on_draw(self, area, context):
+        if self.surface is not None:
+            context.set_source_surface(self.surface, 0.0, 0.0)            
+            context.paint()
+        else:
+            print('Invalid surface')
+
+
+    def on_configure(self, area, event, data=None): 
+        self.redraw()
         return False
+        
+                
+    def redraw(self): 
+        self.init_surface(self.area)
+        context = cairo.Context(self.surface)
+        self.draw(context)
+        self.surface.flush()
+        self.area.queue_draw()
 
-        self.draw(self.context)
-
-    def redraw(self):
-        self.draw(self.window.cairo_create())
 
     def draw(self, cr):
-        [width,height]=self.window.get_size()
-        cr.scale((width) / 10.0, -(height) / 10.0)
+        width, height = self.area.get_allocated_width(), self.area.get_allocated_height()
+        cr.scale(width/10, -height/10)        
         cr.translate(5, -5)
 
         # background grid
@@ -111,14 +143,6 @@ class plotarea(gtk.DrawingArea):
         cr.set_line_width(0.025); cr.set_source_rgb(0,0,0)
         cr.move_to(0,-5); cr.line_to(0,5);
         cr.move_to(5,0); cr.line_to(-5,0); cr.stroke();
-        txt=cr.create_layout()
-        font=pango.FontDescription()
-        font.set_size(200)
-        txt.set_font_description(font); txt.set_alignment(pango.ALIGN_CENTER);
-        txt.set_text("1.0")
-        cr.save(); cr.translate(-5,0); cr.scale(1,-1); cr.show_layout(txt); cr.restore();
-        cr.save(); cr.translate(0,5); cr.scale(1,-1); cr.show_layout(txt); cr.restore();
-
          
         cr.set_line_width(0.025)
         cr.set_source_rgb(0,0,0)
@@ -189,24 +213,24 @@ class mainwin:
         self.selchanged()
 
     def setcppw0(self,adj):
-        self.cppw0=10**adj.value
+        self.cppw0=10**adj.get_value()
         self.valuechanged()
 
     def apars(self,adj, user1):
-        if (user1=="gamma0"): self.gamma0=adj.value;
-        elif (user1=="temp0"): self.temp0=adj.value;
+        if (user1=="gamma0"): self.gamma0=adj.get_value();
+        elif (user1=="temp0"): self.temp0=adj.get_value();
         self.valuechanged()
 
     def setx(self,adj):
-        self.bhw=10**adj.value
+        self.bhw=10**adj.get_value()
         self.valuechanged()
 
     def ddraw(self,adj):
-        while len(self.deltas)>int(adj.value):
+        while len(self.deltas)>int(adj.get_value()):
             self.dbox.remove(self.deltas[len(self.deltas)-1].box); self.deltas.pop();
-        while len(self.deltas)<int(adj.value):
+        while len(self.deltas)<int(adj.get_value()):
             self.deltas.append(deltablock(self.valuechanged))
-            self.dbox.pack_start(self.deltas[len(self.deltas)-1].box,False,False)
+            self.dbox.pack_start(self.deltas[len(self.deltas)-1].box,False,False,0)
         self.valuechanged()
 
     def __init__(self):
@@ -217,7 +241,7 @@ class mainwin:
         self.glesel={"K" : True, "H" : False, "kv" : True, "kh" : False, "kk" : False, "cpp" : False, "cqq" : True, "spectrum": False}
         self.gamma0=-20; self.temp0=0; self.bhw=1.0
         # Window and framework
-        self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+        self.window = Gtk.Window(type=Gtk.WindowType.TOPLEVEL)
         self.window.set_title("Build and test a GLE as a sum of deltas.")
         self.window.set_border_width(10)
         self.window.connect("destroy", self.destroy)
@@ -225,140 +249,142 @@ class mainwin:
         # A Button, with an action
         # Add it to the geometry
         # show the button
-        h0box = gtk.HBox(homogeneous=False, spacing=3)
-        vbox = gtk.VBox(homogeneous=False, spacing=2)
-        hbox = gtk.HBox(homogeneous=False, spacing=3)
-        label=gtk.Label("Output prefix")
-        hbox.pack_start(label,False,False)
+        h0box = Gtk.HBox(homogeneous=False, spacing=3)
+        vbox = Gtk.VBox(homogeneous=False, spacing=2)
+        hbox = Gtk.HBox(homogeneous=False, spacing=3)
+        label=Gtk.Label(label="Output prefix")
+        hbox.pack_start(label,False,False,0)
         label.show()
-        self.prefix=gtk.Entry()
+        self.prefix=Gtk.Entry()
         self.prefix.set_text("deltafit")
-        hbox.pack_start(self.prefix,False,False)
+        hbox.pack_start(self.prefix,False,False,0)
         self.prefix.show()
-        self.compute = gtk.Button("Compute!")
+        self.compute = Gtk.Button(label="Compute!")
         self.compute.connect("clicked", self.click_compute, None)
-        hbox.pack_start(self.compute,False,False)
+        hbox.pack_start(self.compute,False,False,0)
         self.compute.show()
-        self.auto= gtk.CheckButton("Auto-compute")
+        self.auto= Gtk.CheckButton(label="Auto-compute")
         self.auto.connect("toggled", self.set_auto, None)
         self.auto.show()
-        hbox.pack_end(self.auto,False,False)
+        hbox.pack_end(self.auto, True, True, 0)
         hbox.show()
-        vbox.pack_start(hbox,False,False)
+        vbox.pack_start(hbox,False,False,0)
 
-        hbox = gtk.HBox(homogeneous=False, spacing=3)
-        label=gtk.Label("Plot expression")
-        hbox.pack_start(label,False,False)
+        hbox = Gtk.HBox(homogeneous=False, spacing=3)
+        label=Gtk.Label(label="Plot expression")
+        hbox.pack_start(label,False,False,0)
         label.show()
-        self.expression=gtk.Entry()
+        self.expression=Gtk.Entry()
         self.expression.set_text("X*0.5*bhw/tanh(X*bhw*0.5)")
-        hbox.pack_end(self.expression,True,True)
+        hbox.pack_end(self.expression, True, True, 0)
         self.expression.show()
         hbox.show()
-        vbox.pack_start(hbox,False,False)
+        vbox.pack_start(hbox,False,False,0)
 
-        hbox = gtk.HBox(homogeneous=False, spacing=3)
-        label=gtk.Label("b h w=")
-        hbox.pack_start(label,False,False)
+        hbox = Gtk.HBox(homogeneous=False, spacing=3)
+        label=Gtk.Label(label="b h w=")
+        hbox.pack_start(label,False,False,0)
         label.show()
-        self.xadj=gtk.Adjustment(1.0, -1.0, 3, step_incr=0.01, page_incr=1.0, page_size=1.0)
+        self.xadj=adjwrap(1.0, -1.0, 3, 0.01, 1.0, 1.0)
         self.xadj.connect("value_changed", self.setx)
-        self.xslider=gtk.HScale(self.xadj)
+        self.xslider=Gtk.HScale(adjustment=self.xadj)
         self.xslider.connect("format-value", logvalue)
         self.xslider.set_digits(1)
-        self.xslider.set_value_pos(gtk.POS_LEFT)
+        self.xslider.set_value_pos(Gtk.PositionType.LEFT)
         self.xslider.set_size_request(400,20)
-        hbox.pack_start(self.xslider,True,True)
+        hbox.pack_start(self.xslider,True,True,0)
         self.xslider.show()
         hbox.show()
-        vbox.pack_start(hbox,False,False)
+        vbox.pack_start(hbox,False,False,0)
 
-        hbox = gtk.HBox(homogeneous=False, spacing=3)
-        check=gtk.CheckButton("Cpp(ω)"); check.connect("toggled",self.set_sel,"spectrum"); check.show(); hbox.pack_start(check,False,False);
-        label=gtk.Label("ω0=")
-        hbox.pack_start(label,False,False)
+        hbox = Gtk.HBox(homogeneous=False, spacing=3)
+        check=Gtk.CheckButton(label="Cpp(ω)"); check.connect("toggled",self.set_sel,"spectrum"); check.show(); hbox.pack_start(check,False,False,0);
+        label=Gtk.Label(label="ω0=")
+        hbox.pack_start(label,False,False,0)
         label.show()
-        self.xadj=gtk.Adjustment(0.0, -5.0, 6.0, 0.01, 1.0, 1.0) 
+        self.xadj=adjwrap(0.0, -5.0, 6.0, 0.01, 1.0, 1.0) 
         self.xadj.connect("value_changed", self.setcppw0)
-        self.xslider=gtk.HScale(self.xadj)
+        self.xslider=Gtk.HScale(adjustment=self.xadj)
         self.xslider.connect("format-value", logvalue)
         self.xslider.set_digits(1)
-        self.xslider.set_value_pos(gtk.POS_LEFT)
+        self.xslider.set_value_pos(Gtk.PositionType.LEFT)
         self.xslider.set_size_request(400,20)
-        hbox.pack_start(self.xslider,True,True)
+        hbox.pack_start(self.xslider,True,True,0)
         self.xslider.show()
         hbox.show()
-        vbox.pack_start(hbox,False,False)
+        vbox.pack_start(hbox,False,False,0)
 
-        hbox = gtk.HBox(homogeneous=False, spacing=3)
-        label=gtk.Label("n_δ=")
-        hbox.pack_start(label,False,False)
+        hbox = Gtk.HBox(homogeneous=False, spacing=3)
+        label=Gtk.Label(label="n_δ=")
+        hbox.pack_start(label,False,False,0)
         label.show()
-        self.dadj=gtk.Adjustment(1.0, 1.0, 16.0, 1.0, 1.0, 1.0)
+        self.dadj=adjwrap(1.0, 1.0, 16.0, 1.0, 1.0, 1.0)
         self.dadj.connect("value_changed", self.ddraw)
-        self.dslider=gtk.HScale(self.dadj)
+        self.dslider=Gtk.HScale(adjustment=self.dadj)
         self.dslider.set_digits(0)
-        self.dslider.set_value_pos(gtk.POS_LEFT)
+        self.dslider.set_value_pos(Gtk.PositionType.LEFT)
         self.dslider.set_size_request(400,20)
-        hbox.pack_start(self.dslider,True,True)
+        hbox.pack_start(self.dslider,True,True,0)
         self.dslider.show()
         hbox.show()
-        vbox.pack_start(hbox,False,False)
+        vbox.pack_start(hbox,False,False,0)
 
-        hbox = gtk.HBox(homogeneous=False, spacing=3)
-        check=gtk.CheckButton("K(ω)"); check.set_active(True); check.connect("toggled",self.set_sel,"K"); check.show(); hbox.pack_start(check,False,False);
-        check=gtk.CheckButton("H(ω)"); check.connect("toggled",self.set_sel,"H"); check.show(); hbox.pack_start(check,False,False)
-        check=gtk.CheckButton("κ_V"); check.set_active(True); check.connect("toggled",self.set_sel,"kv"); check.show(); hbox.pack_start(check,False,False)
-        check=gtk.CheckButton("κ_K"); check.connect("toggled",self.set_sel,"kk"); check.show(); hbox.pack_start(check,False,False)
-        check=gtk.CheckButton("κ_H"); check.connect("toggled",self.set_sel,"kh"); check.show(); hbox.pack_start(check,False,False)
-        check=gtk.CheckButton("<K>"); check.connect("toggled",self.set_sel,"cpp"); check.show(); hbox.pack_start(check,False,False)
-        check=gtk.CheckButton("<V>"); check.set_active(True); check.connect("toggled",self.set_sel,"cqq"); check.show(); hbox.pack_start(check,False,False)
+        hbox = Gtk.HBox(homogeneous=False, spacing=3)
+        check=Gtk.CheckButton(label="K(ω)"); check.set_active(True); check.connect("toggled",self.set_sel,"K"); check.show(); hbox.pack_start(check,False,False,0);
+        check=Gtk.CheckButton(label="H(ω)"); check.connect("toggled",self.set_sel,"H"); check.show(); hbox.pack_start(check,False,False,0)
+        check=Gtk.CheckButton(label="κ_V"); check.set_active(True); check.connect("toggled",self.set_sel,"kv"); check.show(); hbox.pack_start(check,False,False,0)
+        check=Gtk.CheckButton(label="κ_K"); check.connect("toggled",self.set_sel,"kk"); check.show(); hbox.pack_start(check,False,False,0)
+        check=Gtk.CheckButton(label="κ_H"); check.connect("toggled",self.set_sel,"kh"); check.show(); hbox.pack_start(check,False,False,0)
+        check=Gtk.CheckButton(label="<K>"); check.connect("toggled",self.set_sel,"cpp"); check.show(); hbox.pack_start(check,False,False,0)
+        check=Gtk.CheckButton(label="<V>"); check.set_active(True); check.connect("toggled",self.set_sel,"cqq"); check.show(); hbox.pack_start(check,False,False,0)
         hbox.show()
-        vbox.pack_start(hbox,False,False)
+        vbox.pack_start(hbox,False,False,0)
 
-        hbox = gtk.HBox(homogeneous=False, spacing=3)
-        label=gtk.Label("γ_0=")
-        hbox.pack_start(label,False,False)
+        hbox = Gtk.HBox(homogeneous=False, spacing=3)
+        label=Gtk.Label(label="γ_0=")
+        hbox.pack_start(label,False,False,0)
         label.show()
-        adj=gtk.Adjustment(self.gamma0, -20.0, 6.0, 0.01, 1.0, 1.0)
+        adj=adjwrap(self.gamma0, -20.0, 6.0, 0.01, 1.0, 1.0)
         adj.connect("value_changed", self.apars,"gamma0")
-        slider=gtk.HScale(adj)
+        slider=Gtk.HScale(adjustment=adj)
         slider.connect("format-value", logvalue)
         slider.set_digits(2)
-        slider.set_value_pos(gtk.POS_LEFT)
+        slider.set_value_pos(Gtk.PositionType.LEFT)
         slider.set_size_request(400,20); slider.show()
-        hbox.pack_start(slider,True,True); hbox.show()
-        vbox.pack_start(hbox,False,False)
+        hbox.pack_start(slider,True,True,0); hbox.show()
+        vbox.pack_start(hbox,False,False,0)
 
-        hbox = gtk.HBox(homogeneous=False, spacing=3)
-        label=gtk.Label("T_0=")
-        hbox.pack_start(label,False,False)
+        hbox = Gtk.HBox(homogeneous=False, spacing=3)
+        label=Gtk.Label(label="T_0=")
+        hbox.pack_start(label,False,False,0)
         label.show()
-        adj=gtk.Adjustment(self.temp0, -5.0, 6.0, 0.01, 1.0, 1.0)
+        adj=adjwrap(self.temp0, -5.0, 6.0, 0.01, 1.0, 1.0)
         adj.connect("value_changed", self.apars,"temp0")
-        slider=gtk.HScale(adj)
+        slider=Gtk.HScale(adjustment=adj)
         slider.connect("format-value", logvalue)
         slider.set_digits(2)
-        slider.set_value_pos(gtk.POS_LEFT)
+        slider.set_value_pos(Gtk.PositionType.LEFT)
         slider.set_size_request(400,20); slider.show()
-        hbox.pack_start(slider,True,True); hbox.show()
-        vbox.pack_start(hbox,False,False)
+        hbox.pack_start(slider,True,True,0); hbox.show()
+        vbox.pack_start(hbox,False,False,0)
 
 
-        self.dbox=gtk.VBox(homogeneous=False, spacing=3)
-        vbox.pack_start(self.dbox,False,False)
+        self.dbox=Gtk.VBox(homogeneous=False, spacing=3)
+        vbox.pack_start(self.dbox,False,False,0)
         self.dbox.show()
         hbox.show()
         self.plot=plotarea()
-        self.plot.show()
-        self.plot.set_size_request(500,500)
+        
         vbox.show()
-        h0box.pack_start(vbox,False,False)
-        h0box.pack_end(self.plot,True,True)
+        h0box.pack_start(vbox,False,False,0)
+        h0box.pack_end(self.plot, True, True, 0)
         h0box.show()
         self.window.add(h0box)
+        self.plot.show()
+        self.plot.set_size_request(500,500)
+
         # Show the window
-        self.window.show()
+        self.window.show_all()
         self.ddraw(self.dadj)
         self.compute_gle()
 
@@ -372,7 +398,7 @@ class mainwin:
         dmat=[[1e-20]*ne for i in range(ne)];
         amat[0][0]=10**self.gamma0; dmat[0][0]=2*10**self.gamma0*10**self.temp0;
         for i in range(0,nd):
-    	    w0=10**self.deltas[i].omega0; dw=10**self.deltas[i].domega*w0;
+            w0=10**self.deltas[i].omega0; dw=10**self.deltas[i].domega*w0;
             g=math.sqrt(10**self.deltas[i].gamma*dw)
 
             #amat[0][2*i+1]=amat[0][2*i+2]=g; 
@@ -396,16 +422,16 @@ class mainwin:
         ofile=open(ofilename,'w')
 
         afile.write("rows "+str(ne)+"\n")
-        afile.write("cols "+str(int(self.dadj.value)*2+1)+"\n")
-        afile.write("data "+str( (int(self.dadj.value)*2+1)**2)+"\n")
+        afile.write("cols "+str(int(self.dadj.get_value())*2+1)+"\n")
+        afile.write("data "+str( (int(self.dadj.get_value())*2+1)**2)+"\n")
         for i in range(0,ne):
             for j in range(0,ne):
                 afile.write(str(amat[i][j])+" ")
             afile.write("\n")
 
         dfile.write("rows "+str(ne)+"\n")
-        dfile.write("cols "+str(int(self.dadj.value)*2+1)+"\n")
-        dfile.write("data "+str( (int(self.dadj.value)*2+1)**2)+"\n")
+        dfile.write("cols "+str(int(self.dadj.get_value())*2+1)+"\n")
+        dfile.write("data "+str( (int(self.dadj.get_value())*2+1)**2)+"\n")
         for i in range(0,ne):
             for j in range(0,ne):
                 dfile.write(str(dmat[i][j])+" ")
@@ -435,12 +461,12 @@ class mainwin:
 # when main window closed
 
     def destroy(self, widget, data=None):
-        gtk.main_quit()
+        Gtk.main_quit()
 
 # All PyGTK applicatons need a main method - event loop
 
     def main(self):
-        gtk.main()
+        Gtk.main()
 
 if __name__ == "__main__":
     base = mainwin()
