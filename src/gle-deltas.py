@@ -6,7 +6,7 @@
 import gi
 gi.require_version('Gtk', '3.0')
 from gi. repository import Gtk
-import gtk, gobject, cairo #, pango
+import cairo
 import subprocess, math, re
 from numpy import *
 
@@ -198,7 +198,7 @@ class mainwin:
             if self.glesel["kh"]: dd.append(math.log10(el[1]/el[0]));
             if self.glesel["cqq"]: dd.append(math.log10(el[6]));
             if self.glesel["cpp"]: dd.append(math.log10(el[7]));
-            if self.glesel["spectrum"]: dd.append(math.log10(math.fabs(el[13])));
+            if self.glesel["spectrum"]: dd.append(math.log10(math.fabs(el[11]+1e-16)));
             self.plot.data.append(dd)
         self.plot.bhw=self.bhw
         self.plot.expression=self.expression.get_text()
@@ -438,7 +438,7 @@ class mainwin:
             dfile.write("\n")
 
         afile.close()
-        dfile.close()        
+        dfile.close()
         pgle=subprocess.Popen(["gle-analyze","-wi","1e-5","-wf","1e5","-np","500","-a",afilename,"-d",dfilename,"-w0",str(self.cppw0)],stdout=ofile)
         pgle.wait()
         ofile.close()
