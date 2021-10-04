@@ -85,6 +85,7 @@ class plotarea(Gtk.Frame):
         self.data=[]; self.datax=[]
         self.bhw=1.0
         self.expression=""
+        self.plotfile=""
         super().__init__()
         
         self.surface = None     
@@ -145,7 +146,7 @@ class plotarea(Gtk.Frame):
         cr.move_to(5,0); cr.line_to(-5,0); cr.stroke();
          
         cr.set_line_width(0.025)
-        cr.set_source_rgb(0,0,0)
+        cr.set_source_rgb(0.3,0.3,0.3)
         if len(self.datax)>0: cr.move_to(self.datax[0],0)
 
         expr="math.log10("+self.expression+")";
@@ -157,9 +158,22 @@ class plotarea(Gtk.Frame):
                 yexpr=eval(xexpr)
                 cr.line_to(self.datax[i],float(yexpr))
             except: pass
-
-
         cr.stroke()
+        
+        cr.set_line_width(0.025)
+        cr.set_source_rgb(0,0,0)
+        if self.plotfile != "":
+            
+            data = loadtxt(self.plotfile)
+            try:
+                data = log10(data)
+                cr.move_to(data[0,0], data[0,1])
+                for x,y in data[1:,:2]:
+                    cr.line_to(x,y)
+                cr.stroke()
+            except:
+                pass
+           
 
         if len(self.datax)>0:
             cr.set_line_width(0.05);
@@ -202,6 +216,7 @@ class mainwin:
             self.plot.data.append(dd)
         self.plot.bhw=self.bhw
         self.plot.expression=self.expression.get_text()
+        self.plot.plotfile=self.plotfile.get_text()
         self.plot.redraw()
 
 
@@ -296,6 +311,18 @@ class mainwin:
         self.xslider.show()
         hbox.show()
         vbox.pack_start(hbox,False,False,0)
+
+        hbox = Gtk.HBox(homogeneous=False, spacing=3)
+        label=Gtk.Label(label="Plot file")
+        hbox.pack_start(label,False,False,0)
+        label.show()
+        self.plotfile=Gtk.Entry()
+        self.plotfile.set_text("")
+        hbox.pack_end(self.plotfile, True, True, 0)
+        self.plotfile.show()
+        hbox.show()
+        vbox.pack_start(hbox,False,False,0)
+
 
         hbox = Gtk.HBox(homogeneous=False, spacing=3)
         check=Gtk.CheckButton(label="Cpp(ω)"); check.connect("toggled",self.set_sel,"spectrum"); check.show(); hbox.pack_start(check,False,False,0);
