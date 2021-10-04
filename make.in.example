@@ -14,5 +14,5 @@ MAKEDEPEND=g++ -M $(CXXFLAGS)
 
 # Linker flags
 TBSRC=../../toolbox/src/
-LDFLAGS=-L$(TBSRC)/libs -ltoolbox -llapack
+LDFLAGS=-L$(TBSRC)/libs -ltoolbox -llapack -lblas
 CXXFLAGS:=$(CXXFLAGS) -I$(TBSRC)/libs 
