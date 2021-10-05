@@ -1,0 +1,190 @@
+parameters  {
+   ns             8
+   cstyle         identity
+   astyle         pgeneral
+   finite-dt      1
+}
+
+search {
+   mode simplex
+   steps 10000
+   tolerance 1e-7
+   randomize 0.01
+   adapt_mult 1.001
+   temp_init 5e-1
+   temp_final 1e-4
+   stepsize 2e-1
+   linesearch 5
+}
+
+fitting {
+  global {
+   gzero > 1e-9 1e-5 log 2
+   aecenter = 0.03 1e-4  log 2
+   aespread = 30 1e-4 log 1
+  }
+  pnorm {
+    kw 4
+  }
+  pweight { 
+    kw  1 
+  }
+
+points {
+{ frequency 7.34964e-08 values { kw = 2.49563e+00 1.0e+0 log 1  } }
+{ frequency 5.87971e-07 values { kw = 2.71662e+00 1.0e+0 log 1  } }
+{ frequency 1.98440e-06 values { kw = 3.02201e+00 1.0e+0 log 1  } }
+{ frequency 4.70377e-06 values { kw = 3.36789e+00 1.0e+0 log 1  } }
+{ frequency 9.18704e-06 values { kw = 3.75766e+00 1.0e+0 log 1  } }
+{ frequency 1.58752e-05 values { kw = 4.22338e+00 1.0e+0 log 1  } }
+{ frequency 2.52093e-05 values { kw = 4.78449e+00 1.0e+0 log 1  } }
+{ frequency 3.76301e-05 values { kw = 5.43875e+00 1.0e+0 log 1  } }
+{ frequency 5.35788e-05 values { kw = 6.16023e+00 1.0e+0 log 1  } }
+{ frequency 7.34964e-05 values { kw = 6.89158e+00 1.0e+0 log 1  } }
+{ frequency 9.78237e-05 values { kw = 7.58290e+00 1.0e+0 log 1  } }
+{ frequency 1.27002e-04 values { kw = 8.24619e+00 1.0e+0 log 1  } }
+{ frequency 1.61472e-04 values { kw = 8.92348e+00 1.0e+0 log 1  } }
+{ frequency 2.01674e-04 values { kw = 9.60542e+00 1.0e+0 log 1  } }
+{ frequency 2.48050e-04 values { kw = 1.02227e+01 1.0e+0 log 1  } }
+{ frequency 3.01041e-04 values { kw = 1.07086e+01 1.0e+0 log 1  } }
+{ frequency 3.61088e-04 values { kw = 1.10582e+01 1.0e+0 log 1  } }
+{ frequency 4.28631e-04 values { kw = 1.13423e+01 1.0e+0 log 1  } }
+{ frequency 5.04112e-04 values { kw = 1.16347e+01 1.0e+0 log 1  } }
+{ frequency 5.87971e-04 values { kw = 1.19020e+01 1.0e+0 log 1  } }
+{ frequency 6.80650e-04 values { kw = 1.20368e+01 1.0e+0 log 1  } }
+{ frequency 7.82589e-04 values { kw = 1.20245e+01 1.0e+0 log 1  } }
+{ frequency 8.94230e-04 values { kw = 1.19833e+01 1.0e+0 log 1  } }
+{ frequency 1.01601e-03 values { kw = 1.20146e+01 1.0e+0 log 1  } }
+{ frequency 1.14838e-03 values { kw = 1.21078e+01 1.0e+0 log 1  } }
+{ frequency 1.29177e-03 values { kw = 1.22003e+01 1.0e+0 log 1  } }
+{ frequency 1.44663e-03 values { kw = 1.22433e+01 1.0e+0 log 1  } }
+{ frequency 1.61339e-03 values { kw = 1.22088e+01 1.0e+0 log 1  } }
+{ frequency 1.79250e-03 values { kw = 1.20984e+01 1.0e+0 log 1  } }
+{ frequency 1.98440e-03 values { kw = 1.19414e+01 1.0e+0 log 1  } }
+{ frequency 2.18953e-03 values { kw = 1.17589e+01 1.0e+0 log 1  } }
+{ frequency 2.40833e-03 values { kw = 1.15534e+01 1.0e+0 log 1  } }
+{ frequency 2.64124e-03 values { kw = 1.13337e+01 1.0e+0 log 1  } }
+{ frequency 2.88870e-03 values { kw = 1.11030e+01 1.0e+0 log 1  } }
+{ frequency 3.15116e-03 values { kw = 1.08311e+01 1.0e+0 log 1  } }
+{ frequency 3.42905e-03 values { kw = 1.04904e+01 1.0e+0 log 1  } }
+{ frequency 3.72281e-03 values { kw = 1.01121e+01 1.0e+0 log 1  } }
+{ frequency 4.03289e-03 values { kw = 9.75758e+00 1.0e+0 log 1  } }
+{ frequency 4.35973e-03 values { kw = 9.44277e+00 1.0e+0 log 1  } }
+{ frequency 4.70377e-03 values { kw = 9.14313e+00 1.0e+0 log 1  } }
+{ frequency 5.06544e-03 values { kw = 8.86161e+00 1.0e+0 log 1  } }
+{ frequency 5.44520e-03 values { kw = 8.63214e+00 1.0e+0 log 1  } }
+{ frequency 5.84348e-03 values { kw = 8.45726e+00 1.0e+0 log 1  } }
+{ frequency 6.26071e-03 values { kw = 8.29932e+00 1.0e+0 log 1  } }
+{ frequency 6.69736e-03 values { kw = 8.13929e+00 1.0e+0 log 1  } }
+{ frequency 7.15384e-03 values { kw = 7.99950e+00 1.0e+0 log 1  } }
+{ frequency 7.63061e-03 values { kw = 7.90398e+00 1.0e+0 log 1  } }
+{ frequency 8.12811e-03 values { kw = 7.84784e+00 1.0e+0 log 1  } }
+{ frequency 8.64677e-03 values { kw = 7.80728e+00 1.0e+0 log 1  } }
+{ frequency 9.18704e-03 values { kw = 7.76298e+00 1.0e+0 log 1  } }
+{ frequency 9.74937e-03 values { kw = 7.71183e+00 1.0e+0 log 1  } }
+{ frequency 1.03342e-02 values { kw = 7.65780e+00 1.0e+0 log 1  } }
+{ frequency 1.09419e-02 values { kw = 7.59890e+00 1.0e+0 log 1  } }
+{ frequency 1.15730e-02 values { kw = 7.53584e+00 1.0e+0 log 1  } }
+{ frequency 1.22280e-02 values { kw = 7.48240e+00 1.0e+0 log 1  } }
+{ frequency 1.29071e-02 values { kw = 7.44810e+00 1.0e+0 log 1  } }
+{ frequency 1.36110e-02 values { kw = 7.42149e+00 1.0e+0 log 1  } }
+{ frequency 1.43400e-02 values { kw = 7.38414e+00 1.0e+0 log 1  } }
+{ frequency 1.50946e-02 values { kw = 7.33591e+00 1.0e+0 log 1  } }
+{ frequency 1.58752e-02 values { kw = 7.30754e+00 1.0e+0 log 1  } }
+{ frequency 1.66823e-02 values { kw = 7.34161e+00 1.0e+0 log 1  } }
+{ frequency 1.75162e-02 values { kw = 7.43770e+00 1.0e+0 log 1  } }
+{ frequency 1.83775e-02 values { kw = 7.53264e+00 1.0e+0 log 1  } }
+{ frequency 1.92666e-02 values { kw = 7.57024e+00 1.0e+0 log 1  } }
+{ frequency 2.01839e-02 values { kw = 7.56177e+00 1.0e+0 log 1  } }
+{ frequency 2.11299e-02 values { kw = 7.54285e+00 1.0e+0 log 1  } }
+{ frequency 2.21050e-02 values { kw = 7.52103e+00 1.0e+0 log 1  } }
+{ frequency 2.31096e-02 values { kw = 7.50512e+00 1.0e+0 log 1  } }
+{ frequency 2.41442e-02 values { kw = 7.52879e+00 1.0e+0 log 1  } }
+{ frequency 2.52093e-02 values { kw = 7.60235e+00 1.0e+0 log 1  } }
+{ frequency 2.63052e-02 values { kw = 7.68321e+00 1.0e+0 log 1  } }
+{ frequency 2.74324e-02 values { kw = 7.72453e+00 1.0e+0 log 1  } }
+{ frequency 2.85913e-02 values { kw = 7.72786e+00 1.0e+0 log 1  } }
+{ frequency 2.97825e-02 values { kw = 7.73403e+00 1.0e+0 log 1  } }
+{ frequency 3.10063e-02 values { kw = 7.77584e+00 1.0e+0 log 1  } }
+{ frequency 3.55529e-02 values { kw = 7.87856e+00 1.0e+0 log 1  } }
+{ frequency 4.51360e-02 values { kw = 7.94853e+00 1.0e+0 log 1  } }
+{ frequency 5.63027e-02 values { kw = 7.95513e+00 1.0e+0 log 1  } }
+{ frequency 7.13134e-02 values { kw = 7.94481e+00 1.0e+0 log 1  } }
+{ frequency 9.00362e-02 values { kw = 7.95572e+00 1.0e+0 log 1  } }
+{ frequency 1.13243e-01 values { kw = 8.10020e+00 1.0e+0 log 1  } }
+{ frequency 1.41832e-01 values { kw = 8.22670e+00 1.0e+0 log 1  } }
+{ frequency 1.78827e-01 values { kw = 8.62461e+00 1.0e+0 log 1  } }
+{ frequency 2.24063e-01 values { kw = 9.30188e+00 1.0e+0 log 1  } }
+{ frequency 2.84423e-01 values { kw = 1.06036e+01 1.0e+0 log 1  } }
+{ frequency 3.57911e-01 values { kw = 1.31472e+01 1.0e+0 log 1  } }
+{ frequency 4.46740e-01 values { kw = 1.68854e+01 1.0e+0 log 1  } }
+{ frequency 5.66196e-01 values { kw = 2.12137e+01 1.0e+0 log 1  } }
+{ frequency 7.10239e-01 values { kw = 2.48499e+01 1.0e+0 log 1  } }
+{ frequency 8.94230e-01 values { kw = 2.66718e+01 1.0e+0 log 1  } }
+{ frequency 1.12783e+00 values { kw = 2.64696e+01 1.0e+0 log 1  } }
+{ frequency 1.41472e+00 values { kw = 2.49313e+01 1.0e+0 log 1  } }
+{ frequency 1.78325e+00 values { kw = 2.35138e+01 1.0e+0 log 1  } }
+{ frequency 2.24293e+00 values { kw = 2.18842e+01 1.0e+0 log 1  } }
+{ frequency 2.82545e+00 values { kw = 1.94284e+01 1.0e+0 log 1  } }
+{ frequency 3.55925e+00 values { kw = 1.66389e+01 1.0e+0 log 1  } }
+{ frequency 4.47816e+00 values { kw = 1.26526e+01 1.0e+0 log 1  } }
+{ frequency 5.64199e+00 values { kw = 7.64436e+00 1.0e+0 log 1  } }
+{ frequency 7.08409e+00 values { kw = 3.55270e+00 1.0e+0 log 1  } }
+{ frequency 8.91418e+00 values { kw = 2.00086e+00 1.0e+0 log 1  } }
+{ frequency 1.12230e+01 values { kw = 1.52876e+00 1.0e+0 log 1  } }
+{ frequency 1.41554e+01 values { kw = 1.42340e+00 1.0e+0 log 1  } }
+{ frequency 1.78146e+01 values { kw = 1.65067e+00 1.0e+0 log 1  } }
+{ frequency 2.24032e+01 values { kw = 3.33677e+00 1.0e+0 log 1  } }
+{ frequency 2.82403e+01 values { kw = 1.78608e+01 1.0e+0 log 1  } }
+{ frequency 3.54850e+01 values { kw = 9.20422e+00 1.0e+0 log 1  } }
+{ frequency 4.47389e+01 values { kw = 6.17996e-01 1.0e+0 log 1  } }
+{ frequency 5.63027e+01 values { kw = 3.45736e-01 1.0e+0 log 1  } }
+{ frequency 7.08821e+01 values { kw = 2.95459e-01 1.0e+0 log 1  } }
+{ frequency 8.91556e+01 values { kw = 1.67395e-01 1.0e+0 log 1  } }
+{ frequency 1.12217e+02 values { kw = 1.33908e-01 1.0e+0 log 1  } }
+{ frequency 1.41320e+02 values { kw = 2.22093e-01 1.0e+0 log 1  } }
+{ frequency 1.77832e+02 values { kw = 4.43308e-01 1.0e+0 log 1  } }
+{ frequency 2.24063e+02 values { kw = 1.76261e+00 1.0e+0 log 1  } }
+{ frequency 2.81984e+02 values { kw = 1.60432e+01 1.0e+0 log 1  } }
+{ frequency 3.55068e+02 values { kw = 1.14175e+01 1.0e+0 log 1  } }
+{ frequency 4.46740e+02 values { kw = 4.56651e-01 1.0e+0 log 1  } }
+{ frequency 5.62763e+02 values { kw = 1.10865e-01 1.0e+0 log 1  } }
+{ frequency 7.08240e+02 values { kw = 6.45648e-03 1.0e+0 log 1  } }
+{ frequency 8.91317e+02 values { kw = 7.99823e-03 1.0e+0 log 1  } }
+{ frequency 1.12240e+03 values { kw = 2.29220e-03 1.0e+0 log 1  } }
+{ frequency 1.41314e+03 values { kw = 1.06016e-03 1.0e+0 log 1  } }
+{ frequency 1.77863e+03 values { kw = 4.48472e-03 1.0e+0 log 1  } }
+{ frequency 2.23970e+03 values { kw = 2.84768e-02 1.0e+0 log 1  } }
+{ frequency 2.81917e+03 values { kw = 1.44000e-02 1.0e+0 log 1  } }
+{ frequency 3.54901e+03 values { kw = 4.04721e-04 1.0e+0 log 1  } }
+{ frequency 4.46793e+03 values { kw = 1.18339e-04 1.0e+0 log 1  } }
+{ frequency 5.62409e+03 values { kw = 6.97200e-05 1.0e+0 log 1  } }
+{ frequency 7.08177e+03 values { kw = 1.11066e-04 1.0e+0 log 1  } }
+{ frequency 8.91418e+03 values { kw = 1.09346e-04 1.0e+0 log 1  } }
+{ frequency 1.12230e+04 values { kw = 3.92427e-05 1.0e+0 log 1  } }
+{ frequency 1.41260e+04 values { kw = 3.46970e-05 1.0e+0 log 1  } }
+{ frequency 1.77846e+04 values { kw = 3.26163e-05 1.0e+0 log 1  } }
+{ frequency 2.23883e+04 values { kw = 3.06871e-05 1.0e+0 log 1  } }
+{ frequency 2.81879e+04 values { kw = 2.96287e-05 1.0e+0 log 1  } }
+}
+}
+
+prefix kw-delta
+
+restart { 
+a_matrix { 
+cols	9
+rows	9
+data 81
+2.972257679e-06 2.520247681e+01 -1.219661021e+01 -5.675383382e+00 3.272824238e-01 1.557426624e+00 -9.796170000e-01 -2.436959627e+01 4.276601352e-01 
+-2.520458829e+01 8.907059411e+00 -1.612615045e+00 -6.395144713e+00 6.393856166e+00 3.541787717e+00 1.703360627e+01 3.104342729e+02 2.736539225e-01 
+1.219651771e+01 1.612615045e+00 1.270340401e+00 -1.834468016e-01 -3.051609111e+00 1.703565394e+01 2.342970744e+01 2.279544102e+01 -1.297430025e+01 
+5.677131179e+00 6.395144713e+00 1.834468016e-01 2.653971977e+00 5.768184320e-01 -3.913362904e-01 5.001488959e-01 -8.366364051e+00 -7.639542397e-01 
+-3.269102804e-01 -6.393856166e+00 3.051609111e+00 -5.768184320e-01 4.161006289e-02 1.929003770e-01 2.712421397e-01 -1.483381885e+00 -1.707356042e-01 
+-1.557426647e+00 -3.541787717e+00 -1.703565394e+01 3.913362904e-01 -1.929003770e-01 1.401938849e-09 -1.017114996e-01 9.747745505e+00 3.020462900e-01 
+9.796170000e-01 -1.703360627e+01 -2.342970744e+01 -5.001488959e-01 -2.712421397e-01 1.017114996e-01 1.668809965e-37 1.779376798e+00 -4.807706360e-02 
+2.436959627e+01 -3.104342729e+02 -2.279544102e+01 8.366364051e+00 1.483381885e+00 -9.747745505e+00 -1.779376798e+00 2.046112352e-23 -1.051232712e+00 
+-4.276601352e-01 -2.736539225e-01 1.297430025e+01 7.639542397e-01 1.707356042e-01 -3.020462900e-01 4.807706360e-02 1.051232712e+00 5.923157615e-22 
+}
+}
+
