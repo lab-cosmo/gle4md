@@ -90,6 +90,7 @@ mkOption(out_mode,"cp2k",     "CP2K input section"  );
 mkOption(out_mode,"cpmd",     "CPMD input files"    );
 mkOption(out_mode,"aims",     "FHI-AIMS input section");
 mkOption(out_mode,"ipi",      "i-PI input section" );
+mkOption(out_mode,"python",   "Python array" );
 </script>
 </select><br/>
 
@@ -110,6 +111,9 @@ case "aims":
 case "ipi":
   httpInclude("ingen/out_ipi.html");
   break;
+case "python":
+  httpInclude("ingen/out_python.html");
+  break;       
 }
 </script>
 
