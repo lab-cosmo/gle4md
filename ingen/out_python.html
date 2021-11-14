@@ -3,6 +3,14 @@ out_aunits = typeof pageQuery.aunits !== "undefined" ? pageQuery.aunits : "ps";
 out_cunits = typeof pageQuery.cunits !== "undefined" ? pageQuery.cunits : "k";
 </script>
 
+<script type="text/javascript">
+   document.write("Units of time:&nbsp;"); 
+   mkUnit(out_aunits,"aunits","time");
+   if (CMAT!="") { document.write("<br/>Units of energy:&nbsp;"); mkUnit(out_cunits,"cunits","nrg"); }
+</script>
+<br/><br/>
+NB: The drift matrix <b>A</b> is output in units of the inverse of the time units given.
+The diffusion matrix <b>C</b> is output the energy units given.
 Paste the relevant lines into the Python code.
 
 <script type="text/javascript">
