@@ -6,9 +6,9 @@ Utilities to generate input parameters for Generalized Langevin Equation thermos
 
 This repository collects tools to fit a set of drift and diffusion matrices for a generalized
 Langevin equation, typically to be used in the context of molecular dynamics to enhance sampling
-efficiency, or to enforce a non-equilibrium, frequency-dependent energy distribution. 
+efficiency, or to enforce a non-equilibrium, frequency-dependent energy distribution.
 
-The code is fully functional and has been used in many papers, but is not exactly well 
+The code is fully functional and has been used in many papers, but is not exactly well
 documented and easy to use - and unlikely to get cleaned up and documented in the near future.
 
 If you are interested in using it, and/or to contribute to the process of making it more
@@ -26,11 +26,16 @@ cd toolbox/src
 make
 ```
 
-then you should copy `make.in.example` to `make.in`, and tweak it to your system 
-(e.g. setting the location where you have compiled the `toolbox` library. 
+then you should copy `make.in.example` to `make.in`, and tweak it to your system
+(e.g. setting the location where you have compiled the `toolbox` library.
 Then you should be able to just
 
 ```
 cd src
 make
 ```
+
+Maintainers
+-----------
+
+This project is [maintained](https://github.com/lab-cosmo/.github/blob/main/Maintainers.md) by @ceriottm, who will reply to issues and pull requests opened on this repository as soon as possible. You can mention them directly if you did not receive an answer after a couple of days.
